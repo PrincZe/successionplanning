@@ -10,7 +10,6 @@ export async function createPositionAction(data: {
   position_title: string
   agency: string
   jr_grade: string
-  sr_grade: string
   incumbent_id: string | null
   immediate_successors: string[]
   successors_1_2_years: string[]
@@ -37,7 +36,6 @@ export async function createPositionAction(data: {
       position_title: data.position_title,
       agency: data.agency,
       jr_grade: data.jr_grade,
-      sr_grade: data.sr_grade,
       incumbent_id: data.incumbent_id
     })
 

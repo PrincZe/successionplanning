@@ -11,7 +11,6 @@ export interface Position {
   position_title: string
   agency: string
   jr_grade: string
-  sr_grade: string
   incumbent_id: string | null
   created_at: string
   updated_at: string

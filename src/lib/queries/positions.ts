@@ -125,7 +125,6 @@ export async function updatePosition(
     position_title: position.position_title,
     agency: position.agency,
     jr_grade: position.jr_grade,
-    sr_grade: position.sr_grade,
     incumbent_id: position.incumbent_id
   }
 

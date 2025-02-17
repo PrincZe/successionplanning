@@ -16,7 +16,6 @@ export interface PositionFormData {
   position_title: string
   agency: string
   jr_grade: string
-  sr_grade: string
   incumbent_id: string | null
   immediate_successors: string[]
   successors_1_2_years: string[]
@@ -40,7 +39,6 @@ export default function PositionForm({ position, officers, onSubmit }: PositionF
     position_title: position?.position_title ?? '',
     agency: position?.agency ?? '',
     jr_grade: position?.jr_grade ?? '',
-    sr_grade: position?.sr_grade ?? '',
     incumbent_id: position?.incumbent_id ?? null,
     immediate_successors: position?.immediate_successors?.map(s => s.officer_id) ?? [],
     successors_1_2_years: position?.successors_1_2_years?.map(s => s.officer_id) ?? [],
@@ -142,27 +140,13 @@ export default function PositionForm({ position, officers, onSubmit }: PositionF
 
         <div>
           <label htmlFor="jr_grade" className="block text-sm font-medium text-gray-700">
-            Junior Grade
+            Grade
           </label>
           <input
             type="text"
             id="jr_grade"
             value={formData.jr_grade}
             onChange={(e) => setFormData({ ...formData, jr_grade: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            required
-          />
-        </div>
-
-        <div>
-          <label htmlFor="sr_grade" className="block text-sm font-medium text-gray-700">
-            Senior Grade
-          </label>
-          <input
-            type="text"
-            id="sr_grade"
-            value={formData.sr_grade}
-            onChange={(e) => setFormData({ ...formData, sr_grade: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             required
           />
