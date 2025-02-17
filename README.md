@@ -1,4 +1,4 @@
-# Ansh & Riley Full-Stack Template
+# SuccPlanning
 
 This is a full-stack template project for Software Composers to create  applications with AI.
 
