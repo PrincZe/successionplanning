@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import type { OfficerWithRelations } from '@/lib/queries/officers'
 
 interface OfficerDetailProps {
@@ -10,9 +11,11 @@ interface OfficerDetailProps {
 
 export default function OfficerDetail({ officer }: OfficerDetailProps) {
   const router = useRouter()
+  const [isCompetenciesOpen, setIsCompetenciesOpen] = useState(true)
+  const [isStintsOpen, setIsStintsOpen] = useState(true)
 
   return (
-    <div className="bg-white rounded-lg shadow">
+    <div className="bg-white rounded-lg shadow max-w-3xl mx-auto">
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-gray-800">
@@ -34,10 +37,11 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
+        <div className="space-y-6">
+          {/* Officer Details */}
+          <div className="border-b pb-6">
             <h3 className="text-lg font-medium text-gray-800 mb-4">Officer Details</h3>
-            <dl className="space-y-2">
+            <dl className="grid grid-cols-2 gap-4">
               <div>
                 <dt className="text-sm font-medium text-gray-500">Officer ID</dt>
                 <dd className="text-sm text-gray-900">{officer.officer_id}</dd>
@@ -61,7 +65,8 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
             </dl>
           </div>
 
-          <div>
+          {/* Current Positions */}
+          <div className="border-b pb-6">
             <h3 className="text-lg font-medium text-gray-800 mb-4">Current Positions</h3>
             <ul className="space-y-2">
               {officer.positions?.map((position) => (
@@ -77,48 +82,70 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
             </ul>
           </div>
 
-          <div>
-            <h3 className="text-lg font-medium text-gray-800 mb-4">Competencies</h3>
-            <div className="space-y-4">
-              {officer.competencies?.map((comp) => (
-                <div key={comp.competency.competency_id}>
-                  <h4 className="text-sm font-medium text-gray-700">
-                    {comp.competency.competency_name}
-                  </h4>
-                  <div className="flex items-center mt-1">
-                    <div className="flex-1 h-2 bg-gray-200 rounded">
-                      <div
-                        className="h-2 bg-blue-600 rounded"
-                        style={{ width: `${(comp.achieved_pl_level / 5) * 100}%` }}
-                      />
+          {/* Competencies - Collapsible */}
+          <div className="border-b pb-6">
+            <button
+              onClick={() => setIsCompetenciesOpen(!isCompetenciesOpen)}
+              className="flex justify-between items-center w-full text-left"
+            >
+              <h3 className="text-lg font-medium text-gray-800">Competencies</h3>
+              <span className="text-gray-500">
+                {isCompetenciesOpen ? '▼' : '▶'}
+              </span>
+            </button>
+            {isCompetenciesOpen && (
+              <div className="mt-4 space-y-4">
+                {officer.competencies?.map((comp) => (
+                  <div key={comp.competency.competency_id}>
+                    <h4 className="text-sm font-medium text-gray-700">
+                      {comp.competency.competency_name}
+                    </h4>
+                    <div className="flex items-center mt-1">
+                      <div className="flex-1 h-2 bg-gray-200 rounded">
+                        <div
+                          className="h-2 bg-blue-600 rounded"
+                          style={{ width: `${(comp.achieved_pl_level / 5) * 100}%` }}
+                        />
+                      </div>
+                      <span className="ml-2 text-sm text-gray-600">
+                        PL{comp.achieved_pl_level}
+                      </span>
                     </div>
-                    <span className="ml-2 text-sm text-gray-600">
-                      PL{comp.achieved_pl_level}
-                    </span>
                   </div>
-                </div>
-              )) ?? (
-                <p className="text-sm text-gray-500">No competencies recorded</p>
-              )}
-            </div>
+                )) ?? (
+                  <p className="text-sm text-gray-500">No competencies recorded</p>
+                )}
+              </div>
+            )}
           </div>
 
+          {/* OOA Stints - Collapsible */}
           <div>
-            <h3 className="text-lg font-medium text-gray-800 mb-4">OOA Stints</h3>
-            <div className="space-y-2">
-              {officer.stints?.map((stint) => (
-                <div key={stint.stint.stint_id} className="text-sm">
-                  <div className="font-medium text-gray-700">
-                    {stint.stint.stint_name}
+            <button
+              onClick={() => setIsStintsOpen(!isStintsOpen)}
+              className="flex justify-between items-center w-full text-left"
+            >
+              <h3 className="text-lg font-medium text-gray-800">OOA Stints</h3>
+              <span className="text-gray-500">
+                {isStintsOpen ? '▼' : '▶'}
+              </span>
+            </button>
+            {isStintsOpen && (
+              <div className="mt-4 space-y-2">
+                {officer.stints?.map((stint) => (
+                  <div key={stint.stint.stint_id} className="text-sm">
+                    <div className="font-medium text-gray-700">
+                      {stint.stint.stint_name}
+                    </div>
+                    <div className="text-gray-500">
+                      {stint.stint.stint_type} • Completed {stint.completion_year}
+                    </div>
                   </div>
-                  <div className="text-gray-500">
-                    {stint.stint.stint_type} • Completed {stint.completion_year}
-                  </div>
-                </div>
-              )) ?? (
-                <p className="text-sm text-gray-500">No stints recorded</p>
-              )}
-            </div>
+                )) ?? (
+                  <p className="text-sm text-gray-500">No stints recorded</p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
