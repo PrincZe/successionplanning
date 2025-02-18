@@ -21,48 +21,27 @@ export default function OfficerList({ officers }: OfficerListProps) {
       accessorKey: 'name' as const
     },
     {
-      header: 'Position(s)',
-      accessorKey: 'positions' as const,
-      cell: (row: OfficerWithRelations) => {
-        if (!row.positions?.length) return 'No position assigned';
-        return (
-          <div className="space-y-1">
-            {row.positions.map((p, index) => (
-              <div key={p.position_id} className={index > 0 ? 'border-t pt-1' : ''}>
-                {p.position_title}
-              </div>
-            ))}
-          </div>
-        );
-      }
-    },
-    {
-      header: 'Agency',
-      accessorKey: 'positions' as const,
-      cell: (row: OfficerWithRelations) => {
-        if (!row.positions?.length) return '-';
-        return (
-          <div className="space-y-1">
-            {row.positions.map((p, index) => (
-              <div key={p.position_id} className={index > 0 ? 'border-t pt-1' : ''}>
-                {p.agency}
-              </div>
-            ))}
-          </div>
-        );
-      }
-    },
-    {
       header: 'Grade',
-      accessorKey: 'grade' as const
+      accessorKey: 'grade' as const,
+      cell: (row: OfficerWithRelations) => row.grade ?? 'Not assigned'
     },
     {
       header: 'MX Grade',
-      accessorKey: 'mx_equivalent_grade' as const
+      accessorKey: 'mx_equivalent_grade' as const,
+      cell: (row: OfficerWithRelations) => row.mx_equivalent_grade ?? 'Not assigned'
     },
     {
-      header: 'IHRP Certification',
-      accessorKey: 'ihrp_certification' as const
+      header: 'IHRP',
+      accessorKey: 'ihrp_certification' as const,
+      cell: (row: OfficerWithRelations) => row.ihrp_certification ?? 'None'
+    },
+    {
+      header: 'Current Positions',
+      accessorKey: 'positions' as const,
+      cell: (row: OfficerWithRelations) => {
+        if (!row.positions?.length) return 'None'
+        return row.positions.map(p => `${p.position_title} (${p.agency})`).join(', ')
+      }
     }
   ]
 

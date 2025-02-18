@@ -3,7 +3,7 @@ import type { Database, Position } from '../types/supabase'
 
 type Officer = Database['public']['Tables']['officers']['Row']
 type PositionSuccessor = {
-  succession_type: 'immediate' | '1-2_years' | '3-5_years'
+  succession_type: 'immediate' | '1-2_years' | '3-5_years' | 'more_than_5_years'
   successor: Officer
 }
 
@@ -12,6 +12,7 @@ export type PositionWithRelations = Position & {
   immediate_successors?: Officer[]
   successors_1_2_years?: Officer[]
   successors_3_5_years?: Officer[]
+  more_than_5_years_successors?: Officer[]
   position_successors?: PositionSuccessor[]
 }
 
@@ -42,6 +43,9 @@ export async function getPositions() {
         .map((s: PositionSuccessor) => s.successor),
       successors_3_5_years: successors
         .filter((s: PositionSuccessor) => s.succession_type === '3-5_years')
+        .map((s: PositionSuccessor) => s.successor),
+      more_than_5_years_successors: successors
+        .filter((s: PositionSuccessor) => s.succession_type === 'more_than_5_years')
         .map((s: PositionSuccessor) => s.successor)
     }
   })
@@ -79,6 +83,9 @@ export async function getPositionById(id: string) {
       .map((s: PositionSuccessor) => s.successor),
     successors_3_5_years: successors
       .filter((s: PositionSuccessor) => s.succession_type === '3-5_years')
+      .map((s: PositionSuccessor) => s.successor),
+    more_than_5_years_successors: successors
+      .filter((s: PositionSuccessor) => s.succession_type === 'more_than_5_years')
       .map((s: PositionSuccessor) => s.successor)
   }
 
@@ -157,7 +164,7 @@ export async function deletePosition(id: string) {
 
 export async function updateSuccessors(
   positionId: string,
-  successionType: 'immediate' | '1-2_years' | '3-5_years',
+  successionType: 'immediate' | '1-2_years' | '3-5_years' | 'more_than_5_years',
   successorIds: string[]
 ) {
   try {

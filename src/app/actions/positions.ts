@@ -14,6 +14,7 @@ export async function createPositionAction(data: {
   immediate_successors: string[]
   successors_1_2_years: string[]
   successors_3_5_years: string[]
+  more_than_5_years_successors: string[]
 }) {
   try {
     // Check if position ID already exists
@@ -43,7 +44,8 @@ export async function createPositionAction(data: {
     await Promise.all([
       updateSuccessors(position.position_id, 'immediate', data.immediate_successors),
       updateSuccessors(position.position_id, '1-2_years', data.successors_1_2_years),
-      updateSuccessors(position.position_id, '3-5_years', data.successors_3_5_years)
+      updateSuccessors(position.position_id, '3-5_years', data.successors_3_5_years),
+      updateSuccessors(position.position_id, 'more_than_5_years', data.more_than_5_years_successors)
     ])
 
     revalidatePath('/positions')
@@ -65,6 +67,7 @@ export async function updatePositionAction(
     immediate_successors: string[]
     successors_1_2_years: string[]
     successors_3_5_years: string[]
+    more_than_5_years_successors: string[]
   }
 ) {
   try {
@@ -80,7 +83,8 @@ export async function updatePositionAction(
     await Promise.all([
       updateSuccessors(id, 'immediate', data.immediate_successors),
       updateSuccessors(id, '1-2_years', data.successors_1_2_years),
-      updateSuccessors(id, '3-5_years', data.successors_3_5_years)
+      updateSuccessors(id, '3-5_years', data.successors_3_5_years),
+      updateSuccessors(id, 'more_than_5_years', data.more_than_5_years_successors)
     ])
 
     revalidatePath('/positions')

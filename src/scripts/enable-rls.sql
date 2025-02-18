@@ -6,6 +6,7 @@ ALTER TABLE position_successors ENABLE ROW LEVEL SECURITY;
 ALTER TABLE officer_competencies ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ooa_stints ENABLE ROW LEVEL SECURITY;
 ALTER TABLE officer_stints ENABLE ROW LEVEL SECURITY;
+ALTER TABLE officer_remarks ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for read access
 CREATE POLICY "Enable read access for all users" ON officers FOR SELECT USING (true);
@@ -15,6 +16,7 @@ CREATE POLICY "Enable read access for all users" ON position_successors FOR SELE
 CREATE POLICY "Enable read access for all users" ON officer_competencies FOR SELECT USING (true);
 CREATE POLICY "Enable read access for all users" ON ooa_stints FOR SELECT USING (true);
 CREATE POLICY "Enable read access for all users" ON officer_stints FOR SELECT USING (true);
+CREATE POLICY "Enable read access for all users" ON officer_remarks FOR SELECT USING (true);
 
 -- Create policies for insert/update/delete (restrict to authenticated users)
 CREATE POLICY "Enable insert for authenticated users only" ON officers FOR INSERT WITH CHECK (auth.role() = 'authenticated');
@@ -43,4 +45,8 @@ CREATE POLICY "Enable delete for authenticated users only" ON ooa_stints FOR DEL
 
 CREATE POLICY "Enable insert for authenticated users only" ON officer_stints FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 CREATE POLICY "Enable update for authenticated users only" ON officer_stints FOR UPDATE USING (auth.role() = 'authenticated');
-CREATE POLICY "Enable delete for authenticated users only" ON officer_stints FOR DELETE USING (auth.role() = 'authenticated'); 
+CREATE POLICY "Enable delete for authenticated users only" ON officer_stints FOR DELETE USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Enable insert for authenticated users only" ON officer_remarks FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Enable update for authenticated users only" ON officer_remarks FOR UPDATE USING (auth.role() = 'authenticated');
+CREATE POLICY "Enable delete for authenticated users only" ON officer_remarks FOR DELETE USING (auth.role() = 'authenticated'); 

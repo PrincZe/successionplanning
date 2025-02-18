@@ -33,7 +33,7 @@ create table hr_competencies (
 create table position_successors (
   position_id varchar references positions(position_id),
   successor_id varchar references officers(officer_id),
-  succession_type varchar check (succession_type in ('immediate', '1-2_years', '3-5_years')),
+  succession_type varchar check (succession_type in ('immediate', '1-2_years', '3-5_years', 'more_than_5_years')),
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   primary key (position_id, successor_id, succession_type)
 );
@@ -61,4 +61,15 @@ create table officer_stints (
   stint_id integer references ooa_stints(stint_id),
   completion_year integer not null,
   primary key (officer_id, stint_id)
+);
+
+-- Create officer_remarks table
+create table officer_remarks (
+  remark_id serial primary key,
+  officer_id varchar references officers(officer_id),
+  remark_date date not null,
+  place varchar not null,
+  details text not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 ); 

@@ -80,6 +80,22 @@ export default function PositionList({ positions }: PositionListProps) {
           </div>
         );
       }
+    },
+    {
+      header: 'More Than 5 Years',
+      accessorKey: 'more_than_5_years_successors' as const,
+      cell: (row: PositionWithRelations) => {
+        const successors = row.more_than_5_years_successors || [];
+        if (successors.length === 0) return 'None';
+        return (
+          <div>
+            <span className="font-medium">{successors.length}/10</span>
+            <span className="block text-sm text-gray-600">
+              {successors.map(s => s.name).join(', ')}
+            </span>
+          </div>
+        );
+      }
     }
   ]
 
