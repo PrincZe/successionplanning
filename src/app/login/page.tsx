@@ -32,11 +32,14 @@ export default function LoginPage() {
   }
 
   const handleRequestOTP = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(undefined)
-
     try {
+      // Ensure the event is prevented first
+      e.preventDefault()
+      e.stopPropagation()
+      
+      setLoading(true)
+      setError(undefined)
+
       console.log('Validating email:', email)
       // First validate the email
       const validateResponse = await fetch('/api/auth/validate-email', {
@@ -44,6 +47,7 @@ export default function LoginPage() {
         headers: { 
           'Content-Type': 'application/json'
         },
+        credentials: 'same-origin',
         body: JSON.stringify({ email })
       })
 
@@ -77,11 +81,14 @@ export default function LoginPage() {
   }
 
   const handleVerifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(undefined)
-
     try {
+      // Ensure the event is prevented first
+      e.preventDefault()
+      e.stopPropagation()
+      
+      setLoading(true)
+      setError(undefined)
+
       console.log('Verifying OTP for email:', email)
       const { data, error: verifyError } = await supabase.auth.verifyOtp({
         email,
@@ -139,8 +146,17 @@ export default function LoginPage() {
 
         <form 
           className="mt-8 space-y-6" 
-          onSubmit={showOtpInput ? handleVerifyOTP : handleRequestOTP}
-          action="javascript:void(0)"
+          onSubmit={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            if (showOtpInput) {
+              handleVerifyOTP(e)
+            } else {
+              handleRequestOTP(e)
+            }
+            return false
+          }}
+          method="dialog"
         >
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
