@@ -38,8 +38,7 @@ export const supabase = createClient<Database>(
             window.sessionStorage.removeItem(key)
           }
         }
-      },
-      redirectTo: `${siteUrl}/auth/callback`
+      }
     },
     global: {
       headers: {

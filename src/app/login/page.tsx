@@ -62,7 +62,9 @@ function LoginContent() {
         email: email.toLowerCase(),
         options: {
           shouldCreateUser: false, // Only allow existing users
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: typeof window !== 'undefined' 
+            ? `${window.location.origin}/auth/callback`
+            : undefined
         }
       })
 
@@ -109,7 +111,9 @@ function LoginContent() {
       console.log('OTP verification successful:', data)
       
       // Force a full page reload to ensure all auth state is properly synced
-      window.location.href = '/home'
+      if (typeof window !== 'undefined') {
+        window.location.href = '/home'
+      }
     } catch (error: any) {
       console.error('OTP verification error:', error)
       setMessage({

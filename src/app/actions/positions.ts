@@ -18,11 +18,16 @@ export async function createPositionAction(data: {
 }) {
   try {
     // Check if position ID already exists
-    const { data: existingPosition } = await supabase
+    const { data: existingPosition, error: checkError } = await supabase
       .from('positions')
-      .select('position_id')
-      .eq('position_id', data.position_id)
-      .single()
+      .select()
+      .filter('position_id', 'eq', data.position_id)
+      .maybeSingle()
+
+    if (checkError) {
+      console.error('Error checking position:', checkError)
+      return { success: false, error: 'Failed to check position ID' }
+    }
 
     if (existingPosition) {
       return { 

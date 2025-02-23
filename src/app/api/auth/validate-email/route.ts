@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase'
+import type { Database } from '@/lib/types/supabase'
 
 export async function POST(request: Request) {
   try {
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
     // Check if email exists in allowed_emails table
     const { data: allowedEmail, error: lookupError } = await supabaseServer
       .from('allowed_emails')
-      .select('email')
+      .select('*')
       .eq('email', email)
       .maybeSingle()
 
