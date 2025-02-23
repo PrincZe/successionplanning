@@ -29,31 +29,7 @@ export const supabase = createClient<Database>(
     auth: {
       autoRefreshToken: true,
       persistSession: true,
-      detectSessionInUrl: true,
-      flowType: 'pkce',
-      storage: {
-        // This ensures tokens are stored in cookies instead of localStorage
-        getItem: (key) => {
-          if (typeof document === 'undefined') return null
-          const value = document.cookie
-            .split('; ')
-            .find((row) => row.startsWith(`${key}=`))
-            ?.split('=')[1]
-          try {
-            return value ? JSON.parse(decodeURIComponent(value)) : null
-          } catch (e) {
-            return null
-          }
-        },
-        setItem: (key, value) => {
-          if (typeof document === 'undefined') return
-          document.cookie = `${key}=${encodeURIComponent(JSON.stringify(value))}; path=/; secure; samesite=lax`
-        },
-        removeItem: (key) => {
-          if (typeof document === 'undefined') return
-          document.cookie = `${key}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
-        }
-      }
+      detectSessionInUrl: false // Important: Set this to false for Next.js App Router
     },
     global: {
       fetch: (...args) => fetch(...args)
@@ -69,8 +45,7 @@ export const supabaseServer = process.env.SUPABASE_SERVICE_ROLE_KEY
       {
         auth: {
           autoRefreshToken: false,
-          persistSession: false,
-          flowType: 'pkce'
+          persistSession: false
         }
       }
     )
