@@ -102,7 +102,9 @@ function LoginContent() {
       if (error) throw error
 
       console.log('OTP verification successful:', data)
-      router.push('/home')
+      
+      // Force a full page reload to ensure all auth state is properly synced
+      window.location.href = '/home'
     } catch (error: any) {
       console.error('OTP verification error:', error)
       setMessage({
