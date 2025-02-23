@@ -37,6 +37,7 @@ export default function LoginPage() {
     setError(undefined)
 
     try {
+      console.log('Validating email:', email)
       // First validate the email
       const validateResponse = await fetch('/api/auth/validate-email', {
         method: 'POST',
@@ -47,12 +48,14 @@ export default function LoginPage() {
       })
 
       const { allowed, message } = await validateResponse.json()
+      console.log('Email validation response:', { allowed, message })
 
       if (!allowed) {
         setError(message || 'Email not authorized')
         return
       }
 
+      console.log('Requesting OTP for email:', email)
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -62,6 +65,7 @@ export default function LoginPage() {
 
       if (otpError) throw otpError
 
+      console.log('OTP request successful')
       setShowOtpInput(true)
       setError('OTP has been sent to your email')
     } catch (error: any) {
@@ -78,7 +82,7 @@ export default function LoginPage() {
     setError(undefined)
 
     try {
-      console.log('Verifying OTP...')
+      console.log('Verifying OTP for email:', email)
       const { data, error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: otp,
@@ -93,14 +97,18 @@ export default function LoginPage() {
         throw new Error('Failed to verify OTP - no user data received')
       }
 
+      console.log('Waiting for session establishment...')
       // Wait a moment for the session to be established
       await new Promise(resolve => setTimeout(resolve, 1000))
 
       // Force a session refresh and redirect
+      console.log('Refreshing session...')
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       if (sessionError) throw sessionError
 
+      console.log('Session status:', session ? 'established' : 'not established')
       if (session) {
+        console.log('Redirecting to home page...')
         // Use window.location for a full page reload
         window.location.href = '/home'
       } else {
@@ -129,7 +137,11 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form className="mt-8 space-y-6" onSubmit={showOtpInput ? handleVerifyOTP : handleRequestOTP}>
+        <form 
+          className="mt-8 space-y-6" 
+          onSubmit={showOtpInput ? handleVerifyOTP : handleRequestOTP}
+          action="javascript:void(0)"
+        >
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email" className="sr-only">
