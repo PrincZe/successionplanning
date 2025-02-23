@@ -27,24 +27,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
+    let mounted = true;
+
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', session ? 'authenticated' : 'not authenticated');
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+
+        console.log('Initial session check:', session ? 'authenticated' : 'not authenticated');
+        
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+        }
+
+        // Handle navigation based on session
+        if (session?.user) {
+          const isAuthPage = pathname === '/login' || pathname === '/auth/callback';
+          if (isAuthPage) {
+            console.log('Session found on auth page, redirecting to home');
+            router.replace('/home');
+          }
+        } else {
+          const isProtectedRoute = !['/', '/login', '/auth/callback'].includes(pathname);
+          if (isProtectedRoute) {
+            console.log('No session found on protected route, redirecting to login');
+            router.replace('/login');
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    initializeAuth();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session) => {
-      console.log('Auth state change:', event, session ? 'authenticated' : 'not authenticated');
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, currentSession) => {
+      console.log('Auth state change:', event, currentSession ? 'authenticated' : 'not authenticated');
+      
+      if (mounted) {
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        setLoading(false);
+      }
 
       // Handle navigation based on auth state
       if (event === 'SIGNED_IN') {
         console.log('User signed in, redirecting to home');
+        await initializeAuth(); // Re-initialize to ensure session is properly set
         router.replace('/home');
       } else if (event === 'SIGNED_OUT') {
         console.log('User signed out, redirecting to login');
@@ -53,30 +89,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
-  }, [router]);
-
-  // Handle protected routes
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const isAuthPage = pathname === '/login' || pathname === '/auth/callback';
-      
-      if (!session && !isAuthPage && pathname !== '/') {
-        console.log('No session found, redirecting to login from:', pathname);
-        router.replace('/login');
-      } else if (session && isAuthPage) {
-        console.log('Session found on auth page, redirecting to home');
-        router.replace('/home');
-      }
-    };
-
-    checkAuth();
-  }, [pathname, router]);
+  }, [router, pathname]);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Error signing out:', error);
+    }
     router.replace("/login");
   };
 

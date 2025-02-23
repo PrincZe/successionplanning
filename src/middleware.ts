@@ -22,10 +22,12 @@ export async function middleware(request: NextRequest) {
       {
         cookies: {
           get(name: string) {
-            return request.cookies.get(name)?.value
+            const cookie = request.cookies.get(name)
+            console.log('Reading cookie:', name, cookie?.value ? 'exists' : 'not found')
+            return cookie?.value
           },
           set(name: string, value: string, options: any) {
-            // If we're on the client side, set the cookie with the options
+            console.log('Setting cookie:', name)
             response.cookies.set({
               name,
               value,
@@ -33,9 +35,12 @@ export async function middleware(request: NextRequest) {
               sameSite: 'lax',
               secure: process.env.NODE_ENV === 'production',
               path: '/',
+              httpOnly: true,
+              maxAge: 60 * 60 * 24 * 7, // 1 week
             })
           },
           remove(name: string, options: any) {
+            console.log('Removing cookie:', name)
             response.cookies.delete({
               name,
               ...options,
@@ -54,7 +59,15 @@ export async function middleware(request: NextRequest) {
       return response
     }
 
-    console.log('Session status:', session ? 'authenticated' : 'not authenticated', 'for path:', request.nextUrl.pathname)
+    // Log all cookies for debugging
+    console.log('All cookies:', request.cookies.getAll())
+
+    // Log session status
+    console.log('Session status:', {
+      hasSession: !!session,
+      path: request.nextUrl.pathname,
+      cookies: request.cookies.getAll().map(c => c.name),
+    })
 
     // Allow access to auth-related paths and public paths
     const publicPaths = ['/', '/login', '/auth/callback']
@@ -62,12 +75,6 @@ export async function middleware(request: NextRequest) {
       request.nextUrl.pathname === path || 
       request.nextUrl.pathname.startsWith('/auth/')
     )
-
-    console.log('Path access check:', {
-      path: request.nextUrl.pathname,
-      isPublicPath,
-      hasSession: !!session
-    })
 
     // If the user is not signed in and trying to access a protected path
     if (!session && !isPublicPath && process.env.NEXT_PUBLIC_SKIP_AUTH !== 'true') {
@@ -114,7 +121,12 @@ export async function middleware(request: NextRequest) {
 
     // Copy cookies from the original response to the new response
     request.cookies.getAll().forEach(cookie => {
-      response.cookies.set(cookie)
+      response.cookies.set({
+        ...cookie,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+      })
     })
 
     return response
