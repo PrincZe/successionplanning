@@ -84,10 +84,19 @@ export const supabase = createClient<Database>(
             proxyUrl.searchParams.append(key, value)
           })
 
+          // Add authorization header if it exists
+          if (options.headers && typeof options.headers === 'object') {
+            const authHeader = (options.headers as Record<string, string>)['Authorization']
+            if (authHeader) {
+              headers.set('Authorization', authHeader)
+            }
+          }
+
           return fetch(proxyUrl.toString(), {
             ...options,
             headers,
-            credentials: 'same-origin'
+            credentials: 'include',
+            mode: 'cors'
           })
         }
 
@@ -143,10 +152,19 @@ export const supabaseServer = process.env.SUPABASE_SERVICE_ROLE_KEY
                 proxyUrl.searchParams.append(key, value)
               })
 
+              // Add authorization header if it exists
+              if (options.headers && typeof options.headers === 'object') {
+                const authHeader = (options.headers as Record<string, string>)['Authorization']
+                if (authHeader) {
+                  headers.set('Authorization', authHeader)
+                }
+              }
+
               return fetch(proxyUrl.toString(), {
                 ...options,
                 headers,
-                credentials: 'same-origin'
+                credentials: 'include',
+                mode: 'cors'
               })
             }
 

@@ -6,15 +6,8 @@ export async function middleware(request: NextRequest) {
   try {
     console.log('Middleware processing path:', request.nextUrl.pathname)
 
-    // Create a response object that includes credentials
-    let response = NextResponse.next({
-      request: {
-        headers: new Headers({
-          ...request.headers,
-          credentials: 'include',
-        })
-      },
-    })
+    // Create a response object that we can modify
+    let response = NextResponse.next()
 
     // Create the Supabase client
     const supabase = createServerClient(
@@ -23,12 +16,10 @@ export async function middleware(request: NextRequest) {
       {
         cookies: {
           get(name: string) {
-            const cookie = request.cookies.get(name)
-            console.log('Reading cookie:', name, cookie?.value ? 'exists' : 'not found')
-            return cookie?.value
+            return request.cookies.get(name)?.value
           },
           set(name: string, value: string, options: any) {
-            console.log('Setting cookie:', name)
+            // If we're on the client side, set the cookie with the options
             response.cookies.set({
               name,
               value,
@@ -36,20 +27,13 @@ export async function middleware(request: NextRequest) {
               sameSite: 'lax',
               secure: process.env.NODE_ENV === 'production',
               path: '/',
-              domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined,
-              httpOnly: true
             })
           },
           remove(name: string, options: any) {
-            console.log('Removing cookie:', name)
-            response.cookies.set({
+            response.cookies.delete({
               name,
-              value: '',
               ...options,
-              maxAge: -1,
               path: '/',
-              domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined,
-              httpOnly: true
             })
           },
         },
@@ -101,7 +85,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // Set CORS headers
-    const origin = request.headers.get('origin') || process.env.NEXT_PUBLIC_SITE_URL
+    const origin = request.headers.get('origin')
     if (origin) {
       response.headers.set('Access-Control-Allow-Origin', origin)
     }
@@ -122,13 +106,10 @@ export async function middleware(request: NextRequest) {
       'origin'
     ].join(', '))
 
-    // Handle OPTIONS request
-    if (request.method === 'OPTIONS') {
-      return new NextResponse(null, {
-        status: 200,
-        headers: response.headers
-      })
-    }
+    // Copy cookies from the original response to the new response
+    request.cookies.getAll().forEach(cookie => {
+      response.cookies.set(cookie)
+    })
 
     return response
   } catch (error) {
@@ -146,8 +127,7 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public (public files)
-     * - api (API routes)
      */
-    '/((?!_next/static|_next/image|favicon.ico|public|api).*)'
+    '/((?!_next/static|_next/image|favicon.ico|public).*)'
   ]
 } 
