@@ -72,7 +72,7 @@ function LoginContent() {
       }
 
       console.log('Verifying OTP...')
-      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: otp,
         type: 'email'
@@ -82,29 +82,55 @@ function LoginContent() {
         throw verifyError
       }
 
-      console.log('OTP verification successful:', data)
+      console.log('OTP verification successful:', verifyData)
 
-      // Wait for session to be established
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      console.log('Session check after OTP:', { session, error: sessionError })
+      // Explicitly set session
+      const { data: { session }, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: otp // Using OTP as a one-time password
+      })
 
-      if (sessionError) {
-        throw sessionError
+      if (signInError) {
+        console.error('Sign in error:', signInError)
+        throw signInError
       }
 
       if (!session) {
-        throw new Error('Session not established after OTP verification')
+        throw new Error('No session returned after sign in')
       }
 
-      // Refresh the auth cookies
-      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
-      console.log('Session refresh attempt:', { refreshData, error: refreshError })
+      console.log('Session established:', {
+        user: session.user.email,
+        expiresAt: session.expires_at
+      })
 
-      // Force a full page reload with a small delay to ensure cookies are set
+      // Set auth cookies manually
+      const response = await fetch('/api/auth/set-cookies', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          access_token: session.access_token,
+          refresh_token: session.refresh_token
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to set auth cookies')
+      }
+
+      console.log('Auth cookies set successfully')
+
+      // Final session check
+      const { data: { session: finalSession }, error: finalError } = await supabase.auth.getSession()
+      console.log('Final session check:', { session: finalSession, error: finalError })
+
+      // Redirect with a delay to ensure cookies are set
       setTimeout(() => {
         console.log('Redirecting to home...')
         window.location.href = '/home'
-      }, 1000)
+      }, 2000)
       
     } catch (error: any) {
       console.error('Error verifying OTP:', error)
