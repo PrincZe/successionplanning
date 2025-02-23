@@ -25,7 +25,7 @@ export async function middleware(request: NextRequest) {
             return cookie?.value
           },
           set(name: string, value: string, options: any) {
-            console.log('Setting cookie:', name)
+            console.log('Setting cookie:', name, value ? 'with value' : 'empty')
             response.cookies.set({
               name,
               value,
@@ -33,7 +33,8 @@ export async function middleware(request: NextRequest) {
               sameSite: 'lax',
               secure: process.env.NODE_ENV === 'production',
               path: '/',
-              domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined
+              domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined,
+              httpOnly: true
             })
           },
           remove(name: string, options: any) {
@@ -44,7 +45,8 @@ export async function middleware(request: NextRequest) {
               ...options,
               maxAge: -1,
               path: '/',
-              domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined
+              domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined,
+              httpOnly: true
             })
           },
         },
@@ -59,7 +61,7 @@ export async function middleware(request: NextRequest) {
       return response
     }
 
-    console.log('Session status:', session ? 'authenticated' : 'not authenticated')
+    console.log('Session status:', session ? 'authenticated' : 'not authenticated', 'for path:', request.nextUrl.pathname)
 
     // Allow access to auth-related paths and public paths
     const publicPaths = ['/', '/login', '/auth/callback']

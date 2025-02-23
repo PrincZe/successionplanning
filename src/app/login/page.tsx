@@ -41,6 +41,7 @@ export default function LoginPage() {
       const validateResponse = await fetch('/api/auth/validate-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email })
       })
 
