@@ -96,8 +96,10 @@ export default function LoginPage() {
         
         if (session) {
           console.log('Session established:', session)
-          // Force a full page reload to ensure all cookies are properly set
-          window.location.href = '/home'
+          // Wait a brief moment to ensure cookies are set
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          // Use router.push instead of window.location for better navigation
+          router.push('/home')
         } else {
           throw new Error('Failed to get session after OTP verification')
         }

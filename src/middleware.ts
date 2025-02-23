@@ -31,7 +31,7 @@ export async function middleware(request: NextRequest) {
               value,
               ...options,
               sameSite: 'lax',
-              secure: true,
+              secure: process.env.NODE_ENV === 'production',
               path: '/',
               domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined
             })
@@ -42,7 +42,7 @@ export async function middleware(request: NextRequest) {
               name,
               value: '',
               ...options,
-              maxAge: 0,
+              maxAge: -1,
               path: '/',
               domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined
             })
