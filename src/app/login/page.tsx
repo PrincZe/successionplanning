@@ -2,256 +2,239 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
+import LoadingSpinner from '@/app/components/ui/LoadingSpinner'
 
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string>()
   const [showOtpInput, setShowOtpInput] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const [otpSent, setOtpSent] = useState(false)
 
   useEffect(() => {
-    // Check for error parameter in URL
-    const error = searchParams.get('error')
-    if (error) {
-      setMessage({ type: 'error', text: decodeURIComponent(error) })
-    }
+    const error = searchParams?.get('error')
+    if (error) setError(decodeURIComponent(error))
   }, [searchParams])
 
   const handleRequestOTP = async (e: React.FormEvent) => {
     e.preventDefault()
-    setMessage(null)
-    
-    if (!email) {
-      setMessage({ type: 'error', text: 'Please enter your email address' })
-      return
-    }
+    setIsLoading(true)
+    setError(undefined)
 
     try {
-      setLoading(true)
-      console.log('Starting OTP request for:', email)
-
       // First validate the email
       const validateResponse = await fetch('/api/auth/validate-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.toLowerCase() })
+        body: JSON.stringify({ email })
       })
 
-      if (!validateResponse.ok) {
-        throw new Error('Failed to validate email')
-      }
-
-      const validateData = await validateResponse.json()
-      console.log('Email validation response:', validateData)
-
-      if (!validateData.allowed) {
-        setMessage({ 
-          type: 'error', 
-          text: validateData.message || 'Access restricted. Your email is not authorized to access this system.' 
-        })
+      const validateResult = await validateResponse.json()
+      
+      if (!validateResult.allowed) {
+        setError(validateResult.message || 'Email not authorized')
         return
       }
 
-      // Request OTP
-      const { error } = await supabase.auth.signInWithOtp({
-        email: email.toLowerCase(),
+      // If email is valid, send OTP
+      const { error: signInError } = await supabase.auth.signInWithOtp({
+        email,
         options: {
-          shouldCreateUser: false, // Only allow existing users
-          emailRedirectTo: typeof window !== 'undefined' 
-            ? `${window.location.origin}/auth/callback`
-            : undefined
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       })
 
-      if (error) throw error
+      if (signInError) throw signInError
 
+      setOtpSent(true)
       setShowOtpInput(true)
-      setMessage({
-        type: 'success',
-        text: 'OTP has been sent to your email',
-      })
-    } catch (error: any) {
-      console.error('OTP request error:', error)
-      setMessage({
-        type: 'error',
-        text: error.message || 'An error occurred while requesting OTP',
-      })
-      setShowOtpInput(false)
+    } catch (error) {
+      console.error('Error requesting OTP:', error)
+      setError(error instanceof Error ? error.message : 'Failed to send OTP')
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault()
-    setMessage(null)
-
-    if (!otp) {
-      setMessage({ type: 'error', text: 'Please enter the OTP' })
-      return
-    }
+    setIsLoading(true)
+    setError(undefined)
 
     try {
-      setLoading(true)
-      console.log('Verifying OTP...')
+      console.log('Starting OTP verification...')
 
-      const { data, error } = await supabase.auth.verifyOtp({
-        email: email.toLowerCase(),
+      if (!otp) {
+        throw new Error('Please enter the OTP')
+      }
+
+      // Verify the OTP
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        email,
         token: otp,
         type: 'email'
       })
 
-      if (error) throw error
+      if (verifyError) {
+        throw verifyError
+      }
 
       console.log('OTP verification successful:', data)
-      
+
       // Wait for session to be established
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       
-      if (sessionError) throw sessionError
-      
+      if (sessionError) {
+        throw sessionError
+      }
+
       if (!session) {
         throw new Error('Session not established after OTP verification')
       }
 
       console.log('Session established:', session)
 
-      // Force a full page reload to ensure all auth state is properly synced
+      // Force a full page reload to ensure all auth state is synced
       window.location.href = '/home'
-    } catch (error: any) {
-      console.error('OTP verification error:', error)
-      setMessage({
-        type: 'error',
-        text: error.message || 'Invalid OTP. Please try again.',
-      })
+    } catch (error) {
+      console.error('Error verifying OTP:', error)
+      setError(error instanceof Error ? error.message : 'Failed to verify OTP')
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="max-w-md w-full space-y-8"
-      >
+      <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to CHRONOS
+            Sign in to your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            {showOtpInput 
-              ? 'Enter the OTP sent to your email'
-              : 'Enter your authorized email address to sign in'
-            }
-          </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={showOtpInput ? handleVerifyOTP : handleRequestOTP}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            {!showOtpInput ? (
-              <div>
-                <label htmlFor="email" className="sr-only">
-                  Email address
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="Enter your email address"
-                  disabled={loading}
-                />
+        {error && (
+          <div className="rounded-md bg-red-50 p-4">
+            <div className="flex">
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">
+                  Error
+                </h3>
+                <div className="mt-2 text-sm text-red-700">
+                  {error}
+                </div>
               </div>
-            ) : (
-              <div>
-                <label htmlFor="otp" className="sr-only">
-                  Enter OTP
-                </label>
-                <input
-                  id="otp"
-                  name="otp"
-                  type="text"
-                  required
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="Enter 6-digit OTP"
-                  maxLength={6}
-                  pattern="\d{6}"
-                  disabled={loading}
-                />
-              </div>
-            )}
-          </div>
-
-          {message && (
-            <div
-              className={`rounded-md p-4 ${
-                message.type === 'success' 
-                  ? 'bg-green-50 text-green-700' 
-                  : 'bg-red-50 text-red-700'
-              }`}
-            >
-              <p className="text-sm">{message.text}</p>
             </div>
-          )}
-
-          <div className="flex flex-col space-y-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-            >
-              {loading 
-                ? (showOtpInput ? 'Verifying...' : 'Sending OTP...') 
-                : (showOtpInput ? 'Verify OTP' : 'Send OTP')
-              }
-            </button>
-
-            {showOtpInput && (
-              <button
-                type="button"
-                onClick={() => {
-                  setShowOtpInput(false)
-                  setOtp('')
-                  setMessage(null)
-                }}
-                className="text-sm text-blue-600 hover:text-blue-800"
-              >
-                Use a different email address
-              </button>
-            )}
           </div>
-        </form>
-      </motion.div>
+        )}
+
+        {!showOtpInput ? (
+          <form className="mt-8 space-y-6" onSubmit={handleRequestOTP}>
+            <div>
+              <label htmlFor="email" className="sr-only">
+                Email address
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                placeholder="Email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+              >
+                {isLoading ? (
+                  <LoadingSpinner size="sm" />
+                ) : (
+                  'Request OTP'
+                )}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <form className="mt-8 space-y-6" onSubmit={handleVerifyOTP}>
+            <div>
+              <label htmlFor="otp" className="sr-only">
+                Enter OTP
+              </label>
+              <input
+                id="otp"
+                name="otp"
+                type="text"
+                required
+                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                placeholder="Enter OTP"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+              >
+                {isLoading ? (
+                  <LoadingSpinner size="sm" />
+                ) : (
+                  'Verify OTP'
+                )}
+              </button>
+            </div>
+
+            {otpSent && (
+              <div className="text-sm text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowOtpInput(false)
+                    setOtp('')
+                    setOtpSent(false)
+                  }}
+                  className="font-medium text-blue-600 hover:text-blue-500"
+                >
+                  Try with a different email
+                </button>
+              </div>
+            )}
+          </form>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center">
+        <LoadingSpinner size="lg" />
+        <p className="mt-4 text-gray-600">Loading...</p>
+      </div>
     </div>
   )
 }
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-            Loading...
-          </h2>
-          <p className="text-gray-600">Please wait...</p>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<LoadingFallback />}>
       <LoginContent />
     </Suspense>
   )

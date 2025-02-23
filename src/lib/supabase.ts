@@ -34,18 +34,22 @@ export const supabase = createClient<Database>(
       storage: {
         getItem: (key) => {
           if (typeof window !== 'undefined') {
-            return window.sessionStorage.getItem(key)
+            const item = window.localStorage.getItem(key)
+            console.log('Getting storage item:', { key, value: item })
+            return item
           }
           return null
         },
         setItem: (key, value) => {
           if (typeof window !== 'undefined') {
-            window.sessionStorage.setItem(key, value)
+            console.log('Setting storage item:', { key, value })
+            window.localStorage.setItem(key, value)
           }
         },
         removeItem: (key) => {
           if (typeof window !== 'undefined') {
-            window.sessionStorage.removeItem(key)
+            console.log('Removing storage item:', key)
+            window.localStorage.removeItem(key)
           }
         }
       }
