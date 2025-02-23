@@ -30,7 +30,7 @@ export const supabase = createClient<Database>(
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: true,
-      flowType: 'pkce',
+      flowType: 'implicit',
     },
     global: {
       fetch: (...args) => fetch(...args)
@@ -47,7 +47,7 @@ export const supabaseServer = process.env.SUPABASE_SERVICE_ROLE_KEY
         auth: {
           autoRefreshToken: false,
           persistSession: false,
-          flowType: 'pkce'
+          flowType: 'implicit'
         }
       }
     )
