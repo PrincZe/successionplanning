@@ -7,21 +7,25 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('Auth callback initiated')
+    console.log('=== Auth Callback Started ===')
     const requestUrl = new URL(request.url)
     const code = requestUrl.searchParams.get('code')
+    
+    // Log the full URL (excluding the code for security)
+    console.log('Request URL:', requestUrl.toString().replace(code || '', '[REDACTED]'))
+    console.log('Code exists:', !!code)
+
+    // Log all cookies for debugging
+    const cookieStore = cookies()
+    const allCookies = cookieStore.getAll()
+    console.log('Available cookies:', allCookies.map(c => c.name))
+
     const error = requestUrl.searchParams.get('error')
     const error_description = requestUrl.searchParams.get('error_description')
 
-    console.log('Auth callback params:', {
-      hasCode: !!code,
-      error,
-      error_description
-    })
-
     // Handle errors from Supabase
     if (error || error_description) {
-      console.error('Auth error received:', { error, error_description })
+      console.error('Auth error from Supabase:', { error, error_description })
       const response = NextResponse.redirect(new URL('/auth/auth-code-error', request.url))
       response.cookies.set({
         name: 'auth_error',
@@ -37,19 +41,28 @@ export async function GET(request: NextRequest) {
 
     // If no code received, redirect to login
     if (!code) {
-      console.log('No code received, redirecting to login')
+      console.error('No code received in callback')
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
     // Create Supabase client
+    console.log('Creating Supabase client...')
     const supabase = createRouteHandlerClient({ cookies })
 
     // Exchange the code for a session
-    console.log('Exchanging code for session...')
-    const { data: { session }, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+    console.log('Attempting to exchange code for session...')
+    const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+
+    // Log the exchange results (safely)
+    console.log('Exchange response:', {
+      hasData: !!data,
+      hasSession: !!data?.session,
+      hasUser: !!data?.session?.user,
+      error: exchangeError,
+    })
 
     if (exchangeError) {
-      console.error('Error exchanging code:', exchangeError)
+      console.error('Failed to exchange code:', exchangeError)
       const response = NextResponse.redirect(new URL('/auth/auth-code-error', request.url))
       response.cookies.set({
         name: 'auth_error',
@@ -66,16 +79,29 @@ export async function GET(request: NextRequest) {
       return response
     }
 
-    if (!session) {
-      console.error('No session returned after code exchange')
+    if (!data?.session) {
+      console.error('No session in exchange response')
       return NextResponse.redirect(new URL('/auth/auth-code-error', request.url))
     }
 
-    console.log('Session successfully established:', {
-      userId: session.user.id,
-      email: session.user.email
+    // Verify the session was established
+    console.log('Verifying session...')
+    const { data: { session: verifySession }, error: verifyError } = await supabase.auth.getSession()
+    
+    console.log('Session verification:', {
+      hasSession: !!verifySession,
+      error: verifyError,
+      userId: verifySession?.user?.id,
+      userEmail: verifySession?.user?.email,
     })
 
+    if (verifyError || !verifySession) {
+      console.error('Session verification failed:', verifyError)
+      return NextResponse.redirect(new URL('/auth/auth-code-error', request.url))
+    }
+
+    console.log('=== Auth Callback Completed Successfully ===')
+    
     // Redirect to home page with success
     const response = NextResponse.redirect(new URL('/home', request.url))
     return response
