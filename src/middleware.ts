@@ -6,14 +6,20 @@ export async function middleware(request: NextRequest) {
   try {
     console.log('Middleware processing path:', request.nextUrl.pathname)
 
-    // Skip middleware for API routes
-    if (request.nextUrl.pathname.startsWith('/api/')) {
-      console.log('Skipping middleware for API route')
+    // Skip middleware for API routes and static files
+    if (request.nextUrl.pathname.startsWith('/api/') || 
+        request.nextUrl.pathname.startsWith('/_next/') ||
+        request.nextUrl.pathname.includes('.')) {
+      console.log('Skipping middleware for API/static route')
       return NextResponse.next()
     }
 
     // Create a response object that we can modify
     let response = NextResponse.next()
+
+    // Get all cookies for debugging
+    const allCookies = request.cookies.getAll()
+    console.log('All incoming cookies:', allCookies.map(c => c.name))
 
     // Create the Supabase client
     const supabase = createServerClient(
@@ -23,20 +29,21 @@ export async function middleware(request: NextRequest) {
         cookies: {
           get(name: string) {
             const cookie = request.cookies.get(name)
-            console.log('Reading cookie:', name, cookie?.value ? 'exists' : 'not found')
+            console.log('Getting cookie:', name, cookie?.value ? '[PRESENT]' : '[NOT FOUND]')
             return cookie?.value
           },
           set(name: string, value: string, options: any) {
-            console.log('Setting cookie:', name)
+            console.log('Setting cookie:', name, options)
+            // Ensure cookie options are properly set
             response.cookies.set({
               name,
               value,
               ...options,
-              sameSite: 'lax',
-              secure: process.env.NODE_ENV === 'production',
-              path: '/',
               httpOnly: true,
-              maxAge: 60 * 60 * 24 * 7, // 1 week
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+              path: '/',
+              // Don't set maxAge/expires to let the cookie be a session cookie
             })
           },
           remove(name: string, options: any) {
@@ -56,45 +63,66 @@ export async function middleware(request: NextRequest) {
     
     if (sessionError) {
       console.error('Error getting session:', sessionError)
+      // On session error, clear cookies and redirect to login
+      const cookiesToClear = ['sb-access-token', 'sb-refresh-token']
+      cookiesToClear.forEach(name => response.cookies.delete(name))
       return response
     }
 
-    // Log all cookies for debugging
-    console.log('All cookies:', request.cookies.getAll())
-
-    // Log session status
-    console.log('Session status:', {
+    // Log session status and cookies
+    console.log('Session check:', {
       hasSession: !!session,
       path: request.nextUrl.pathname,
-      cookies: request.cookies.getAll().map(c => c.name),
+      accessToken: !!request.cookies.get('sb-access-token'),
+      refreshToken: !!request.cookies.get('sb-refresh-token'),
     })
 
-    // Allow access to auth-related paths and public paths
+    // Define public paths that don't require authentication
     const publicPaths = ['/', '/login', '/auth/callback']
     const isPublicPath = publicPaths.some(path => 
       request.nextUrl.pathname === path || 
       request.nextUrl.pathname.startsWith('/auth/')
     )
 
-    // If the user is not signed in and trying to access a protected path
-    if (!session && !isPublicPath && process.env.NEXT_PUBLIC_SKIP_AUTH !== 'true') {
-      console.log('Redirecting to login - no session for protected path')
-      const redirectUrl = new URL('/login', request.url)
-      return NextResponse.redirect(redirectUrl)
-    }
-
-    // If the user is signed in and trying to access login page
-    if (session && request.nextUrl.pathname === '/login') {
-      console.log('Redirecting to home - authenticated user on login page')
-      const redirectUrl = new URL('/home', request.url)
-      return NextResponse.redirect(redirectUrl)
-    }
-
-    // Add session user to request header for server components
+    // If there's a session
     if (session?.user) {
-      console.log('Adding user headers for:', session.user.email)
-      response.headers.set('x-user-id', session.user.id)
-      response.headers.set('x-user-email', session.user.email || '')
+      // Copy session cookies to the response to ensure they're preserved
+      const accessToken = request.cookies.get('sb-access-token')
+      const refreshToken = request.cookies.get('sb-refresh-token')
+      
+      if (accessToken) {
+        response.cookies.set({
+          name: 'sb-access-token',
+          value: accessToken.value,
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+        })
+      }
+      
+      if (refreshToken) {
+        response.cookies.set({
+          name: 'sb-refresh-token',
+          value: refreshToken.value,
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+        })
+      }
+
+      // If on login page with valid session, redirect to home
+      if (request.nextUrl.pathname === '/login') {
+        console.log('Redirecting authenticated user from login to home')
+        return NextResponse.redirect(new URL('/home', request.url))
+      }
+    } else {
+      // No session
+      if (!isPublicPath && process.env.NEXT_PUBLIC_SKIP_AUTH !== 'true') {
+        console.log('No session, redirecting to login')
+        return NextResponse.redirect(new URL('/login', request.url))
+      }
     }
 
     // Set CORS headers
@@ -104,30 +132,16 @@ export async function middleware(request: NextRequest) {
     }
     response.headers.set('Access-Control-Allow-Credentials', 'true')
     response.headers.set('Access-Control-Allow-Methods', 'GET,DELETE,PATCH,POST,PUT,OPTIONS')
-    response.headers.set('Access-Control-Allow-Headers', [
-      'X-CSRF-Token',
-      'X-Requested-With',
-      'Accept',
-      'Accept-Version',
-      'Content-Length',
-      'Content-MD5',
-      'Content-Type',
-      'Date',
-      'X-Api-Version',
-      'Authorization',
-      'x-site-url',
-      'origin'
-    ].join(', '))
+    response.headers.set(
+      'Access-Control-Allow-Headers',
+      'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization, x-site-url'
+    )
 
-    // Copy cookies from the original response to the new response
-    request.cookies.getAll().forEach(cookie => {
-      response.cookies.set({
-        ...cookie,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-      })
-    })
+    // Add session user to request header for server components if authenticated
+    if (session?.user) {
+      response.headers.set('x-user-id', session.user.id)
+      response.headers.set('x-user-email', session.user.email || '')
+    }
 
     return response
   } catch (error) {
