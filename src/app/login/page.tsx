@@ -43,6 +43,7 @@ export default function LoginPage() {
         headers: { 
           'Content-Type': 'application/json'
         },
+        credentials: 'same-origin',
         body: JSON.stringify({ email })
       })
 
@@ -92,6 +93,15 @@ export default function LoginPage() {
       // The AuthContext will handle the navigation after successful verification
       if (!data?.user) {
         throw new Error('Failed to verify OTP - no user data received')
+      }
+
+      // Force a session refresh
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError) throw sessionError
+
+      if (session) {
+        // Use window.location for a full page reload to ensure session is properly set
+        window.location.href = '/home'
       }
     } catch (error: any) {
       console.error('Error verifying OTP:', error)
