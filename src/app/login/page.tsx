@@ -5,6 +5,15 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 
+// Get the base URL for redirects
+const getBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_VERCEL_URL) {
+    // Use the custom domain if available, otherwise use the Vercel URL
+    return `https://${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_VERCEL_URL}`
+  }
+  return window.location.origin
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
@@ -45,7 +54,7 @@ export default function LoginPage() {
         email: email.toLowerCase(),
         options: {
           shouldCreateUser: false, // Only allow existing users
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${getBaseUrl()}/auth/callback`,
         },
       })
 
