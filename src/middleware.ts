@@ -6,10 +6,13 @@ export async function middleware(request: NextRequest) {
   try {
     console.log('Middleware processing path:', request.nextUrl.pathname)
 
-    // Create a response object
+    // Create a response object that includes credentials
     let response = NextResponse.next({
       request: {
-        headers: request.headers,
+        headers: new Headers({
+          ...request.headers,
+          credentials: 'include',
+        })
       },
     })
 
@@ -25,7 +28,7 @@ export async function middleware(request: NextRequest) {
             return cookie?.value
           },
           set(name: string, value: string, options: any) {
-            console.log('Setting cookie:', name, value ? 'with value' : 'empty')
+            console.log('Setting cookie:', name)
             response.cookies.set({
               name,
               value,
@@ -97,7 +100,12 @@ export async function middleware(request: NextRequest) {
       response.headers.set('x-user-email', session.user.email || '')
     }
 
-    // Return the response with cookies instead of creating a new one
+    // Set CORS headers
+    response.headers.set('Access-Control-Allow-Credentials', 'true')
+    response.headers.set('Access-Control-Allow-Origin', process.env.NEXT_PUBLIC_SITE_URL || request.headers.get('origin') || '')
+    response.headers.set('Access-Control-Allow-Methods', 'GET,DELETE,PATCH,POST,PUT')
+    response.headers.set('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version')
+
     return response
   } catch (error) {
     console.error('Middleware error:', error)
