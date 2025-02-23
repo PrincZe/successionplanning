@@ -11,26 +11,42 @@ export async function middleware(request: NextRequest) {
       },
     })
 
+    // Log all cookies for debugging
+    const allCookies = request.cookies.getAll()
+    console.log('All request cookies:', allCookies)
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
           get(name: string) {
-            return request.cookies.get(name)?.value
+            const cookie = request.cookies.get(name)
+            console.log('Getting cookie:', { name, value: cookie?.value })
+            return cookie?.value
           },
           set(name: string, value: string, options: any) {
+            console.log('Setting cookie:', { name, value, options })
+            // Ensure cookie options are properly set for cross-domain
+            const cookieOptions = {
+              ...options,
+              sameSite: 'lax',
+              secure: true,
+              domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined
+            }
             response.cookies.set({
               name,
               value,
-              ...options,
+              ...cookieOptions,
             })
           },
           remove(name: string, options: any) {
+            console.log('Removing cookie:', { name, options })
             response.cookies.set({
               name,
               value: '',
               ...options,
+              maxAge: 0,
             })
           },
         },
@@ -49,7 +65,11 @@ export async function middleware(request: NextRequest) {
       cookies: request.cookies.getAll().reduce((acc, cookie) => {
         acc[cookie.name] = cookie.value;
         return acc;
-      }, {} as Record<string, string>)
+      }, {} as Record<string, string>),
+      sessionDetails: session ? {
+        user: session.user.email,
+        expiresAt: session.expires_at,
+      } : null
     })
 
     // Allow access to auth-related paths and public paths
@@ -89,6 +109,7 @@ export async function middleware(request: NextRequest) {
       request.headers.set('x-user-email', session.user.email || '')
     }
 
+    // Important: Return the response with potentially modified cookies
     return response
   } catch (error) {
     console.error('Middleware error:', error)

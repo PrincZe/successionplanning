@@ -29,7 +29,10 @@ function CallbackContent() {
           throw new Error('No session returned from code exchange')
         }
 
-        console.log('Auth callback - Session established:', data.session)
+        console.log('Auth callback - Session established:', {
+          user: data.session.user.email,
+          expiresAt: data.session.expires_at
+        })
 
         // Wait for session to be fully established
         const maxAttempts = 10
@@ -39,10 +42,17 @@ function CallbackContent() {
         while (attempts < maxAttempts) {
           console.log(`Auth callback - Checking session (attempt ${attempts + 1}/${maxAttempts})`)
           const { data: { session: currentSession } } = await supabase.auth.getSession()
+          
           if (currentSession) {
+            console.log('Auth callback - Session confirmed:', {
+              user: currentSession.user.email,
+              expiresAt: currentSession.expires_at
+            })
             session = currentSession
             break
           }
+          
+          console.log('Auth callback - Session not found, waiting...')
           await new Promise(resolve => setTimeout(resolve, 500))
           attempts++
         }
@@ -51,7 +61,8 @@ function CallbackContent() {
           throw new Error('Failed to establish session after multiple attempts')
         }
 
-        console.log('Auth callback - Session confirmed, redirecting to home')
+        // Force a full page reload to ensure all cookies are properly set
+        console.log('Auth callback - Redirecting to home with reload')
         window.location.href = '/home'
       } catch (error) {
         console.error('Auth callback error:', error)
