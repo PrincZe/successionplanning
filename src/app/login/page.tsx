@@ -53,12 +53,20 @@ export default function LoginPage() {
         email,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
+          shouldCreateUser: false, // Only allow existing users
         },
       })
 
       if (signInError) throw signInError
 
-      setMessage('Check your email for the magic link')
+      setMessage(
+        'Check your email for the magic link. ' +
+        'Please click the link within 5 minutes. ' +
+        'If you don\'t see the email, check your spam folder.'
+      )
+      
+      // Clear the form
+      setEmail('')
     } catch (error: any) {
       console.error('Error signing in:', error)
       setError(error.message || 'Failed to sign in')
@@ -74,6 +82,9 @@ export default function LoginPage() {
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Sign in to your account
           </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Enter your email to receive a magic link
+          </p>
         </div>
 
         {error && (
