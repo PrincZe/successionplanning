@@ -32,6 +32,8 @@ export default function LoginPage() {
   }
 
   const handleRequestOTP = async (e: React.FormEvent) => {
+    if (!e || !email) return // Guard against invalid calls
+    
     try {
       // Ensure the event is prevented first
       e.preventDefault()
@@ -50,6 +52,10 @@ export default function LoginPage() {
         credentials: 'same-origin',
         body: JSON.stringify({ email })
       })
+
+      if (!validateResponse.ok) {
+        throw new Error('Failed to validate email')
+      }
 
       const { allowed, message } = await validateResponse.json()
       console.log('Email validation response:', { allowed, message })
@@ -81,6 +87,8 @@ export default function LoginPage() {
   }
 
   const handleVerifyOTP = async (e: React.FormEvent) => {
+    if (!e || !email || !otp) return // Guard against invalid calls
+    
     try {
       // Ensure the event is prevented first
       e.preventDefault()
@@ -150,14 +158,16 @@ export default function LoginPage() {
             e.preventDefault()
             e.stopPropagation()
             if (showOtpInput) {
-              handleVerifyOTP(e)
+              void handleVerifyOTP(e)
             } else {
-              handleRequestOTP(e)
+              void handleRequestOTP(e)
             }
-            return false
           }}
-          method="dialog"
+          noValidate // Let React handle validation
+          action="#" // Prevent default form action
         >
+          <input type="hidden" name="remember" value="true" />
+          <input type="hidden" name="action" value={showOtpInput ? 'verify' : 'request'} />
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email" className="sr-only">
