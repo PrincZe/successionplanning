@@ -62,6 +62,7 @@ function LoginContent() {
         email: email.toLowerCase(),
         options: {
           shouldCreateUser: false, // Only allow existing users
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       })
 
