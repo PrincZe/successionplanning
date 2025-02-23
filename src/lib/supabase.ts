@@ -66,10 +66,18 @@ export const supabase = createClient<Database>(
         
         // If this is an auth request, use our proxy
         if (urlString.includes('/auth/v1/')) {
-          const proxyUrl = new URL('/api/auth/proxy', siteUrl)
+          // Get the base URL for the proxy
+          const baseUrl = typeof window !== 'undefined' 
+            ? window.location.origin 
+            : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+          
+          // Create the proxy URL
+          const proxyUrl = new URL('/api/auth/proxy', baseUrl)
+          
           // Extract the endpoint from the URL
           const endpoint = urlString.split('/auth/v1/')[1].split('?')[0]
           proxyUrl.searchParams.append('endpoint', endpoint)
+          
           // Add any existing query params
           const originalUrl = new URL(urlString)
           originalUrl.searchParams.forEach((value, key) => {
@@ -117,10 +125,18 @@ export const supabaseServer = process.env.SUPABASE_SERVICE_ROLE_KEY
             
             // If this is an auth request, use our proxy
             if (urlString.includes('/auth/v1/')) {
-              const proxyUrl = new URL('/api/auth/proxy', siteUrl)
+              // Get the base URL for the proxy
+              const baseUrl = typeof window !== 'undefined' 
+                ? window.location.origin 
+                : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+              
+              // Create the proxy URL
+              const proxyUrl = new URL('/api/auth/proxy', baseUrl)
+              
               // Extract the endpoint from the URL
               const endpoint = urlString.split('/auth/v1/')[1].split('?')[0]
               proxyUrl.searchParams.append('endpoint', endpoint)
+              
               // Add any existing query params
               const originalUrl = new URL(urlString)
               originalUrl.searchParams.forEach((value, key) => {
