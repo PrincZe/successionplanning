@@ -119,23 +119,37 @@ export default function LoginPage() {
         throw new Error('Failed to verify OTP - no user data received')
       }
 
-      console.log('Waiting for session establishment...')
-      // Wait a moment for the session to be established
-      await new Promise(resolve => setTimeout(resolve, 1000))
-
-      // Force a session refresh and redirect
-      console.log('Refreshing session...')
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      if (sessionError) throw sessionError
-
-      console.log('Session status:', session ? 'established' : 'not established')
-      if (session) {
-        console.log('Redirecting to home page...')
-        // Use window.location for a full page reload
-        window.location.href = '/home'
-      } else {
-        throw new Error('Failed to establish session')
+      // Wait for session to be fully established
+      let session = null
+      for (let i = 0; i < 3; i++) {
+        console.log(`Attempt ${i + 1}: Checking session establishment...`)
+        const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
+        if (sessionError) throw sessionError
+        
+        if (currentSession?.access_token && currentSession?.refresh_token) {
+          session = currentSession
+          break
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000))
       }
+
+      if (!session) {
+        throw new Error('Failed to establish session after multiple attempts')
+      }
+
+      console.log('Session successfully established')
+
+      // Use router for client-side navigation first
+      router.replace('/home')
+
+      // If that doesn't work after a delay, force reload
+      setTimeout(() => {
+        if (window.location.pathname !== '/home') {
+          console.log('Forcing page reload to /home')
+          window.location.href = '/home'
+        }
+      }, 2000)
+
     } catch (error: any) {
       console.error('Error verifying OTP:', error)
       setError(error.message || error.error_description || 'Failed to verify OTP')

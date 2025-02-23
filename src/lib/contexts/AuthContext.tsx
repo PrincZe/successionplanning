@@ -28,6 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    let navigationTimeout: NodeJS.Timeout;
 
     // Get initial session
     const initializeAuth = async () => {
@@ -52,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         } else {
           const isProtectedRoute = !['/', '/login', '/auth/callback'].includes(pathname);
-          if (isProtectedRoute) {
+          if (isProtectedRoute && process.env.NEXT_PUBLIC_SKIP_AUTH !== 'true') {
             console.log('No session found on protected route, redirecting to login');
             router.replace('/login');
           }
@@ -77,11 +78,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
       }
 
+      // Clear any pending navigation timeouts
+      if (navigationTimeout) {
+        clearTimeout(navigationTimeout);
+      }
+
       // Handle navigation based on auth state
       if (event === 'SIGNED_IN') {
-        console.log('User signed in, redirecting to home');
-        await initializeAuth(); // Re-initialize to ensure session is properly set
-        router.replace('/home');
+        console.log('User signed in, waiting for session establishment...');
+        
+        // Wait for session to be fully established
+        let retries = 0;
+        const maxRetries = 3;
+        let sessionEstablished = false;
+
+        while (retries < maxRetries && !sessionEstablished && mounted) {
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          if (error) {
+            console.error('Error checking session:', error);
+            break;
+          }
+
+          if (session?.access_token && session?.refresh_token) {
+            console.log('Session fully established, proceeding with navigation');
+            sessionEstablished = true;
+            
+            // Set a timeout to ensure we don't navigate too early
+            navigationTimeout = setTimeout(() => {
+              if (mounted) {
+                console.log('Navigating to home after session establishment');
+                router.replace('/home');
+              }
+            }, 500);
+            
+            break;
+          }
+
+          retries++;
+          if (retries < maxRetries) {
+            console.log(`Session not ready, retry ${retries}/${maxRetries}`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+
+        if (!sessionEstablished) {
+          console.error('Failed to establish session after maximum retries');
+        }
       } else if (event === 'SIGNED_OUT') {
         console.log('User signed out, redirecting to login');
         router.replace('/login');
@@ -90,6 +133,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       mounted = false;
+      if (navigationTimeout) {
+        clearTimeout(navigationTimeout);
+      }
       subscription.unsubscribe();
     };
   }, [router, pathname]);
