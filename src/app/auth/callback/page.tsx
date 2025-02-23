@@ -10,59 +10,43 @@ function CallbackContent() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Get the URL parameters
-        const params = new URLSearchParams(window.location.search)
-        const hash = window.location.hash
-        
-        console.log('Auth callback:', {
-          url: window.location.href,
-          params: Object.fromEntries(params.entries()),
-          hash
-        })
+        const {
+          data: { session },
+          error: sessionError
+        } = await supabase.auth.getSession()
 
-        // Check for code in URL
-        const code = params.get('code')
-        if (code) {
-          const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-          if (error) throw error
-          if (data.session) {
-            console.log('Session established')
-            router.push('/home')
-            return
-          }
+        console.log('Current session:', session)
+        
+        if (sessionError) {
+          throw sessionError
         }
 
-        // Check for tokens in hash
-        if (hash) {
-          const hashParams = new URLSearchParams(hash.substring(1))
-          const access_token = hashParams.get('access_token')
-          const refresh_token = hashParams.get('refresh_token')
-          
-          if (access_token && refresh_token) {
-            const { data, error } = await supabase.auth.setSession({
-              access_token,
-              refresh_token
-            })
-            if (error) throw error
-            console.log('Session set from hash')
-            router.push('/home')
-            return
-          }
-        }
-
-        // Final check for existing session
-        const { data: { session }, error } = await supabase.auth.getSession()
-        if (error) throw error
-        
         if (session) {
-          console.log('Existing session found')
+          console.log('Session exists, redirecting to home')
           router.push('/home')
           return
         }
 
+        // Get the URL parameters
+        const params = new URLSearchParams(window.location.search)
+        console.log('URL params:', Object.fromEntries(params.entries()))
+        
+        // Check for code in URL
+        const code = params.get('code')
+        if (code) {
+          console.log('Found code in URL, exchanging for session')
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+          if (error) throw error
+          if (data.session) {
+            console.log('Session established, redirecting to home')
+            router.push('/home')
+            return
+          }
+        }
+
         throw new Error('No valid authentication data found')
       } catch (error) {
-        console.error('Auth error:', error)
+        console.error('Auth callback error:', error)
         router.push('/login?error=' + encodeURIComponent(error instanceof Error ? error.message : 'Authentication failed'))
       }
     }
@@ -71,28 +55,30 @@ function CallbackContent() {
   }, [router])
 
   return (
-    <div className="text-center">
-      <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-        Verifying your login...
-      </h2>
-      <p className="text-gray-600">Please wait while we authenticate you.</p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+          Verifying your login...
+        </h2>
+        <p className="text-gray-600">Please wait while we authenticate you.</p>
+      </div>
     </div>
   )
 }
 
 export default function AuthCallbackPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Suspense fallback={
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <h2 className="text-2xl font-semibold text-gray-900 mb-2">
             Loading...
           </h2>
           <p className="text-gray-600">Please wait...</p>
         </div>
-      }>
-        <CallbackContent />
-      </Suspense>
-    </div>
+      </div>
+    }>
+      <CallbackContent />
+    </Suspense>
   )
 } 

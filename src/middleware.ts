@@ -40,7 +40,14 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { session }, error } = await supabase.auth.getSession()
+
+  // Log authentication state
+  console.log('Middleware auth check:', {
+    path: request.nextUrl.pathname,
+    hasSession: !!session,
+    error: error?.message
+  })
 
   // Allow access to auth-related paths and public paths
   const publicPaths = ['/', '/login', '/auth/callback']
@@ -49,11 +56,15 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/auth/')
   )
 
-  console.log('Middleware:', {
-    path: request.nextUrl.pathname,
-    isPublicPath,
-    hasSession: !!session
-  })
+  // If there's an error getting the session, redirect to login
+  if (error) {
+    console.error('Session error:', error)
+    if (!isPublicPath) {
+      const redirectUrl = new URL('/login', request.url)
+      redirectUrl.searchParams.set('error', 'Session error - please login again')
+      return NextResponse.redirect(redirectUrl)
+    }
+  }
 
   // If the user is not signed in and trying to access a protected path
   if (!session && !isPublicPath) {
