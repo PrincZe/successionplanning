@@ -57,22 +57,6 @@ export const supabase = createClient<Database>(
     global: {
       headers: {
         'x-site-url': siteUrl
-      },
-      fetch: (url, options = {}) => {
-        // Ensure we're using the correct credentials mode
-        const credentials = url.toString().includes(process.env.NEXT_PUBLIC_SUPABASE_URL!)
-          ? 'include'  // For Supabase API requests
-          : 'same-origin';  // For other requests
-
-        const headers = new Headers(options.headers || {});
-        headers.set('x-site-url', siteUrl);
-
-        return fetch(url, {
-          ...options,
-          headers,
-          credentials,
-          mode: 'cors'
-        });
       }
     }
   }
@@ -92,19 +76,8 @@ export const supabaseServer = process.env.SUPABASE_SERVICE_ROLE_KEY
         global: {
           headers: {
             'x-site-url': siteUrl
-          },
-          fetch: (url, options = {}) => {
-            const headers = new Headers(options.headers || {});
-            headers.set('x-site-url', siteUrl);
-
-            return fetch(url, {
-              ...options,
-              headers,
-              credentials: 'include',
-              mode: 'cors'
-            });
           }
         }
       }
     )
-  : supabase // Fallback to anon client if service role key is not available 
+  : supabase 
