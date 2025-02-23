@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import LoadingSpinner from '@/app/components/ui/LoadingSpinner'
@@ -14,6 +14,17 @@ export default function LoginPage() {
   const [error, setError] = useState<string>()
   const router = useRouter()
   const { user } = useAuth()
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        console.log('Session found, redirecting to home')
+        router.push('/home')
+      }
+    }
+    checkSession()
+  }, [router])
 
   // If user is already authenticated, redirect to home
   if (user) {
@@ -66,6 +77,7 @@ export default function LoginPage() {
     setError(undefined)
 
     try {
+      console.log('Verifying OTP...')
       const { data, error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: otp,
@@ -74,6 +86,8 @@ export default function LoginPage() {
 
       if (verifyError) throw verifyError
 
+      console.log('OTP verification successful:', data)
+
       if (data?.user) {
         // Force refresh the session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
@@ -81,8 +95,9 @@ export default function LoginPage() {
         if (sessionError) throw sessionError
         
         if (session) {
-          router.push('/home')
-          router.refresh() // Force a refresh of all server components
+          console.log('Session established:', session)
+          // Force a full page reload to ensure all cookies are properly set
+          window.location.href = '/home'
         } else {
           throw new Error('Failed to get session after OTP verification')
         }
