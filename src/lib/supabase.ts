@@ -62,14 +62,22 @@ export const supabase = createClient<Database>(
         const headers = new Headers(options.headers || {})
         headers.set('x-site-url', siteUrl)
         
-        // Don't set origin header, let the browser handle it
         const urlString = url.toString()
+        
+        // If this is an OTP request, use our proxy
+        if (urlString.includes('/auth/v1/otp')) {
+          return fetch('/api/auth/proxy', {
+            ...options,
+            headers,
+            credentials: 'same-origin'
+          })
+        }
+
         return fetch(url, {
           ...options,
           headers,
-          // Use same-origin for auth endpoints
-          credentials: urlString.includes('/auth/v1/') ? 'same-origin' : 'include',
-          mode: urlString.includes('/auth/v1/') ? 'same-origin' : 'cors'
+          credentials: 'include',
+          mode: 'cors'
         })
       }
     }
@@ -96,11 +104,21 @@ export const supabaseServer = process.env.SUPABASE_SERVICE_ROLE_KEY
             headers.set('x-site-url', siteUrl)
 
             const urlString = url.toString()
+            
+            // If this is an OTP request, use our proxy
+            if (urlString.includes('/auth/v1/otp')) {
+              return fetch('/api/auth/proxy', {
+                ...options,
+                headers,
+                credentials: 'same-origin'
+              })
+            }
+
             return fetch(url, {
               ...options,
               headers,
-              credentials: urlString.includes('/auth/v1/') ? 'same-origin' : 'include',
-              mode: urlString.includes('/auth/v1/') ? 'same-origin' : 'cors'
+              credentials: 'include',
+              mode: 'cors'
             })
           }
         }
