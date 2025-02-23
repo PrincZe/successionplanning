@@ -66,7 +66,7 @@ export default function LoginPage() {
     setError(undefined)
 
     try {
-      const { error: verifyError } = await supabase.auth.verifyOtp({
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: otp,
         type: 'email'
@@ -74,7 +74,19 @@ export default function LoginPage() {
 
       if (verifyError) throw verifyError
 
-      // The auth context will handle the session update and redirect
+      if (data?.user) {
+        // Force refresh the session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        
+        if (sessionError) throw sessionError
+        
+        if (session) {
+          router.push('/home')
+          router.refresh() // Force a refresh of all server components
+        } else {
+          throw new Error('Failed to get session after OTP verification')
+        }
+      }
     } catch (error: any) {
       console.error('Error verifying OTP:', error)
       setError(error.message || error.error_description || 'Failed to verify OTP')
