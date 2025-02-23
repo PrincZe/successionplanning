@@ -7,11 +7,15 @@ import { supabase } from '@/lib/supabase'
 
 // Get the base URL for redirects
 const getBaseUrl = () => {
-  if (process.env.NEXT_PUBLIC_VERCEL_URL) {
-    // Use the custom domain if available, otherwise use the Vercel URL
-    return `https://${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_VERCEL_URL}`
+  // For production, always use the site URL
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return `https://${process.env.NEXT_PUBLIC_SITE_URL}`
   }
-  return window.location.origin
+  // Fallback to current origin (for development)
+  if (typeof window !== 'undefined') {
+    return window.location.origin
+  }
+  return 'http://localhost:3000'
 }
 
 export default function LoginPage() {
@@ -49,12 +53,15 @@ export default function LoginPage() {
         return
       }
 
+      const redirectTo = `${getBaseUrl()}/auth/callback`
+      console.log('Redirecting to:', redirectTo)
+
       // If email is validated, proceed with magic link
       const { error } = await supabase.auth.signInWithOtp({
         email: email.toLowerCase(),
         options: {
           shouldCreateUser: false, // Only allow existing users
-          emailRedirectTo: `${getBaseUrl()}/auth/callback`,
+          emailRedirectTo: redirectTo,
         },
       })
 
