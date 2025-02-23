@@ -9,16 +9,32 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     const handleAuthCallback = async () => {
-      const { error } = await supabase.auth.getSession()
-      
-      if (error) {
-        console.error('Error getting session:', error.message)
-        router.push('/login?error=Unable to verify login')
-        return
-      }
+      try {
+        // Get the session and error from the URL if any
+        const { data: { session }, error } = await supabase.auth.getSession()
+        
+        if (error) {
+          console.error('Error getting session:', error.message)
+          router.push('/login?error=Unable to verify login')
+          return
+        }
 
-      // Redirect to the home page after successful authentication
-      router.push('/home')
+        if (!session) {
+          console.error('No session found')
+          router.push('/login?error=No session found')
+          return
+        }
+
+        // Set cookie if needed
+        await supabase.auth.setSession(session)
+
+        // Redirect to the home page after successful authentication
+        console.log('Authentication successful, redirecting to home...')
+        router.push('/home')
+      } catch (error) {
+        console.error('Error in auth callback:', error)
+        router.push('/login?error=Authentication failed')
+      }
     }
 
     handleAuthCallback()
