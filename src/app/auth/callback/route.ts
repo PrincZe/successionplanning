@@ -9,17 +9,25 @@ export async function GET(request: NextRequest) {
   try {
     console.log('=== Auth Callback Started ===')
     const requestUrl = new URL(request.url)
-    const code = requestUrl.searchParams.get('code')
     
-    // Log the callback parameters (safely)
-    console.log('Auth callback params:', {
-      hasCode: !!code,
-      url: requestUrl.toString().replace(code || '', '[REDACTED]')
-    })
+    // Try to get code from query params first
+    let code = requestUrl.searchParams.get('code')
+    
+    // If no code in query params, try hash
+    if (!code && requestUrl.hash) {
+      const hashParams = new URLSearchParams(requestUrl.hash.substring(1))
+      code = hashParams.get('code')
+    }
+    
+    // Log full URL and parameters for debugging
+    console.log('Request URL:', requestUrl.toString())
+    console.log('Search params:', Object.fromEntries(requestUrl.searchParams))
+    console.log('Hash:', requestUrl.hash)
+    console.log('Code found:', !!code)
 
     // If no code received, redirect to login
     if (!code) {
-      console.error('No code received in callback')
+      console.error('No code received in callback - checked both query params and hash')
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
@@ -30,20 +38,43 @@ export async function GET(request: NextRequest) {
 
     // Exchange the code for a session
     console.log('Exchanging code for session...')
-    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+    try {
+      const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+      
+      console.log('Exchange response:', {
+        success: !exchangeError,
+        hasData: !!data,
+        hasSession: !!data?.session,
+        error: exchangeError?.message
+      })
 
-    if (exchangeError) {
-      console.error('Failed to exchange code:', exchangeError)
+      if (exchangeError) {
+        throw exchangeError
+      }
+
+      if (!data?.session) {
+        throw new Error('No session returned after code exchange')
+      }
+
+      console.log('=== Auth Callback Completed Successfully ===')
+      return NextResponse.redirect(new URL('/home', request.url))
+
+    } catch (exchangeError: any) {
+      console.error('Failed to exchange code:', {
+        error: exchangeError.message,
+        name: exchangeError.name,
+        status: exchangeError.status,
+        stack: exchangeError.stack
+      })
       return NextResponse.redirect(new URL('/auth/auth-code-error', request.url))
     }
 
-    console.log('=== Auth Callback Completed Successfully ===')
-    
-    // Redirect to home page with success
-    return NextResponse.redirect(new URL('/home', request.url))
-
   } catch (error: any) {
-    console.error('Unexpected error in auth callback:', error)
+    console.error('Unexpected error in auth callback:', {
+      error: error.message,
+      name: error.name,
+      stack: error.stack
+    })
     return NextResponse.redirect(new URL('/auth/auth-code-error', request.url))
   }
 } 
