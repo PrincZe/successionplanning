@@ -11,7 +11,15 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
 // Client-side Supabase client (using anon key)
 export const supabase = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      flowType: 'pkce',
+      detectSessionInUrl: true
+    }
+  }
 )
 
 // Server-side Supabase client (using service role key)
@@ -22,7 +30,8 @@ export const supabaseServer = process.env.SUPABASE_SERVICE_ROLE_KEY
       {
         auth: {
           autoRefreshToken: false,
-          persistSession: false
+          persistSession: false,
+          flowType: 'pkce'
         }
       }
     )

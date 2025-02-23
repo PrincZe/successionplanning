@@ -44,16 +44,27 @@ export async function middleware(request: NextRequest) {
 
   // Allow access to auth-related paths and public paths
   const publicPaths = ['/', '/login', '/auth/callback']
-  const isPublicPath = publicPaths.includes(request.nextUrl.pathname)
+  const isPublicPath = publicPaths.some(path => 
+    request.nextUrl.pathname === path || 
+    request.nextUrl.pathname.startsWith('/auth/')
+  )
+
+  console.log('Middleware:', {
+    path: request.nextUrl.pathname,
+    isPublicPath,
+    hasSession: !!session
+  })
 
   // If the user is not signed in and trying to access a protected path
   if (!session && !isPublicPath) {
+    console.log('Redirecting to login: No session and protected path')
     const redirectUrl = new URL('/login', request.url)
     return NextResponse.redirect(redirectUrl)
   }
 
   // If the user is signed in and trying to access login page
   if (session && request.nextUrl.pathname === '/login') {
+    console.log('Redirecting to home: Has session and accessing login')
     const redirectUrl = new URL('/home', request.url)
     return NextResponse.redirect(redirectUrl)
   }

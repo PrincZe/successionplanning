@@ -1,47 +1,74 @@
 'use client'
 
 import { useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
 function CallbackContent() {
   const router = useRouter()
-  const searchParams = useSearchParams()
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Extract hash from URL if present
-        const hashParams = new URLSearchParams(window.location.hash.substring(1))
-        const accessToken = hashParams.get('access_token')
-        const refreshToken = hashParams.get('refresh_token')
+        // Get the URL parameters
+        const params = new URLSearchParams(window.location.search)
+        const hash = window.location.hash
+        
+        console.log('Auth callback:', {
+          url: window.location.href,
+          params: Object.fromEntries(params.entries()),
+          hash
+        })
 
-        if (accessToken && refreshToken) {
-          // If we have tokens in the URL, set them
-          const { data, error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken
-          })
-
+        // Check for code in URL
+        const code = params.get('code')
+        if (code) {
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code)
           if (error) throw error
-        } else {
-          // Otherwise try to exchange the code for a session
-          const { data: { session }, error } = await supabase.auth.getSession()
-          if (error) throw error
-          if (!session) throw new Error('No session found')
+          if (data.session) {
+            console.log('Session established')
+            router.push('/home')
+            return
+          }
         }
 
-        // After successful authentication, redirect to home
-        console.log('Authentication successful, redirecting to home...')
-        router.push('/home')
+        // Check for tokens in hash
+        if (hash) {
+          const hashParams = new URLSearchParams(hash.substring(1))
+          const access_token = hashParams.get('access_token')
+          const refresh_token = hashParams.get('refresh_token')
+          
+          if (access_token && refresh_token) {
+            const { data, error } = await supabase.auth.setSession({
+              access_token,
+              refresh_token
+            })
+            if (error) throw error
+            console.log('Session set from hash')
+            router.push('/home')
+            return
+          }
+        }
+
+        // Final check for existing session
+        const { data: { session }, error } = await supabase.auth.getSession()
+        if (error) throw error
+        
+        if (session) {
+          console.log('Existing session found')
+          router.push('/home')
+          return
+        }
+
+        throw new Error('No valid authentication data found')
       } catch (error) {
-        console.error('Error in auth callback:', error)
-        router.push('/login?error=Authentication failed')
+        console.error('Auth error:', error)
+        router.push('/login?error=' + encodeURIComponent(error instanceof Error ? error.message : 'Authentication failed'))
       }
     }
 
     handleAuthCallback()
-  }, [router, searchParams])
+  }, [router])
 
   return (
     <div className="text-center">
