@@ -64,9 +64,19 @@ export const supabase = createClient<Database>(
         
         const urlString = url.toString()
         
-        // If this is an OTP request, use our proxy
-        if (urlString.includes('/auth/v1/otp')) {
-          return fetch('/api/auth/proxy', {
+        // If this is an auth request, use our proxy
+        if (urlString.includes('/auth/v1/')) {
+          const proxyUrl = new URL('/api/auth/proxy', siteUrl)
+          // Extract the endpoint from the URL
+          const endpoint = urlString.split('/auth/v1/')[1].split('?')[0]
+          proxyUrl.searchParams.append('endpoint', endpoint)
+          // Add any existing query params
+          const originalUrl = new URL(urlString)
+          originalUrl.searchParams.forEach((value, key) => {
+            proxyUrl.searchParams.append(key, value)
+          })
+
+          return fetch(proxyUrl.toString(), {
             ...options,
             headers,
             credentials: 'same-origin'
@@ -105,9 +115,19 @@ export const supabaseServer = process.env.SUPABASE_SERVICE_ROLE_KEY
 
             const urlString = url.toString()
             
-            // If this is an OTP request, use our proxy
-            if (urlString.includes('/auth/v1/otp')) {
-              return fetch('/api/auth/proxy', {
+            // If this is an auth request, use our proxy
+            if (urlString.includes('/auth/v1/')) {
+              const proxyUrl = new URL('/api/auth/proxy', siteUrl)
+              // Extract the endpoint from the URL
+              const endpoint = urlString.split('/auth/v1/')[1].split('?')[0]
+              proxyUrl.searchParams.append('endpoint', endpoint)
+              // Add any existing query params
+              const originalUrl = new URL(urlString)
+              originalUrl.searchParams.forEach((value, key) => {
+                proxyUrl.searchParams.append(key, value)
+              })
+
+              return fetch(proxyUrl.toString(), {
                 ...options,
                 headers,
                 credentials: 'same-origin'
