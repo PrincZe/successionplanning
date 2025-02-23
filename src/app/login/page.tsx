@@ -42,6 +42,10 @@ function LoginContent() {
         body: JSON.stringify({ email: email.toLowerCase() })
       })
 
+      if (!validateResponse.ok) {
+        throw new Error('Failed to validate email')
+      }
+
       const validateData = await validateResponse.json()
       console.log('Email validation response:', validateData)
 
