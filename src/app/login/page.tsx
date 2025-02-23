@@ -72,7 +72,7 @@ function LoginContent() {
       }
 
       console.log('Verifying OTP...')
-      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: otp,
         type: 'email'
@@ -82,29 +82,26 @@ function LoginContent() {
         throw verifyError
       }
 
-      console.log('OTP verification successful:', verifyData)
+      console.log('OTP verification successful:', data)
 
-      // Explicitly set session
-      const { data: { session }, error: signInError } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: otp // Using OTP as a one-time password
-      })
-
-      if (signInError) {
-        console.error('Sign in error:', signInError)
-        throw signInError
+      // Get the established session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError) {
+        console.error('Session error:', sessionError)
+        throw sessionError
       }
 
       if (!session) {
-        throw new Error('No session returned after sign in')
+        throw new Error('No session established after OTP verification')
       }
 
-      console.log('Session established:', {
+      console.log('Session confirmed:', {
         user: session.user.email,
         expiresAt: session.expires_at
       })
 
-      // Set auth cookies manually
+      // Set auth cookies manually to ensure they're set correctly
       const response = await fetch('/api/auth/set-cookies', {
         method: 'POST',
         headers: {
@@ -121,10 +118,6 @@ function LoginContent() {
       }
 
       console.log('Auth cookies set successfully')
-
-      // Final session check
-      const { data: { session: finalSession }, error: finalError } = await supabase.auth.getSession()
-      console.log('Final session check:', { session: finalSession, error: finalError })
 
       // Redirect with a delay to ensure cookies are set
       setTimeout(() => {
