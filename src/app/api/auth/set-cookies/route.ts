@@ -15,18 +15,17 @@ export async function POST(request: Request) {
     // Get the cookie store
     const cookieStore = cookies()
 
-    // Set the access token cookie
-    cookieStore.set('sb-access-token', access_token, {
-      path: '/',
-      secure: true,
-      sameSite: 'lax',
-      httpOnly: true,
-      domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined,
-      maxAge: 60 * 60 // 1 hour
-    })
+    // Get the project ref from the SUPABASE_URL
+    const projectRef = process.env.NEXT_PUBLIC_SUPABASE_URL?.match(/(?:\/\/)(.+)\.supabase/)?.[1]
+    if (!projectRef) {
+      throw new Error('Could not determine project ref from SUPABASE_URL')
+    }
 
-    // Set the refresh token cookie
-    cookieStore.set('sb-refresh-token', refresh_token, {
+    // Set the auth cookie with the correct name
+    cookieStore.set(`sb-${projectRef}-auth-token`, JSON.stringify({
+      access_token,
+      refresh_token
+    }), {
       path: '/',
       secure: true,
       sameSite: 'lax',

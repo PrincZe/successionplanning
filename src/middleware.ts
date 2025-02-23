@@ -30,7 +30,7 @@ export async function middleware(request: NextRequest) {
             // Enhanced cookie options for better cross-domain support
             const cookieOptions = {
               ...options,
-              sameSite: 'lax',
+              sameSite: 'lax' as const,
               secure: true,
               path: '/',
               httpOnly: true,
@@ -95,6 +95,7 @@ export async function middleware(request: NextRequest) {
       environment: {
         nodeEnv: process.env.NODE_ENV,
         cookieDomain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN,
+        projectRef: process.env.NEXT_PUBLIC_SUPABASE_URL?.match(/(?:\/\/)(.+)\.supabase/)?.[1]
       }
     })
 
