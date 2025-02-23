@@ -21,7 +21,7 @@ const getSiteUrl = () => {
 
 const siteUrl = getSiteUrl()
 
-// Client-side Supabase client (using anon key)
+// Client-side Supabase client
 export const supabase = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -31,87 +31,14 @@ export const supabase = createClient<Database>(
       persistSession: true,
       detectSessionInUrl: true,
       flowType: 'pkce',
-      storage: {
-        getItem: (key) => {
-          if (typeof window !== 'undefined') {
-            const item = window.localStorage.getItem(key)
-            console.log('Getting storage item:', { key, value: item })
-            return item
-          }
-          return null
-        },
-        setItem: (key, value) => {
-          if (typeof window !== 'undefined') {
-            console.log('Setting storage item:', { key, value })
-            window.localStorage.setItem(key, value)
-          }
-        },
-        removeItem: (key) => {
-          if (typeof window !== 'undefined') {
-            console.log('Removing storage item:', key)
-            window.localStorage.removeItem(key)
-          }
-        }
-      }
     },
     global: {
-      headers: {
-        'x-site-url': siteUrl
-      },
-      fetch: (url, options = {}) => {
-        const headers = new Headers(options.headers || {})
-        headers.set('x-site-url', siteUrl)
-        
-        const urlString = url.toString()
-        
-        // If this is an auth request, use our proxy
-        if (urlString.includes('/auth/v1/')) {
-          // Get the base URL for the proxy
-          const baseUrl = typeof window !== 'undefined' 
-            ? window.location.origin 
-            : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-          
-          // Create the proxy URL
-          const proxyUrl = new URL('/api/auth/proxy', baseUrl)
-          
-          // Extract the endpoint from the URL
-          const endpoint = urlString.split('/auth/v1/')[1].split('?')[0]
-          proxyUrl.searchParams.append('endpoint', endpoint)
-          
-          // Add any existing query params
-          const originalUrl = new URL(urlString)
-          originalUrl.searchParams.forEach((value, key) => {
-            proxyUrl.searchParams.append(key, value)
-          })
-
-          // Add authorization header if it exists
-          if (options.headers && typeof options.headers === 'object') {
-            const authHeader = (options.headers as Record<string, string>)['Authorization']
-            if (authHeader) {
-              headers.set('Authorization', authHeader)
-            }
-          }
-
-          return fetch(proxyUrl.toString(), {
-            ...options,
-            headers,
-            credentials: 'include',
-            mode: 'cors'
-          })
-        }
-
-        return fetch(url, {
-          ...options,
-          headers,
-          credentials: 'include',
-          mode: 'cors'
-        })
-      }
+      fetch: (...args) => fetch(...args)
     }
   }
 )
 
-// Server-side Supabase client (using service role key)
+// Server-side Supabase client
 export const supabaseServer = process.env.SUPABASE_SERVICE_ROLE_KEY
   ? createClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -121,60 +48,6 @@ export const supabaseServer = process.env.SUPABASE_SERVICE_ROLE_KEY
           autoRefreshToken: false,
           persistSession: false,
           flowType: 'pkce'
-        },
-        global: {
-          headers: {
-            'x-site-url': siteUrl
-          },
-          fetch: (url, options = {}) => {
-            const headers = new Headers(options.headers || {})
-            headers.set('x-site-url', siteUrl)
-
-            const urlString = url.toString()
-            
-            // If this is an auth request, use our proxy
-            if (urlString.includes('/auth/v1/')) {
-              // Get the base URL for the proxy
-              const baseUrl = typeof window !== 'undefined' 
-                ? window.location.origin 
-                : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-              
-              // Create the proxy URL
-              const proxyUrl = new URL('/api/auth/proxy', baseUrl)
-              
-              // Extract the endpoint from the URL
-              const endpoint = urlString.split('/auth/v1/')[1].split('?')[0]
-              proxyUrl.searchParams.append('endpoint', endpoint)
-              
-              // Add any existing query params
-              const originalUrl = new URL(urlString)
-              originalUrl.searchParams.forEach((value, key) => {
-                proxyUrl.searchParams.append(key, value)
-              })
-
-              // Add authorization header if it exists
-              if (options.headers && typeof options.headers === 'object') {
-                const authHeader = (options.headers as Record<string, string>)['Authorization']
-                if (authHeader) {
-                  headers.set('Authorization', authHeader)
-                }
-              }
-
-              return fetch(proxyUrl.toString(), {
-                ...options,
-                headers,
-                credentials: 'include',
-                mode: 'cors'
-              })
-            }
-
-            return fetch(url, {
-              ...options,
-              headers,
-              credentials: 'include',
-              mode: 'cors'
-            })
-          }
         }
       }
     )

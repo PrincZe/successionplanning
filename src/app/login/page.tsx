@@ -97,7 +97,6 @@ export default function LoginPage() {
     if (!e || !email || !otp) return // Guard against invalid calls
     
     try {
-      // Ensure the event is prevented first
       e.preventDefault()
       e.stopPropagation()
       
@@ -119,36 +118,9 @@ export default function LoginPage() {
         throw new Error('Failed to verify OTP - no user data received')
       }
 
-      // Wait for session to be fully established
-      let session = null
-      for (let i = 0; i < 3; i++) {
-        console.log(`Attempt ${i + 1}: Checking session establishment...`)
-        const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
-        if (sessionError) throw sessionError
-        
-        if (currentSession?.access_token && currentSession?.refresh_token) {
-          session = currentSession
-          break
-        }
-        await new Promise(resolve => setTimeout(resolve, 1000))
-      }
-
-      if (!session) {
-        throw new Error('Failed to establish session after multiple attempts')
-      }
-
-      console.log('Session successfully established')
-
-      // Use router for client-side navigation first
-      router.replace('/home')
-
-      // If that doesn't work after a delay, force reload
-      setTimeout(() => {
-        if (window.location.pathname !== '/home') {
-          console.log('Forcing page reload to /home')
-          window.location.href = '/home'
-        }
-      }, 2000)
+      // Let the AuthContext handle the navigation
+      // It will automatically detect the session and redirect
+      setError('Authentication successful, redirecting...')
 
     } catch (error: any) {
       console.error('Error verifying OTP:', error)
