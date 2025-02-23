@@ -61,6 +61,10 @@ export const supabase = createClient<Database>(
       fetch: (url, options = {}) => {
         const headers = new Headers(options.headers || {})
         headers.set('x-site-url', siteUrl)
+        
+        // Set specific origin for CORS
+        const origin = typeof window !== 'undefined' ? window.location.origin : siteUrl
+        headers.set('origin', origin)
 
         return fetch(url, {
           ...options,
@@ -91,6 +95,7 @@ export const supabaseServer = process.env.SUPABASE_SERVICE_ROLE_KEY
           fetch: (url, options = {}) => {
             const headers = new Headers(options.headers || {})
             headers.set('x-site-url', siteUrl)
+            headers.set('origin', siteUrl)
 
             return fetch(url, {
               ...options,

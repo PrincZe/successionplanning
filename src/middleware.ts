@@ -101,10 +101,34 @@ export async function middleware(request: NextRequest) {
     }
 
     // Set CORS headers
+    const origin = request.headers.get('origin') || process.env.NEXT_PUBLIC_SITE_URL
+    if (origin) {
+      response.headers.set('Access-Control-Allow-Origin', origin)
+    }
     response.headers.set('Access-Control-Allow-Credentials', 'true')
-    response.headers.set('Access-Control-Allow-Origin', process.env.NEXT_PUBLIC_SITE_URL || request.headers.get('origin') || '')
-    response.headers.set('Access-Control-Allow-Methods', 'GET,DELETE,PATCH,POST,PUT')
-    response.headers.set('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version')
+    response.headers.set('Access-Control-Allow-Methods', 'GET,DELETE,PATCH,POST,PUT,OPTIONS')
+    response.headers.set('Access-Control-Allow-Headers', [
+      'X-CSRF-Token',
+      'X-Requested-With',
+      'Accept',
+      'Accept-Version',
+      'Content-Length',
+      'Content-MD5',
+      'Content-Type',
+      'Date',
+      'X-Api-Version',
+      'Authorization',
+      'x-site-url',
+      'origin'
+    ].join(', '))
+
+    // Handle OPTIONS request
+    if (request.method === 'OPTIONS') {
+      return new NextResponse(null, {
+        status: 200,
+        headers: response.headers
+      })
+    }
 
     return response
   } catch (error) {
