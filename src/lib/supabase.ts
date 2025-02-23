@@ -62,15 +62,14 @@ export const supabase = createClient<Database>(
         const headers = new Headers(options.headers || {})
         headers.set('x-site-url', siteUrl)
         
-        // Set specific origin for CORS
-        const origin = typeof window !== 'undefined' ? window.location.origin : siteUrl
-        headers.set('origin', origin)
-
+        // Don't set origin header, let the browser handle it
+        const urlString = url.toString()
         return fetch(url, {
           ...options,
           headers,
-          credentials: 'include',
-          mode: 'cors'
+          // Use same-origin for auth endpoints
+          credentials: urlString.includes('/auth/v1/') ? 'same-origin' : 'include',
+          mode: urlString.includes('/auth/v1/') ? 'same-origin' : 'cors'
         })
       }
     }
@@ -95,13 +94,13 @@ export const supabaseServer = process.env.SUPABASE_SERVICE_ROLE_KEY
           fetch: (url, options = {}) => {
             const headers = new Headers(options.headers || {})
             headers.set('x-site-url', siteUrl)
-            headers.set('origin', siteUrl)
 
+            const urlString = url.toString()
             return fetch(url, {
               ...options,
               headers,
-              credentials: 'include',
-              mode: 'cors'
+              credentials: urlString.includes('/auth/v1/') ? 'same-origin' : 'include',
+              mode: urlString.includes('/auth/v1/') ? 'same-origin' : 'cors'
             })
           }
         }
