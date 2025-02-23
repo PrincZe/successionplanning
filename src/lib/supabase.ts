@@ -52,14 +52,6 @@ export const supabase = createClient<Database>(
             window.localStorage.removeItem(key)
           }
         }
-      },
-      cookieOptions: {
-        name: 'sb-auth-token',
-        lifetime: 60 * 60 * 24 * 7, // 7 days
-        domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production'
       }
     },
     global: {

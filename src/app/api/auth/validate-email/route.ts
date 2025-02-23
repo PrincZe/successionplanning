@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     console.log('Validating email:', email)
 
     // Check if email exists in allowed_emails table
-    const { data: allowedEmail, error: lookupError } = await supabaseServer
+    const { data: allowedEmail, error: lookupError } = await (supabaseServer as any)
       .from('allowed_emails')
       .select('*')
       .eq('email', email)
