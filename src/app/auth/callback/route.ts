@@ -9,20 +9,18 @@ export async function GET(request: NextRequest) {
   try {
     console.log('=== Auth Callback Started ===')
     const requestUrl = new URL(request.url)
-    const accessToken = requestUrl.searchParams.get('access_token')
-    const refreshToken = requestUrl.searchParams.get('refresh_token')
-    const error = requestUrl.searchParams.get('error')
-    const error_description = requestUrl.searchParams.get('error_description')
+    const code = requestUrl.searchParams.get('code')
     
     // Log the callback parameters (safely)
     console.log('Auth callback params:', {
-      hasAccessToken: !!accessToken,
-      hasRefreshToken: !!refreshToken,
-      error,
-      error_description
+      hasCode: !!code,
+      url: requestUrl.toString().replace(code || '', '[REDACTED]')
     })
 
     // Handle errors from Supabase
+    const error = requestUrl.searchParams.get('error')
+    const error_description = requestUrl.searchParams.get('error_description')
+
     if (error || error_description) {
       console.error('Auth error from Supabase:', { error, error_description })
       const response = NextResponse.redirect(new URL('/auth/auth-code-error', request.url))
@@ -38,9 +36,9 @@ export async function GET(request: NextRequest) {
       return response
     }
 
-    // If no tokens received, redirect to login
-    if (!accessToken || !refreshToken) {
-      console.error('No tokens received in callback')
+    // If no code received, redirect to login
+    if (!code) {
+      console.error('No code received in callback')
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
@@ -48,29 +46,26 @@ export async function GET(request: NextRequest) {
     console.log('Creating Supabase client...')
     const supabase = createRouteHandlerClient({ cookies })
 
-    // Set the session
-    console.log('Setting session...')
-    const { data: { session }, error: sessionError } = await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken
-    })
+    // Exchange the code for a session
+    console.log('Exchanging code for session...')
+    const { data: { session }, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
-    // Log the session results (safely)
-    console.log('Session setup:', {
+    // Log the exchange results (safely)
+    console.log('Exchange response:', {
       hasSession: !!session,
-      error: sessionError,
+      error: exchangeError,
       userId: session?.user?.id,
       userEmail: session?.user?.email
     })
 
-    if (sessionError) {
-      console.error('Failed to set session:', sessionError)
+    if (exchangeError) {
+      console.error('Failed to exchange code:', exchangeError)
       const response = NextResponse.redirect(new URL('/auth/auth-code-error', request.url))
       response.cookies.set({
         name: 'auth_error',
         value: JSON.stringify({
-          error: 'session_setup_failed',
-          error_description: sessionError.message
+          error: 'exchange_failed',
+          error_description: exchangeError.message
         }),
         maxAge: 60,
         path: '/',
