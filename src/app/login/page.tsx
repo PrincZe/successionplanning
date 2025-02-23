@@ -90,7 +90,10 @@ function LoginContent() {
       let session = null
 
       while (attempts < maxAttempts) {
+        console.log(`Checking session (attempt ${attempts + 1}/${maxAttempts})`)
         const { data: { session: currentSession } } = await supabase.auth.getSession()
+        console.log('Current session state:', currentSession)
+        
         if (currentSession) {
           session = currentSession
           break
@@ -104,9 +107,26 @@ function LoginContent() {
       }
 
       console.log('Session established successfully:', session)
+      console.log('Current URL:', window.location.href)
+      console.log('Redirecting to:', '/home')
 
-      // Force a full page reload to ensure all auth state is synced
-      window.location.href = '/home'
+      // Try different redirect approaches
+      try {
+        // First try router push
+        router.push('/home')
+        
+        // If we're still here after 1 second, try location.href
+        setTimeout(() => {
+          if (window.location.pathname === '/login') {
+            console.log('Router push failed, trying location.href')
+            window.location.href = '/home'
+          }
+        }, 1000)
+      } catch (redirectError) {
+        console.error('Redirect error:', redirectError)
+        // Fallback to location.href
+        window.location.href = '/home'
+      }
     } catch (error: any) {
       console.error('Error verifying OTP:', error)
       setError(error.message || error.error_description || 'Failed to verify OTP')
