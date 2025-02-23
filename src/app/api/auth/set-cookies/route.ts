@@ -21,11 +21,17 @@ export async function POST(request: Request) {
       throw new Error('Could not determine project ref from SUPABASE_URL')
     }
 
-    // Set the auth cookie with the correct name
-    cookieStore.set(`sb-${projectRef}-auth-token`, JSON.stringify({
+    // Create the auth token object in the exact format Supabase expects
+    const authToken = {
       access_token,
-      refresh_token
-    }), {
+      refresh_token,
+      expires_in: 3600,
+      expires_at: Math.floor(Date.now() / 1000) + 3600,
+      token_type: 'bearer'
+    }
+
+    // Set the auth cookie with the correct name and format
+    cookieStore.set(`sb-${projectRef}-auth-token`, JSON.stringify(authToken), {
       path: '/',
       secure: true,
       sameSite: 'lax',
@@ -34,7 +40,14 @@ export async function POST(request: Request) {
       maxAge: 60 * 60 * 24 * 7 // 1 week
     })
 
-    return NextResponse.json({ success: true })
+    // Also set a local storage key for client-side access
+    const response = NextResponse.json({ success: true })
+    response.headers.set(
+      'Set-Cookie',
+      `sb-${projectRef}-auth-token-local=${JSON.stringify(authToken)}; Path=/; SameSite=Lax; Secure`
+    )
+
+    return response
   } catch (error) {
     console.error('Error setting cookies:', error)
     return NextResponse.json(

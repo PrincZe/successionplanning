@@ -23,6 +23,21 @@ export async function middleware(request: NextRequest) {
           get(name: string) {
             const cookie = request.cookies.get(name)
             console.log('Getting cookie in middleware:', { name, value: cookie?.value })
+            
+            // If this is the auth token cookie, parse it properly
+            if (name.endsWith('-auth-token')) {
+              try {
+                const parsed = JSON.parse(cookie?.value || '{}')
+                if (name.includes('refresh')) {
+                  return parsed.refresh_token
+                }
+                return parsed.access_token
+              } catch (error) {
+                console.error('Error parsing auth cookie:', error)
+                return null
+              }
+            }
+            
             return cookie?.value
           },
           set(name: string, value: string, options: any) {
@@ -75,6 +90,10 @@ export async function middleware(request: NextRequest) {
 
     // Get session
     const { data: { session }, error } = await supabase.auth.getSession()
+
+    // Log raw cookies for debugging
+    const rawCookies = request.cookies.getAll()
+    console.log('Raw cookies:', rawCookies.map(c => ({ name: c.name, value: c.value })))
 
     // Enhanced logging
     console.log('Middleware auth check:', {
