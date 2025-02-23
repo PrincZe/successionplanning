@@ -95,19 +95,8 @@ export async function middleware(request: NextRequest) {
       response.headers.set('x-user-email', session.user.email || '')
     }
 
-    // Ensure cookies are being passed through
-    const finalResponse = NextResponse.next({
-      request: {
-        headers: request.headers,
-      },
-    })
-
-    // Copy all cookies from the response to the final response
-    response.cookies.getAll().forEach((cookie) => {
-      finalResponse.cookies.set(cookie)
-    })
-
-    return finalResponse
+    // Return the response with cookies instead of creating a new one
+    return response
   } catch (error) {
     console.error('Middleware error:', error)
     return NextResponse.next()

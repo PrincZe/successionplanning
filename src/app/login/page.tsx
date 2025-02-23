@@ -18,17 +18,16 @@ export default function LoginPage() {
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
+      if (session?.user) {
         console.log('Session found, redirecting to home')
-        router.push('/home')
+        router.replace('/home')
       }
     }
     checkSession()
   }, [router])
 
-  // If user is already authenticated, redirect to home
+  // If user is already authenticated, don't render anything
   if (user) {
-    router.push('/home')
     return null
   }
 
@@ -96,10 +95,8 @@ export default function LoginPage() {
         
         if (session) {
           console.log('Session established:', session)
-          // Wait a brief moment to ensure cookies are set
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          // Use router.push instead of window.location for better navigation
-          router.push('/home')
+          // Use router.replace to force a clean navigation
+          router.replace('/home')
         } else {
           throw new Error('Failed to get session after OTP verification')
         }
