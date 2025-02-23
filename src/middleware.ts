@@ -27,12 +27,14 @@ export async function middleware(request: NextRequest) {
           },
           set(name: string, value: string, options: any) {
             console.log('Setting cookie:', { name, value, options })
-            // Ensure cookie options are properly set for cross-domain
+            // Enhanced cookie options for better cross-domain support
             const cookieOptions = {
               ...options,
               sameSite: 'lax',
-              secure: true,
-              domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined
+              secure: process.env.NODE_ENV === 'production',
+              path: '/',
+              domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined,
+              httpOnly: true,
             }
             response.cookies.set({
               name,
@@ -45,7 +47,10 @@ export async function middleware(request: NextRequest) {
             response.cookies.set({
               name,
               value: '',
-              ...options,
+              path: '/',
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+              domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined,
               maxAge: 0,
             })
           },
