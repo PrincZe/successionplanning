@@ -89,19 +89,9 @@ export default function LoginPage() {
 
       console.log('OTP verification successful:', data)
 
-      if (data?.user) {
-        // Force refresh the session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        
-        if (sessionError) throw sessionError
-        
-        if (session) {
-          console.log('Session established:', session)
-          // Use router.replace for cleaner navigation
-          router.replace('/home')
-        } else {
-          throw new Error('Failed to get session after OTP verification')
-        }
+      // The AuthContext will handle the navigation after successful verification
+      if (!data?.user) {
+        throw new Error('Failed to verify OTP - no user data received')
       }
     } catch (error: any) {
       console.error('Error verifying OTP:', error)
