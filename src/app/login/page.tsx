@@ -84,8 +84,27 @@ function LoginContent() {
 
       console.log('OTP verification successful:', data)
 
-      // Force a full page reload to ensure proper session establishment
-      window.location.href = '/home'
+      // Wait for session to be established
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      console.log('Session check after OTP:', { session, error: sessionError })
+
+      if (sessionError) {
+        throw sessionError
+      }
+
+      if (!session) {
+        throw new Error('Session not established after OTP verification')
+      }
+
+      // Refresh the auth cookies
+      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+      console.log('Session refresh attempt:', { refreshData, error: refreshError })
+
+      // Force a full page reload with a small delay to ensure cookies are set
+      setTimeout(() => {
+        console.log('Redirecting to home...')
+        window.location.href = '/home'
+      }, 1000)
       
     } catch (error: any) {
       console.error('Error verifying OTP:', error)

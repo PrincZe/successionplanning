@@ -22,20 +22,27 @@ export async function middleware(request: NextRequest) {
         cookies: {
           get(name: string) {
             const cookie = request.cookies.get(name)
-            console.log('Getting cookie:', { name, value: cookie?.value })
+            console.log('Getting cookie in middleware:', { name, value: cookie?.value })
             return cookie?.value
           },
           set(name: string, value: string, options: any) {
-            console.log('Setting cookie:', { name, value, options })
+            console.log('Setting cookie in middleware:', { name, value, options })
             // Enhanced cookie options for better cross-domain support
             const cookieOptions = {
               ...options,
               sameSite: 'lax',
-              secure: process.env.NODE_ENV === 'production',
+              secure: true,
               path: '/',
-              domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined,
               httpOnly: true,
+              // Only set domain in production
+              ...(process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_COOKIE_DOMAIN
+                ? { domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN }
+                : {})
             }
+            
+            // Log the final cookie options
+            console.log('Final cookie options:', cookieOptions)
+            
             response.cookies.set({
               name,
               value,
@@ -43,15 +50,23 @@ export async function middleware(request: NextRequest) {
             })
           },
           remove(name: string, options: any) {
-            console.log('Removing cookie:', { name, options })
+            console.log('Removing cookie in middleware:', { name, options })
+            const removeOptions = {
+              path: '/',
+              secure: true,
+              sameSite: 'lax' as const,
+              httpOnly: true,
+              maxAge: 0,
+              // Only set domain in production
+              ...(process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_COOKIE_DOMAIN
+                ? { domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN }
+                : {})
+            }
+            
             response.cookies.set({
               name,
               value: '',
-              path: '/',
-              secure: process.env.NODE_ENV === 'production',
-              sameSite: 'lax',
-              domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined,
-              maxAge: 0,
+              ...removeOptions,
             })
           },
         },
@@ -61,7 +76,7 @@ export async function middleware(request: NextRequest) {
     // Get session
     const { data: { session }, error } = await supabase.auth.getSession()
 
-    // Log authentication state
+    // Enhanced logging
     console.log('Middleware auth check:', {
       path: request.nextUrl.pathname,
       hasSession: !!session,
@@ -74,7 +89,13 @@ export async function middleware(request: NextRequest) {
       sessionDetails: session ? {
         user: session.user.email,
         expiresAt: session.expires_at,
-      } : null
+        accessToken: !!session.access_token,
+        refreshToken: !!session.refresh_token,
+      } : null,
+      environment: {
+        nodeEnv: process.env.NODE_ENV,
+        cookieDomain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN,
+      }
     })
 
     // Allow access to auth-related paths and public paths
