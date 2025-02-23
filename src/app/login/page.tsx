@@ -40,8 +40,10 @@ export default function LoginPage() {
       // First validate the email
       const validateResponse = await fetch('/api/auth/validate-email', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Origin': window.location.origin
+        },
         body: JSON.stringify({ email })
       })
 
@@ -55,7 +57,10 @@ export default function LoginPage() {
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            redirectUrl: `${window.location.origin}/home`
+          }
         }
       })
 
@@ -81,7 +86,10 @@ export default function LoginPage() {
       const { data, error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: otp,
-        type: 'email'
+        type: 'email',
+        options: {
+          redirectTo: `${window.location.origin}/home`
+        }
       })
 
       if (verifyError) throw verifyError
@@ -96,8 +104,8 @@ export default function LoginPage() {
         
         if (session) {
           console.log('Session established:', session)
-          // Use router.replace to force a clean navigation
-          router.replace('/home')
+          // Use window.location for a full page reload to ensure cookies are set
+          window.location.href = '/home'
         } else {
           throw new Error('Failed to get session after OTP verification')
         }
