@@ -54,12 +54,19 @@ export default function LoginPage() {
       })
 
       if (!validateResponse.ok) {
-        throw new Error('Failed to validate email')
+        const errorData = await validateResponse.text()
+        console.error('Validation response error:', validateResponse.status, errorData)
+        throw new Error(errorData || 'Failed to validate email')
       }
 
-      const { allowed, message } = await validateResponse.json()
-      console.log('Email validation response:', { allowed, message })
+      const data = await validateResponse.json()
+      console.log('Email validation response:', data)
 
+      if (!data || typeof data.allowed !== 'boolean') {
+        throw new Error('Invalid validation response')
+      }
+
+      const { allowed, message } = data
       if (!allowed) {
         setError(message || 'Email not authorized')
         return

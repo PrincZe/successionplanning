@@ -6,6 +6,12 @@ export async function middleware(request: NextRequest) {
   try {
     console.log('Middleware processing path:', request.nextUrl.pathname)
 
+    // Skip middleware for API routes
+    if (request.nextUrl.pathname.startsWith('/api/')) {
+      console.log('Skipping middleware for API route')
+      return NextResponse.next()
+    }
+
     // Create a response object that we can modify
     let response = NextResponse.next()
 
@@ -127,7 +133,8 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public (public files)
+     * - api (API routes)
      */
-    '/((?!_next/static|_next/image|favicon.ico|public).*)'
+    '/((?!_next/static|_next/image|favicon.ico|public|api).*)'
   ]
 } 
