@@ -75,7 +75,10 @@ function LoginContent() {
       const { data, error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: otp,
-        type: 'email'
+        type: 'email',
+        options: {
+          redirectTo: `${window.location.origin}/home`
+        }
       })
 
       if (verifyError) {
@@ -84,46 +87,8 @@ function LoginContent() {
 
       console.log('OTP verification successful:', data)
 
-      // Get the established session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      
-      if (sessionError) {
-        console.error('Session error:', sessionError)
-        throw sessionError
-      }
-
-      if (!session) {
-        throw new Error('No session established after OTP verification')
-      }
-
-      console.log('Session confirmed:', {
-        user: session.user.email,
-        expiresAt: session.expires_at
-      })
-
-      // Set auth cookies manually to ensure they're set correctly
-      const response = await fetch('/api/auth/set-cookies', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          access_token: session.access_token,
-          refresh_token: session.refresh_token
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to set auth cookies')
-      }
-
-      console.log('Auth cookies set successfully')
-
-      // Redirect with a delay to ensure cookies are set
-      setTimeout(() => {
-        console.log('Redirecting to home...')
-        window.location.href = '/home'
-      }, 2000)
+      // Let Supabase handle the redirect
+      window.location.href = '/home'
       
     } catch (error: any) {
       console.error('Error verifying OTP:', error)
