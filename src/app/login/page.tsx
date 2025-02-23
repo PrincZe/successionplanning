@@ -41,8 +41,7 @@ export default function LoginPage() {
       const validateResponse = await fetch('/api/auth/validate-email', {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'Origin': window.location.origin
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ email })
       })
@@ -86,10 +85,7 @@ export default function LoginPage() {
       const { data, error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: otp,
-        type: 'email',
-        options: {
-          redirectTo: `${window.location.origin}/home`
-        }
+        type: 'email'
       })
 
       if (verifyError) throw verifyError
@@ -104,7 +100,7 @@ export default function LoginPage() {
         
         if (session) {
           console.log('Session established:', session)
-          // Use window.location for a full page reload to ensure cookies are set
+          // Use window.location for a full page reload to ensure session is properly set
           window.location.href = '/home'
         } else {
           throw new Error('Failed to get session after OTP verification')

@@ -56,14 +56,7 @@ export const supabase = createClient<Database>(
     },
     global: {
       headers: {
-        'x-site-url': siteUrl,
-        'Origin': siteUrl
-      },
-      fetch: (url, options) => {
-        return fetch(url, {
-          ...options,
-          credentials: 'include'
-        })
+        'x-site-url': siteUrl
       }
     }
   }
@@ -82,8 +75,7 @@ export const supabaseServer = process.env.SUPABASE_SERVICE_ROLE_KEY
         },
         global: {
           headers: {
-            'x-site-url': siteUrl,
-            'Origin': siteUrl
+            'x-site-url': siteUrl
           }
         }
       }
