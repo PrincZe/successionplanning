@@ -1,25 +1,25 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import LoadingSpinner from '@/app/components/ui/LoadingSpinner'
+import { useAuth } from '@/lib/contexts/AuthContext'
 
-function LoginContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
   const [showOtpInput, setShowOtpInput] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>()
+  const router = useRouter()
+  const { user } = useAuth()
 
-  useEffect(() => {
-    const error = searchParams?.get('error')
-    if (error) {
-      setError(decodeURIComponent(error))
-    }
-  }, [searchParams])
+  // If user is already authenticated, redirect to home
+  if (user) {
+    router.push('/home')
+    return null
+  }
 
   const handleRequestOTP = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -41,7 +41,6 @@ function LoginContent() {
         return
       }
 
-      // If email is authorized, send OTP
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -67,29 +66,15 @@ function LoginContent() {
     setError(undefined)
 
     try {
-      if (!otp) {
-        throw new Error('Please enter the OTP')
-      }
-
-      console.log('Verifying OTP...')
-      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+      const { error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: otp,
-        type: 'email',
-        options: {
-          redirectTo: `${window.location.origin}/home`
-        }
+        type: 'email'
       })
 
-      if (verifyError) {
-        throw verifyError
-      }
+      if (verifyError) throw verifyError
 
-      console.log('OTP verification successful:', data)
-
-      // Let Supabase handle the redirect
-      window.location.href = '/home'
-      
+      // The auth context will handle the session update and redirect
     } catch (error: any) {
       console.error('Error verifying OTP:', error)
       setError(error.message || error.error_description || 'Failed to verify OTP')
@@ -170,21 +155,5 @@ function LoginContent() {
         </form>
       </div>
     </div>
-  )
-}
-
-function LoadingFallback() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <LoadingSpinner size="lg" />
-    </div>
-  )
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={<LoadingFallback />}>
-      <LoginContent />
-    </Suspense>
   )
 } 
