@@ -57,6 +57,17 @@ export const supabase = createClient<Database>(
     global: {
       headers: {
         'x-site-url': siteUrl
+      },
+      fetch: (url, options = {}) => {
+        const headers = new Headers(options.headers || {})
+        headers.set('x-site-url', siteUrl)
+
+        return fetch(url, {
+          ...options,
+          headers,
+          mode: 'cors',
+          credentials: 'same-origin'
+        })
       }
     }
   }

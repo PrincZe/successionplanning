@@ -56,10 +56,7 @@ export default function LoginPage() {
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: {
-            redirectUrl: `${window.location.origin}/home`
-          }
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       })
 
@@ -100,8 +97,8 @@ export default function LoginPage() {
         
         if (session) {
           console.log('Session established:', session)
-          // Use window.location for a full page reload to ensure session is properly set
-          window.location.href = '/home'
+          // Use router.replace for cleaner navigation
+          router.replace('/home')
         } else {
           throw new Error('Failed to get session after OTP verification')
         }
