@@ -8,8 +8,18 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
   throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_ANON_KEY')
 }
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 
-  (typeof window !== 'undefined' ? window.location.origin : '')
+// Get the site URL from environment or window location
+const getSiteUrl = () => {
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL
+  }
+  if (typeof window !== 'undefined') {
+    return window.location.origin
+  }
+  return 'https://test.engagement.gov.sg'
+}
+
+const siteUrl = getSiteUrl()
 
 // Client-side Supabase client (using anon key)
 export const supabase = createClient<Database>(

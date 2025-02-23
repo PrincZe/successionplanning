@@ -110,10 +110,19 @@ function LoginContent() {
 
       console.log('OTP verification successful:', data)
       
-      // Force a full page reload to ensure all auth state is properly synced
-      if (typeof window !== 'undefined') {
-        window.location.href = '/home'
+      // Wait for session to be established
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError) throw sessionError
+      
+      if (!session) {
+        throw new Error('Session not established after OTP verification')
       }
+
+      console.log('Session established:', session)
+
+      // Force a full page reload to ensure all auth state is properly synced
+      window.location.href = '/home'
     } catch (error: any) {
       console.error('OTP verification error:', error)
       setMessage({
