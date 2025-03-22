@@ -1,16 +1,25 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import LoadingSpinner from '@/app/components/ui/LoadingSpinner'
 
 export default function LoginPage() {
   const router = useRouter()
+  const [redirecting, setRedirecting] = useState(false)
 
   // Redirect to home page since authentication is disabled for the prototype
   useEffect(() => {
-    router.replace('/home')
-  }, [router])
+    if (!redirecting) {
+      setRedirecting(true)
+      // Longer timeout and using push to avoid navigation loop
+      const timer = setTimeout(() => {
+        router.push('/home')
+      }, 3000)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [router, redirecting])
 
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-64px)]">

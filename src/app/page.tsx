@@ -2,18 +2,21 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function LandingPage() {
   const router = useRouter()
+  const [isRedirecting, setIsRedirecting] = useState(false)
 
-  // For prototype, redirect to home page immediately
+  // For prototype, redirect to home page after a pause
   useEffect(() => {
     // Use a timeout to allow the page to render first
     const timer = setTimeout(() => {
-      router.replace('/home')
-    }, 1500)
+      setIsRedirecting(true)
+      // Use push instead of replace to avoid navigation loop
+      router.push('/home')
+    }, 3000) // Longer timeout to avoid rapid navigation
     
     return () => clearTimeout(timer)
   }, [router])
@@ -53,14 +56,30 @@ export default function LandingPage() {
             A Public Service Division initiative for CHROO
           </motion.p>
           
-          <motion.p
-            className="text-blue-600 text-sm animate-pulse mt-8"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1, duration: 0.5 }}
-          >
-            Authentication disabled for prototype. Redirecting to dashboard...
-          </motion.p>
+          {isRedirecting ? (
+            <motion.div
+              className="text-blue-600 text-sm mt-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <div className="flex items-center justify-center space-x-2">
+                <svg className="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Redirecting to dashboard...</span>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.p
+              className="text-blue-600 text-sm mt-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1, duration: 0.5 }}
+            >
+              Authentication disabled for prototype. You will be redirected shortly...
+            </motion.p>
+          )}
         </motion.div>
 
         {/* Decorative elements */}
