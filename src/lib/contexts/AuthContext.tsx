@@ -35,9 +35,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Simplified sign out for prototype
   const signOut = async () => {
-    console.log('Sign out clicked - in prototype mode, this does nothing');
-    // In a prototype, we could redirect to home page
-    router.push('/');
+    console.log('Sign out clicked - redirecting to landing page');
+    // In a prototype, we redirect to a special page that displays the landing page without auto-redirect
+    router.push('/signedout');
   };
 
   return (

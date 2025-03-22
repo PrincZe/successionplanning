@@ -33,6 +33,13 @@ The system originally implemented authentication using Supabase Auth, but has be
   - Adding state tracking to prevent multiple redirects
   - Using loading indicators to improve user experience during navigation
 
+### 👤 Sign Out Functionality
+- Fixed sign out functionality to provide a more realistic experience:
+  - Created a dedicated `/signedout` page that shows the landing page without auto-redirect
+  - Modified the sign out function in AuthContext to navigate to this page
+  - Added visual confirmation of signed out status with a return to dashboard option
+  - Preserved the landing page design with additional "signed out" messaging
+
 These changes allow for seamless demonstration of the application without authentication barriers, while preserving the UI components that would normally interact with authenticated user data.
 
 ## Key Features Implemented
