@@ -47,6 +47,14 @@ The system originally implemented authentication using Supabase Auth, but has be
   - Connected the form to the existing `createOfficerAction` server action
   - Ensured consistent UI styling with other "new" entity pages
 
+### 🛠️ Database Schema Compatibility Fix
+- Fixed competency creation error (PGRST204):
+  - Identified mismatch between code and database schema
+  - The `hr_competencies` table doesn't have `created_at` and `updated_at` columns in the schema
+  - But the code was trying to insert those fields, causing the error
+  - Updated the `createCompetency` function to not include timestamp fields that don't exist
+  - Improved error handling in the database query functions
+
 These changes allow for seamless demonstration of the application without authentication barriers, while preserving the UI components that would normally interact with authenticated user data.
 
 ## Key Features Implemented

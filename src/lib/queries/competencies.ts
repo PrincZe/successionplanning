@@ -43,15 +43,11 @@ export async function getCompetencyById(id: number) {
 }
 
 export async function createCompetency(
-  competency: Omit<Database['public']['Tables']['hr_competencies']['Row'], 'competency_id' | 'created_at' | 'updated_at'>
+  competency: Omit<Database['public']['Tables']['hr_competencies']['Row'], 'competency_id'>
 ) {
   const { data, error } = await supabase
     .from('hr_competencies')
-    .insert({
-      ...competency,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    })
+    .insert(competency)
     .select()
     .single()
 
@@ -69,10 +65,10 @@ export async function updateCompetency(
       .from('hr_competencies')
       .select('*')
       .eq('competency_id', id)
-      .maybeSingle()
+      .single()
 
     if (checkError) {
-      console.error('Error checking competency:', checkError)
+      console.error('Error checking for existing competency:', checkError)
       throw checkError
     }
 
@@ -80,21 +76,17 @@ export async function updateCompetency(
       throw new Error(`Competency with ID ${id} not found`)
     }
 
-    // If it exists, proceed with update
+    // Update the competency
     const { data, error } = await supabase
       .from('hr_competencies')
       .update(competency)
       .eq('competency_id', id)
       .select()
-      .maybeSingle()
+      .single()
 
     if (error) {
       console.error('Error updating competency:', error)
       throw error
-    }
-
-    if (!data) {
-      throw new Error(`Failed to update competency with ID ${id}`)
     }
 
     return data
@@ -105,10 +97,37 @@ export async function updateCompetency(
 }
 
 export async function deleteCompetency(id: number) {
-  const { error } = await supabase
-    .from('hr_competencies')
-    .delete()
-    .eq('competency_id', id)
+  try {
+    // First, check if the competency exists
+    const { data: existing, error: checkError } = await supabase
+      .from('hr_competencies')
+      .select('*')
+      .eq('competency_id', id)
+      .single()
 
-  if (error) throw error
+    if (checkError) {
+      console.error('Error checking for existing competency:', checkError)
+      throw checkError
+    }
+
+    if (!existing) {
+      throw new Error(`Competency with ID ${id} not found`)
+    }
+
+    // Delete the competency
+    const { error } = await supabase
+      .from('hr_competencies')
+      .delete()
+      .eq('competency_id', id)
+
+    if (error) {
+      console.error('Error deleting competency:', error)
+      throw error
+    }
+
+    return true
+  } catch (error) {
+    console.error('Error in deleteCompetency:', error)
+    throw error
+  }
 } 
