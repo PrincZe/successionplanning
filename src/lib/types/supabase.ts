@@ -33,8 +33,6 @@ export interface HRCompetency {
   competency_name: string
   description: string | null
   max_pl_level: number
-  created_at: string
-  updated_at: string
 }
 
 export interface PositionSuccessor {
