@@ -17,6 +17,8 @@ export async function createPositionAction(data: {
   more_than_5_years_successors: string[]
 }) {
   try {
+    console.log('Starting createPositionAction with data:', data)
+
     // Check if position ID already exists
     const { data: existingPosition, error: checkError } = await supabase
       .from('positions')
@@ -36,6 +38,7 @@ export async function createPositionAction(data: {
       }
     }
 
+    console.log('Creating position...')
     // Create position
     const position = await createPosition({
       position_id: data.position_id,
@@ -44,14 +47,23 @@ export async function createPositionAction(data: {
       jr_grade: data.jr_grade,
       incumbent_id: data.incumbent_id
     })
+    console.log('Position created successfully:', position)
 
+    console.log('Adding successors...')
     // Add successors
-    await Promise.all([
-      updateSuccessors(position.position_id, 'immediate', data.immediate_successors),
-      updateSuccessors(position.position_id, '1-2_years', data.successors_1_2_years),
-      updateSuccessors(position.position_id, '3-5_years', data.successors_3_5_years),
-      updateSuccessors(position.position_id, 'more_than_5_years', data.more_than_5_years_successors)
-    ])
+    try {
+      await Promise.all([
+        updateSuccessors(position.position_id, 'immediate', data.immediate_successors),
+        updateSuccessors(position.position_id, '1-2_years', data.successors_1_2_years),
+        updateSuccessors(position.position_id, '3-5_years', data.successors_3_5_years),
+        updateSuccessors(position.position_id, 'more_than_5_years', data.more_than_5_years_successors)
+      ])
+      console.log('All successors added successfully')
+    } catch (successorError) {
+      console.error('Error adding successors:', successorError)
+      // Even if adding successors fails, we don't want to return an error since the position was created
+      // Instead, we'll log the error and continue
+    }
 
     revalidatePath('/positions')
     revalidatePath('/')

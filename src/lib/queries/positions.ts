@@ -168,21 +168,30 @@ export async function updateSuccessors(
   successorIds: string[]
 ) {
   try {
+    console.log('Starting updateSuccessors with:', {
+      positionId,
+      successionType,
+      successorIds
+    })
+
     // Filter out any null or empty values
     const validSuccessorIds = successorIds.filter(id => id && id.trim().length > 0)
 
-    console.log('Updating successors:', {
-      positionId,
-      successionType,
-      validSuccessorIds
-    })
+    console.log('Valid successor IDs:', validSuccessorIds)
 
     // Delete all existing successors of this type
-    await supabase
+    const { error: deleteError } = await supabase
       .from('position_successors')
       .delete()
       .eq('position_id', positionId)
       .eq('succession_type', successionType)
+
+    if (deleteError) {
+      console.error('Error deleting existing successors:', deleteError)
+      throw deleteError
+    }
+
+    console.log('Successfully deleted existing successors')
 
     // Only proceed with insert if there are valid successors to add
     if (validSuccessorIds.length === 0) {
@@ -197,19 +206,20 @@ export async function updateSuccessors(
       succession_type: successionType
     }))
 
-    console.log('Inserting successor records:', JSON.stringify(records, null, 2))
+    console.log('Attempting to insert successor records:', JSON.stringify(records, null, 2))
 
     // Insert new records
-    const { error: insertError } = await supabase
+    const { data: insertedData, error: insertError } = await supabase
       .from('position_successors')
       .insert(records)
+      .select()
 
     if (insertError) {
       console.error('Error inserting successors:', insertError)
       throw insertError
     }
 
-    console.log('Successfully updated successors')
+    console.log('Successfully inserted successors:', insertedData)
   } catch (error) {
     console.error('Error in updateSuccessors:', error)
     throw error
