@@ -3,6 +3,9 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { HRCompetency } from '@/lib/types/supabase'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
 
 interface CompetencyDetailProps {
   competency: HRCompetency
@@ -12,71 +15,75 @@ export default function CompetencyDetail({ competency }: CompetencyDetailProps) 
   const router = useRouter()
 
   return (
-    <div className="bg-white rounded-lg shadow">
-      <div className="p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-800">
+    <div className="max-w-3xl mx-auto">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
+          <CardTitle className="text-2xl font-bold">
             {competency.competency_name}
-          </h2>
+          </CardTitle>
           <div className="flex space-x-4">
-            <Link
-              href="/competencies"
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+            <Button
+              variant="outline"
+              onClick={() => router.push('/competencies')}
             >
               Back to List
-            </Link>
-            <button
+            </Button>
+            <Button
               onClick={() => router.push(`/competencies/${competency.competency_id}/edit`)}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
             >
               Edit Competency
-            </button>
+            </Button>
           </div>
-        </div>
+        </CardHeader>
 
-        <div className="space-y-6">
-          <div>
-            <h3 className="text-lg font-medium text-gray-800 mb-4">Competency Details</h3>
-            <dl className="space-y-2">
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Competency ID</dt>
-                <dd className="text-sm text-gray-900">{competency.competency_id}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Name</dt>
-                <dd className="text-sm text-gray-900">{competency.competency_name}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Description</dt>
-                <dd className="text-sm text-gray-900">{competency.description ?? 'No description'}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Maximum PL Level</dt>
-                <dd className="text-sm text-gray-900">PL{competency.max_pl_level}</dd>
-              </div>
-            </dl>
-          </div>
+        <CardContent className="grid gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Competency Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <dl className="grid gap-4">
+                <div className="grid grid-cols-3 items-start">
+                  <dt className="font-medium text-muted-foreground">Competency ID</dt>
+                  <dd className="col-span-2">{competency.competency_id}</dd>
+                </div>
+                <div className="grid grid-cols-3 items-start">
+                  <dt className="font-medium text-muted-foreground">Name</dt>
+                  <dd className="col-span-2">{competency.competency_name}</dd>
+                </div>
+                <div className="grid grid-cols-3 items-start">
+                  <dt className="font-medium text-muted-foreground">Description</dt>
+                  <dd className="col-span-2">{competency.description ?? 'No description'}</dd>
+                </div>
+                <div className="grid grid-cols-3 items-start">
+                  <dt className="font-medium text-muted-foreground">Maximum PL Level</dt>
+                  <dd className="col-span-2">PL{competency.max_pl_level}</dd>
+                </div>
+              </dl>
+            </CardContent>
+          </Card>
 
-          <div>
-            <h3 className="text-lg font-medium text-gray-800 mb-4">Proficiency Level Scale</h3>
-            <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Proficiency Level Scale</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
               {Array.from({ length: competency.max_pl_level }, (_, i) => i + 1).map((level) => (
-                <div key={level} className="flex items-center">
-                  <div className="flex-1">
-                    <div className="h-2 bg-gray-200 rounded">
-                      <div
-                        className="h-2 bg-blue-600 rounded"
-                        style={{ width: `${(level / competency.max_pl_level) * 100}%` }}
-                      />
-                    </div>
+                <div key={level} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">PL{level}</span>
+                    <span className="text-sm text-muted-foreground">{Math.round((level / competency.max_pl_level) * 100)}%</span>
                   </div>
-                  <span className="ml-2 text-sm text-gray-600">PL{level}</span>
+                  <Progress
+                    value={(level / competency.max_pl_level) * 100}
+                    className="h-2"
+                  />
                 </div>
               ))}
-            </div>
-          </div>
-        </div>
-      </div>
+            </CardContent>
+          </Card>
+        </CardContent>
+      </Card>
     </div>
   )
 } 
