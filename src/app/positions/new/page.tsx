@@ -2,6 +2,8 @@ import PositionForm from '../components/PositionForm'
 import { getOfficers } from '@/lib/queries/officers'
 import { createPositionAction } from '@/app/actions/positions'
 
+export const dynamic = 'force-dynamic'
+
 export default async function NewPositionPage() {
   const officers = await getOfficers()
 

@@ -15,6 +15,7 @@ export type OfficerWithRelations = Officer & {
 }
 
 export async function getOfficers() {
+  console.log('Fetching officers...')
   const { data: officers, error } = await supabase
     .from('officers')
     .select(`
@@ -31,7 +32,12 @@ export async function getOfficers() {
       )
     `)
 
-  if (error) throw error
+  if (error) {
+    console.error('Error fetching officers:', error)
+    throw error
+  }
+  
+  console.log('Officers fetched successfully:', officers)
   return officers as OfficerWithRelations[]
 }
 
