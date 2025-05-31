@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "command": "deno",
+      "args": [
+        "run",
+        "--allow-all",
+        "npm:@supabase/mcp-server-supabase@latest",
+        "--access-token",
+        "sbp_8aed18e6600188387e366001c7768bf8929cbdfb"
+      ]
+    }
+  }
+}

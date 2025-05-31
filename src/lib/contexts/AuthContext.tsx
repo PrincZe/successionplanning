@@ -2,51 +2,93 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { signOutAction } from "@/app/actions/auth";
 
-// Mock user data for prototype
-const MOCK_USER = {
-  id: 'mock-user-id',
-  email: 'demo@example.com',
-  user_metadata: {
-    name: 'Demo User'
-  }
-};
+type User = {
+  email: string;
+  authenticated: boolean;
+  loginTime: string;
+} | null;
 
 type AuthContextType = {
-  user: any;
-  session: any;
+  user: User;
   loading: boolean;
   signOut: () => Promise<void>;
+  refreshAuth: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({
-  user: MOCK_USER,
-  session: { user: MOCK_USER },
-  loading: false,
+  user: null,
+  loading: true,
   signOut: async () => {},
+  refreshAuth: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  // In prototype mode, we'll always have a "logged in" user
-  const [user] = useState(MOCK_USER);
-  const [session] = useState({ user: MOCK_USER });
-  const [loading] = useState(false);
+  const [user, setUser] = useState<User>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // Simplified sign out for prototype
-  const signOut = async () => {
-    console.log('Sign out clicked - redirecting to landing page');
-    // In a prototype, we redirect to a special page that displays the landing page without auto-redirect
-    router.push('/signedout');
+  // Check authentication status
+  const checkAuth = async () => {
+    try {
+      const response = await fetch('/api/auth/session', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const sessionData = await response.json();
+        if (sessionData.authenticated) {
+          setUser(sessionData);
+        } else {
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Auth check error:', error);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // Refresh auth state
+  const refreshAuth = async () => {
+    await checkAuth();
+  };
+
+  // Sign out function
+  const signOut = async () => {
+    try {
+      setLoading(true);
+      const result = await signOutAction();
+      if (result.success) {
+        setUser(null);
+        console.log('Sign out successful - redirecting to login');
+        router.push('/login');
+      }
+    } catch (error) {
+      console.error('Sign out error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Check auth on mount
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        session,
         loading,
         signOut,
+        refreshAuth,
       }}
     >
       {children}
