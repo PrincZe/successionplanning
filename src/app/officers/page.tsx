@@ -9,10 +9,12 @@ export default async function OfficersPage() {
   const officers = await getOfficers()
 
   return (
-    <main className="container mx-auto px-4 py-8">
-      <Suspense fallback={<SkeletonTable columns={6} />}>
-        <OfficerList officers={officers} />
-      </Suspense>
-    </main>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50 to-green-50">
+      <main className="container mx-auto px-4 py-8">
+        <Suspense fallback={<SkeletonTable columns={5} />}>
+          <OfficerList officers={officers} />
+        </Suspense>
+      </main>
+    </div>
   )
 } 

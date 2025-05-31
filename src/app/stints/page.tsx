@@ -9,10 +9,12 @@ export default async function StintsPage() {
   const stints = await getStints()
 
   return (
-    <main className="container mx-auto px-4 py-8">
-      <Suspense fallback={<SkeletonTable columns={4} />}>
-        <StintList stints={stints} />
-      </Suspense>
-    </main>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50 to-orange-50">
+      <main className="container mx-auto px-4 py-8">
+        <Suspense fallback={<SkeletonTable columns={4} />}>
+          <StintList stints={stints} />
+        </Suspense>
+      </main>
+    </div>
   )
 } 
