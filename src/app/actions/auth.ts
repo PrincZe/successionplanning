@@ -4,12 +4,7 @@ import { supabaseServer as supabase } from '@/lib/supabase'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
-// Generate a 6-digit OTP
-function generateOTP(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString()
-}
-
-// Check if email is whitelisted and send OTP
+// Check if email is whitelisted and send OTP using Supabase Auth
 export async function sendOTPAction(email: string) {
   try {
     console.log('Checking email whitelist for:', email)
@@ -29,42 +24,26 @@ export async function sendOTPAction(email: string) {
       }
     }
 
-    console.log('Email is whitelisted, generating OTP...')
+    console.log('Email is whitelisted, sending OTP via Supabase Auth...')
     
-    // Generate OTP
-    const otpCode = generateOTP()
-    const expiresAt = new Date()
-    expiresAt.setMinutes(expiresAt.getMinutes() + 10) // OTP expires in 10 minutes
+    // Use Supabase Auth to send OTP
+    const { data, error } = await supabase.auth.signInWithOtp({
+      email: email.toLowerCase().trim(),
+      options: {
+        shouldCreateUser: false, // Don't auto-create users, only allow whitelisted emails
+      }
+    })
 
-    // Store OTP in database
-    const { error: otpError } = await supabase
-      .from('otp_verifications')
-      .insert({
-        email: email.toLowerCase().trim(),
-        otp_code: otpCode,
-        expires_at: expiresAt.toISOString(),
-        verified: false,
-        attempts: 0
-      })
-
-    if (otpError) {
-      console.error('Error storing OTP:', otpError)
-      return { success: false, error: 'Failed to generate verification code. Please try again.' }
+    if (error) {
+      console.error('Error sending OTP via Supabase:', error)
+      return { success: false, error: 'Failed to send verification code. Please try again.' }
     }
 
-    // TODO: Send email with OTP code
-    // For now, we'll log it (in production, integrate with email service)
-    console.log(`OTP for ${email}: ${otpCode}`)
-    
-    // In development, you might want to return the OTP for testing
-    // Remove this in production!
-    const isDevelopment = process.env.NODE_ENV === 'development'
+    console.log('OTP sent successfully via Supabase Auth')
     
     return { 
       success: true, 
-      message: 'Verification code sent to your email address.',
-      // Only include OTP in development mode
-      ...(isDevelopment && { otp: otpCode })
+      message: 'Verification code sent to your email address.'
     }
 
   } catch (error) {
@@ -73,57 +52,31 @@ export async function sendOTPAction(email: string) {
   }
 }
 
-// Verify OTP and create session
+// Verify OTP using Supabase Auth and create session
 export async function verifyOTPAction(email: string, otpCode: string) {
   try {
-    console.log('Verifying OTP for:', email)
+    console.log('Verifying OTP via Supabase Auth for:', email)
     
-    // Find valid OTP
-    const { data: otpRecord, error: findError } = await supabase
-      .from('otp_verifications')
-      .select('*')
-      .eq('email', email.toLowerCase().trim())
-      .eq('otp_code', otpCode)
-      .eq('verified', false)
-      .gte('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single()
+    // Use Supabase Auth to verify OTP
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: email.toLowerCase().trim(),
+      token: otpCode,
+      type: 'email'
+    })
 
-    if (findError || !otpRecord) {
-      console.log('Invalid or expired OTP')
-      
-      // Increment attempt count for existing OTP
-      await supabase
-        .from('otp_verifications')
-        .update({ attempts: otpRecord?.attempts ? otpRecord.attempts + 1 : 1 })
-        .eq('email', email.toLowerCase().trim())
-        .eq('otp_code', otpCode)
-      
+    if (error || !data.session) {
+      console.log('OTP verification failed:', error?.message)
       return { success: false, error: 'Invalid or expired verification code.' }
     }
 
-    // Check attempt limit
-    if (otpRecord.attempts >= 3) {
-      return { success: false, error: 'Too many failed attempts. Please request a new verification code.' }
-    }
+    console.log('OTP verified successfully via Supabase Auth')
 
-    // Mark OTP as verified
-    const { error: updateError } = await supabase
-      .from('otp_verifications')
-      .update({ verified: true })
-      .eq('id', otpRecord.id)
-
-    if (updateError) {
-      console.error('Error updating OTP:', updateError)
-      return { success: false, error: 'Verification failed. Please try again.' }
-    }
-
-    // Create session cookie
+    // Create our own session cookie with user info
     const sessionData = {
       email: email.toLowerCase().trim(),
       authenticated: true,
-      loginTime: new Date().toISOString()
+      loginTime: new Date().toISOString(),
+      supabaseSession: data.session
     }
 
     const cookieStore = cookies()
@@ -135,7 +88,6 @@ export async function verifyOTPAction(email: string, otpCode: string) {
       path: '/'
     })
 
-    console.log('OTP verified successfully, session created')
     return { success: true, message: 'Login successful!' }
 
   } catch (error) {
@@ -147,6 +99,10 @@ export async function verifyOTPAction(email: string, otpCode: string) {
 // Sign out action
 export async function signOutAction() {
   try {
+    // Sign out from Supabase Auth
+    await supabase.auth.signOut()
+    
+    // Clear our session cookie
     const cookieStore = cookies()
     cookieStore.delete('chronos_session')
     return { success: true }

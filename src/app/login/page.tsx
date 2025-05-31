@@ -21,7 +21,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
-  const [developmentOTP, setDevelopmentOTP] = useState('')
   
   const router = useRouter()
   const { refreshAuth } = useAuth()
@@ -41,13 +40,8 @@ export default function LoginPage() {
       const result = await sendOTPAction(email.trim())
       
       if (result.success) {
-        const successMessage = 'message' in result ? result.message : 'Verification code sent successfully!'
-        setMessage(successMessage)
+        setMessage(result.message || 'Verification code sent successfully!')
         setStep('otp')
-        // In development, show the OTP
-        if ('otp' in result && result.otp) {
-          setDevelopmentOTP(result.otp)
-        }
       } else {
         setError(result.error || 'Failed to send verification code')
       }
@@ -98,9 +92,6 @@ export default function LoginPage() {
       
       if (result.success) {
         setMessage('New verification code sent!')
-        if ('otp' in result && result.otp) {
-          setDevelopmentOTP(result.otp)
-        }
       } else {
         setError(result.error || 'Failed to resend verification code')
       }
@@ -116,7 +107,6 @@ export default function LoginPage() {
     setOtp('')
     setError('')
     setMessage('')
-    setDevelopmentOTP('')
   }
 
   return (
@@ -197,19 +187,6 @@ export default function LoginPage() {
                 className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg"
               >
                 <p className="text-sm text-green-700">{message}</p>
-              </motion.div>
-            )}
-
-            {/* Development OTP Display */}
-            {developmentOTP && process.env.NODE_ENV === 'development' && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg"
-              >
-                <p className="text-sm text-yellow-800">
-                  <strong>Development Mode:</strong> Your OTP is <code className="font-mono bg-yellow-100 px-1 rounded">{developmentOTP}</code>
-                </p>
               </motion.div>
             )}
 
