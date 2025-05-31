@@ -20,6 +20,104 @@ interface MultiSelectProps {
   placeholder: string
 }
 
+interface SingleSelectProps {
+  options: Officer[]
+  value: string | null
+  onChange: (value: string | null) => void
+  placeholder: string
+}
+
+function SingleSelect({ options, value, onChange, placeholder }: SingleSelectProps) {
+  const [search, setSearch] = useState('')
+  const [isOpen, setIsOpen] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+
+  const selectedOfficer = value ? options.find(officer => officer.officer_id === value) : null
+  const filteredOptions = options.filter(officer => 
+    officer.name.toLowerCase().includes(search.toLowerCase()) &&
+    officer.officer_id !== value
+  )
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleSelect = (officerId: string) => {
+    onChange(officerId)
+    setSearch('')
+    setIsOpen(false)
+  }
+
+  const handleRemove = () => {
+    onChange(null)
+  }
+
+  return (
+    <div className="relative" ref={wrapperRef}>
+      <div className="min-h-[42px] p-2 border-2 border-gray-200 rounded-lg bg-white flex flex-wrap gap-2 cursor-text hover:border-blue-300 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200 transition-colors"
+           onClick={() => setIsOpen(true)}>
+        {selectedOfficer && (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-700 font-medium">
+            <User className="h-3 w-3 mr-1" />
+            {selectedOfficer.name}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                handleRemove()
+              }}
+              className="ml-2 hover:text-blue-900 transition-colors"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </span>
+        )}
+        <div className="flex items-center flex-1 min-w-[120px]">
+          <Search className="h-4 w-4 text-gray-400 mr-2" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={selectedOfficer ? '' : placeholder}
+            className="flex-1 border-0 p-0 focus:ring-0 text-sm bg-transparent"
+            onFocus={() => setIsOpen(true)}
+          />
+        </div>
+      </div>
+      
+      {isOpen && (
+        <div className="absolute z-10 w-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
+          {filteredOptions.length === 0 ? (
+            <div className="p-3 text-sm text-gray-500 text-center">
+              {search ? 'No officers found' : 'All officers selected'}
+            </div>
+          ) : (
+            filteredOptions.map(officer => (
+              <div
+                key={officer.officer_id}
+                className="px-4 py-3 hover:bg-blue-50 cursor-pointer text-sm border-b border-gray-100 last:border-0 flex items-center transition-colors"
+                onClick={() => handleSelect(officer.officer_id)}
+              >
+                <User className="h-4 w-4 text-gray-400 mr-3" />
+                <div>
+                  <div className="font-medium text-gray-900">{officer.name}</div>
+                  <div className="text-xs text-gray-500">{officer.grade || 'No grade'}</div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function MultiSelect({ options, value, onChange, maxSelections, placeholder }: MultiSelectProps) {
   const [search, setSearch] = useState('')
   const [isOpen, setIsOpen] = useState(false)
@@ -253,18 +351,12 @@ export default function PositionForm({ position, officers, onSubmit }: PositionF
                   <User className="h-4 w-4 mr-2" />
                   Incumbent
                 </label>
-                <select
-                  value={formData.incumbent_id ?? ''}
-                  onChange={(e) => setFormData({ ...formData, incumbent_id: e.target.value || null })}
-                  className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
-                >
-                  <option value="">Select Incumbent</option>
-                  {officers.map((officer) => (
-                    <option key={officer.officer_id} value={officer.officer_id}>
-                      {officer.name} {officer.grade ? `(${officer.grade})` : ''}
-                    </option>
-                  ))}
-                </select>
+                <SingleSelect
+                  options={officers}
+                  value={formData.incumbent_id}
+                  onChange={(value) => setFormData({ ...formData, incumbent_id: value })}
+                  placeholder="Search and select incumbent..."
+                />
               </div>
             </div>
           </div>
