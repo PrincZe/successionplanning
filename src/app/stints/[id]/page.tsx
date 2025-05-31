@@ -18,8 +18,10 @@ export default async function StintDetailPage({ params }: StintDetailPageProps) 
   }
 
   return (
-    <main className="container mx-auto px-4 py-8">
-      <StintDetail stint={stint} />
-    </main>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100">
+      <main className="container mx-auto px-4 py-8">
+        <StintDetail stint={stint} />
+      </main>
+    </div>
   )
 } 
