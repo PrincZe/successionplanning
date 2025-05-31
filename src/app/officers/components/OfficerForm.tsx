@@ -2,6 +2,18 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { 
+  User, 
+  Hash, 
+  GraduationCap, 
+  Award, 
+  Calendar,
+  Briefcase,
+  ChevronDown,
+  ChevronRight,
+  Save,
+  X
+} from 'lucide-react'
 import type { OfficerWithRelations } from '@/lib/queries/officers'
 import type { HRCompetency, OOAStint } from '@/lib/types/supabase'
 
@@ -44,6 +56,37 @@ interface FormData {
     stint_id: number
     completion_year: number
   }>
+}
+
+function PLBadge({ level }: { level: number }) {
+  const colorClasses = {
+    1: 'bg-red-100 text-red-800',
+    2: 'bg-orange-100 text-orange-800', 
+    3: 'bg-yellow-100 text-yellow-800',
+    4: 'bg-blue-100 text-blue-800',
+    5: 'bg-green-100 text-green-800'
+  }
+  
+  return (
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClasses[level as keyof typeof colorClasses] || 'bg-gray-100 text-gray-800'}`}>
+      PL{level}
+    </span>
+  )
+}
+
+function TypeBadge({ type }: { type: string }) {
+  const colorClasses = {
+    'Attachment': 'bg-blue-100 text-blue-800',
+    'Secondment': 'bg-green-100 text-green-800',
+    'Exchange': 'bg-purple-100 text-purple-800',
+    'Training': 'bg-orange-100 text-orange-800'
+  }
+  
+  return (
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClasses[type as keyof typeof colorClasses] || 'bg-gray-100 text-gray-800'}`}>
+      {type}
+    </span>
+  )
 }
 
 export default function OfficerForm({ officer, competencies, stints, onSubmit }: OfficerFormProps) {
@@ -172,44 +215,59 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-6">
-      <div className="space-y-4">
-        {/* Basic Information */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="officer_id" className="block text-sm font-medium text-gray-700">
-                Officer ID
-              </label>
-              <input
-                type="text"
-                id="officer_id"
-                value={formData.officer_id}
-                onChange={(e) => setFormData({ ...formData, officer_id: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                required
-                disabled={!!officer}
-              />
+    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8">
+      {/* Officer Details Section */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-blue-200">
+          <div className="flex items-center">
+            <div className="p-2 bg-blue-200 rounded-lg mr-3">
+              <User className="h-5 w-5 text-blue-700" />
             </div>
-
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+            <h2 className="text-xl font-semibold text-blue-900">Officer Details</h2>
+          </div>
+        </div>
+        
+        <div className="p-6">
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="grade" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="officer_id" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <Hash className="h-4 w-4 mr-2 text-gray-500" />
+                  Officer ID
+                </label>
+                <input
+                  type="text"
+                  id="officer_id"
+                  value={formData.officer_id}
+                  onChange={(e) => setFormData({ ...formData, officer_id: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="Enter officer ID"
+                  required
+                  disabled={!!officer}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="name" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <User className="h-4 w-4 mr-2 text-gray-500" />
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="Enter full name"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="grade" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <GraduationCap className="h-4 w-4 mr-2 text-gray-500" />
                   Grade
                 </label>
                 <input
@@ -217,12 +275,14 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
                   id="grade"
                   value={formData.grade}
                   onChange={(e) => setFormData({ ...formData, grade: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="Enter grade"
                 />
               </div>
 
               <div>
-                <label htmlFor="mx_equivalent_grade" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="mx_equivalent_grade" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <GraduationCap className="h-4 w-4 mr-2 text-gray-500" />
                   MX Equivalent Grade
                 </label>
                 <input
@@ -230,23 +290,25 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
                   id="mx_equivalent_grade"
                   value={formData.mx_equivalent_grade}
                   onChange={(e) => setFormData({ ...formData, mx_equivalent_grade: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="Enter MX equivalent grade"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="ihrp_certification" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="ihrp_certification" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <Award className="h-4 w-4 mr-2 text-gray-500" />
                   IHRP Certification
                 </label>
                 <select
                   id="ihrp_certification"
                   value={formData.ihrp_certification}
                   onChange={(e) => setFormData({ ...formData, ihrp_certification: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 >
-                  <option value="">None</option>
+                  <option value="">Select certification</option>
                   <option value="IHRP-CP">IHRP-CP</option>
                   <option value="IHRP-SP">IHRP-SP</option>
                   <option value="IHRP-MP">IHRP-MP</option>
@@ -254,16 +316,17 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
               </div>
 
               <div>
-                <label htmlFor="hrlp" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="hrlp" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <Award className="h-4 w-4 mr-2 text-gray-500" />
                   HRLP Status
                 </label>
                 <select
                   id="hrlp"
                   value={formData.hrlp}
                   onChange={(e) => setFormData({ ...formData, hrlp: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 >
-                  <option value="">Not Started</option>
+                  <option value="">Select status</option>
                   <option value="In Progress">In Progress</option>
                   <option value="Completed">Completed</option>
                 </select>
@@ -271,176 +334,210 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Competencies Section */}
-        <div className="bg-white rounded-lg shadow">
+      {/* Competencies Section */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-purple-50 to-purple-100 px-6 py-4 border-b border-purple-200">
           <button
             type="button"
             onClick={() => setIsCompetenciesOpen(!isCompetenciesOpen)}
-            className="w-full px-6 py-4 text-left flex justify-between items-center border-b"
+            className="flex items-center justify-between w-full text-left"
           >
-            <h3 className="text-lg font-medium text-gray-900">Competencies</h3>
-            <span className="text-gray-500">{isCompetenciesOpen ? '▼' : '▶'}</span>
+            <div className="flex items-center">
+              <div className="p-2 bg-purple-200 rounded-lg mr-3">
+                <Award className="h-5 w-5 text-purple-700" />
+              </div>
+              <h2 className="text-xl font-semibold text-purple-900">Competencies</h2>
+            </div>
+            {isCompetenciesOpen ? (
+              <ChevronDown className="h-5 w-5 text-purple-700" />
+            ) : (
+              <ChevronRight className="h-5 w-5 text-purple-700" />
+            )}
           </button>
-          
-          {isCompetenciesOpen && (
-            <div className="p-6 space-y-4">
-              {competencies.map((competency) => {
-                const officerCompetency = formData.competencies.find(
-                  comp => comp.competency_id === competency.competency_id.toString()
-                )
-                
-                return (
-                  <div key={competency.competency_id} className="border rounded-lg p-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <label className="inline-flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={!!officerCompetency}
-                            onChange={() => toggleCompetency(competency.competency_id.toString())}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <span className="ml-2 text-sm font-medium text-gray-700">
-                            {competency.competency_name}
-                          </span>
-                        </label>
-                        {competency.description && (
-                          <p className="mt-1 text-sm text-gray-500">{competency.description}</p>
-                        )}
-                      </div>
+        </div>
+        
+        {isCompetenciesOpen && (
+          <div className="p-6 space-y-4">
+            {competencies.map((competency) => {
+              const officerCompetency = formData.competencies.find(
+                comp => comp.competency_id === competency.competency_id.toString()
+              )
+              
+              return (
+                <div key={competency.competency_id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:bg-gray-100 transition-colors">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <label className="inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={!!officerCompetency}
+                          onChange={() => toggleCompetency(competency.competency_id.toString())}
+                          className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                        />
+                        <span className="ml-3 text-sm font-medium text-gray-900">
+                          {competency.competency_name}
+                        </span>
+                      </label>
+                      {competency.description && (
+                        <p className="mt-1 text-sm text-gray-600 ml-7">{competency.description}</p>
+                      )}
                     </div>
-
                     {officerCompetency && (
-                      <div className="mt-4 grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">
-                            Proficiency Level
-                          </label>
-                          <select
-                            value={officerCompetency.achieved_pl_level}
-                            onChange={(e) => handleCompetencyChange(
-                              competency.competency_id.toString(),
-                              'achieved_pl_level',
-                              parseInt(e.target.value)
-                            )}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                          >
-                            {Array.from({ length: competency.max_pl_level }, (_, i) => i + 1).map((level) => (
-                              <option key={level} value={level}>
-                                PL{level}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">
-                            Assessment Date
-                          </label>
-                          <input
-                            type="date"
-                            value={officerCompetency.assessment_date}
-                            onChange={(e) => handleCompetencyChange(
-                              competency.competency_id.toString(),
-                              'assessment_date',
-                              e.target.value
-                            )}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                          />
-                        </div>
-                      </div>
+                      <PLBadge level={officerCompetency.achieved_pl_level} />
                     )}
                   </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
 
-        {/* OOA Stints Section */}
-        <div className="bg-white rounded-lg shadow">
+                  {officerCompetency && (
+                    <div className="ml-7 grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Proficiency Level
+                        </label>
+                        <select
+                          value={officerCompetency.achieved_pl_level}
+                          onChange={(e) => handleCompetencyChange(
+                            competency.competency_id.toString(),
+                            'achieved_pl_level',
+                            parseInt(e.target.value)
+                          )}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                        >
+                          {Array.from({ length: competency.max_pl_level }, (_, i) => i + 1).map((level) => (
+                            <option key={level} value={level}>
+                              PL{level}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
+                          <Calendar className="h-4 w-4 mr-1" />
+                          Assessment Date
+                        </label>
+                        <input
+                          type="date"
+                          value={officerCompetency.assessment_date}
+                          onChange={(e) => handleCompetencyChange(
+                            competency.competency_id.toString(),
+                            'assessment_date',
+                            e.target.value
+                          )}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* OOA Stints Section */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-amber-50 to-amber-100 px-6 py-4 border-b border-amber-200">
           <button
             type="button"
             onClick={() => setIsStintsOpen(!isStintsOpen)}
-            className="w-full px-6 py-4 text-left flex justify-between items-center border-b"
+            className="flex items-center justify-between w-full text-left"
           >
-            <h3 className="text-lg font-medium text-gray-900">OOA Stints</h3>
-            <span className="text-gray-500">{isStintsOpen ? '▼' : '▶'}</span>
+            <div className="flex items-center">
+              <div className="p-2 bg-amber-200 rounded-lg mr-3">
+                <Briefcase className="h-5 w-5 text-amber-700" />
+              </div>
+              <h2 className="text-xl font-semibold text-amber-900">OOA Stints</h2>
+            </div>
+            {isStintsOpen ? (
+              <ChevronDown className="h-5 w-5 text-amber-700" />
+            ) : (
+              <ChevronRight className="h-5 w-5 text-amber-700" />
+            )}
           </button>
-          
-          {isStintsOpen && (
-            <div className="p-6 space-y-4">
-              {stints.map((stint) => {
-                const officerStint = formData.stints.find(s => s.stint_id === Number(stint.stint_id))
-                
-                return (
-                  <div key={stint.stint_id} className="border rounded-lg p-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <label className="inline-flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={!!officerStint}
-                            onChange={() => toggleStint(Number(stint.stint_id))}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <span className="ml-2 text-sm font-medium text-gray-700">
-                            {stint.stint_name}
-                          </span>
-                        </label>
-                        <p className="mt-1 text-sm text-gray-500">
-                          {stint.stint_type} • {stint.year}
-                        </p>
+        </div>
+        
+        {isStintsOpen && (
+          <div className="p-6 space-y-4">
+            {stints.map((stint) => {
+              const officerStint = formData.stints.find(s => s.stint_id === Number(stint.stint_id))
+              
+              return (
+                <div key={stint.stint_id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:bg-gray-100 transition-colors">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <label className="inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={!!officerStint}
+                          onChange={() => toggleStint(Number(stint.stint_id))}
+                          className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
+                        />
+                        <span className="ml-3 text-sm font-medium text-gray-900">
+                          {stint.stint_name}
+                        </span>
+                      </label>
+                      <div className="flex items-center mt-1 ml-7">
+                        <TypeBadge type={stint.stint_type} />
+                        <span className="text-sm text-gray-500 ml-2">• {stint.year}</span>
                       </div>
                     </div>
-
-                    {officerStint && (
-                      <div className="mt-4">
-                        <label className="block text-sm font-medium text-gray-700">
-                          Completion Year
-                        </label>
-                        <input
-                          type="number"
-                          value={officerStint.completion_year}
-                          onChange={(e) => handleStintChange(
-                            Number(stint.stint_id),
-                            'completion_year',
-                            parseInt(e.target.value)
-                          )}
-                          min={2000}
-                          max={2100}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        />
-                      </div>
-                    )}
                   </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
+
+                  {officerStint && (
+                    <div className="ml-7">
+                      <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
+                        <Calendar className="h-4 w-4 mr-1" />
+                        Completion Year
+                      </label>
+                      <input
+                        type="number"
+                        value={officerStint.completion_year}
+                        onChange={(e) => handleStintChange(
+                          Number(stint.stint_id),
+                          'completion_year',
+                          parseInt(e.target.value)
+                        )}
+                        min={2000}
+                        max={2100}
+                        className="w-full md:w-48 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
+                      />
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
+      {/* Error Display */}
       {error && (
-        <div className="text-sm text-red-600">
-          {error}
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex">
+            <X className="h-5 w-5 text-red-400 mr-2 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
         </div>
       )}
 
-      <div className="flex justify-end space-x-4">
+      {/* Action Buttons */}
+      <div className="flex justify-end space-x-4 pt-6">
         <button
           type="button"
           onClick={() => router.back()}
-          className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+          className="px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
+          className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md"
         >
+          <Save className="h-4 w-4 mr-2" />
           {isSubmitting ? 'Saving...' : 'Save Officer'}
         </button>
       </div>
