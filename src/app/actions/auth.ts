@@ -96,7 +96,7 @@ export async function verifyOTPAction(email: string, otpCode: string) {
       // Increment attempt count for existing OTP
       await supabase
         .from('otp_verifications')
-        .update({ attempts: supabase.rpc('increment_attempts') })
+        .update({ attempts: otpRecord?.attempts ? otpRecord.attempts + 1 : 1 })
         .eq('email', email.toLowerCase().trim())
         .eq('otp_code', otpCode)
       

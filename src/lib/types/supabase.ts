@@ -73,6 +73,16 @@ export interface AllowedEmail {
   updated_at: string
 }
 
+export interface OTPVerification {
+  id: string
+  email: string
+  otp_code: string
+  expires_at: string
+  verified: boolean
+  attempts: number
+  created_at: string
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -115,6 +125,11 @@ export interface Database {
         Row: AllowedEmail
         Insert: Omit<AllowedEmail, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<AllowedEmail, 'id' | 'created_at' | 'updated_at'>>
+      }
+      otp_verifications: {
+        Row: OTPVerification
+        Insert: Omit<OTPVerification, 'id' | 'created_at'>
+        Update: Partial<Omit<OTPVerification, 'id' | 'created_at'>>
       }
     }
   }

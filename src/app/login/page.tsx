@@ -41,10 +41,11 @@ export default function LoginPage() {
       const result = await sendOTPAction(email.trim())
       
       if (result.success) {
-        setMessage(result.message)
+        const successMessage = 'message' in result ? result.message : 'Verification code sent successfully!'
+        setMessage(successMessage)
         setStep('otp')
         // In development, show the OTP
-        if (result.otp) {
+        if ('otp' in result && result.otp) {
           setDevelopmentOTP(result.otp)
         }
       } else {
@@ -97,7 +98,7 @@ export default function LoginPage() {
       
       if (result.success) {
         setMessage('New verification code sent!')
-        if (result.otp) {
+        if ('otp' in result && result.otp) {
           setDevelopmentOTP(result.otp)
         }
       } else {
@@ -291,7 +292,7 @@ export default function LoginPage() {
                     disabled={loading}
                     className="text-sm text-blue-600 hover:text-blue-500 underline"
                   >
-                    Didn't receive the code? Resend
+                    Didn&apos;t receive the code? Resend
                   </button>
                 </div>
               </div>
