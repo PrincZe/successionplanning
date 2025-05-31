@@ -191,103 +191,106 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
         </div>
       </div>
 
-      {/* Competencies Section */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-purple-50 to-purple-100 px-6 py-4 border-b border-purple-200">
-          <button
-            onClick={() => setIsCompetenciesOpen(!isCompetenciesOpen)}
-            className="flex items-center justify-between w-full text-left"
-          >
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-200 rounded-lg mr-3">
-                <Award className="h-5 w-5 text-purple-700" />
+      {/* Competencies & OOA Stints - Side by Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Competencies Section */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-purple-50 to-purple-100 px-6 py-4 border-b border-purple-200">
+            <button
+              onClick={() => setIsCompetenciesOpen(!isCompetenciesOpen)}
+              className="flex items-center justify-between w-full text-left"
+            >
+              <div className="flex items-center">
+                <div className="p-2 bg-purple-200 rounded-lg mr-3">
+                  <Award className="h-5 w-5 text-purple-700" />
+                </div>
+                <h2 className="text-xl font-semibold text-purple-900">Competencies</h2>
               </div>
-              <h2 className="text-xl font-semibold text-purple-900">Competencies</h2>
-            </div>
-            {isCompetenciesOpen ? (
-              <ChevronDown className="h-5 w-5 text-purple-700" />
-            ) : (
-              <ChevronRight className="h-5 w-5 text-purple-700" />
-            )}
-          </button>
-        </div>
-        
-        {isCompetenciesOpen && (
-          <div className="p-6">
-            {officer.competencies && officer.competencies.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {officer.competencies.map((comp) => (
-                  <div key={comp.competency.competency_id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-gray-900">
-                        {comp.competency.competency_name}
-                      </h4>
-                      <PLBadge level={comp.achieved_pl_level} />
-                    </div>
-                    {comp.competency.description && (
-                      <p className="text-sm text-gray-600">{comp.competency.description}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Award className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">No competencies recorded</p>
-              </div>
-            )}
+              {isCompetenciesOpen ? (
+                <ChevronDown className="h-5 w-5 text-purple-700" />
+              ) : (
+                <ChevronRight className="h-5 w-5 text-purple-700" />
+              )}
+            </button>
           </div>
-        )}
-      </div>
+          
+          {isCompetenciesOpen && (
+            <div className="p-6">
+              {officer.competencies && officer.competencies.length > 0 ? (
+                <div className="space-y-3">
+                  {officer.competencies.map((comp) => (
+                    <div key={comp.competency.competency_id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium text-gray-900 text-sm">
+                          {comp.competency.competency_name}
+                        </h4>
+                        <PLBadge level={comp.achieved_pl_level} />
+                      </div>
+                      {comp.competency.description && (
+                        <p className="text-xs text-gray-600">{comp.competency.description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Award className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500">No competencies recorded</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
-      {/* OOA Stints Section */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-amber-50 to-amber-100 px-6 py-4 border-b border-amber-200">
-          <button
-            onClick={() => setIsStintsOpen(!isStintsOpen)}
-            className="flex items-center justify-between w-full text-left"
-          >
-            <div className="flex items-center">
-              <div className="p-2 bg-amber-200 rounded-lg mr-3">
-                <Briefcase className="h-5 w-5 text-amber-700" />
+        {/* OOA Stints Section */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-amber-50 to-amber-100 px-6 py-4 border-b border-amber-200">
+            <button
+              onClick={() => setIsStintsOpen(!isStintsOpen)}
+              className="flex items-center justify-between w-full text-left"
+            >
+              <div className="flex items-center">
+                <div className="p-2 bg-amber-200 rounded-lg mr-3">
+                  <Briefcase className="h-5 w-5 text-amber-700" />
+                </div>
+                <h2 className="text-xl font-semibold text-amber-900">OOA Stints</h2>
               </div>
-              <h2 className="text-xl font-semibold text-amber-900">OOA Stints</h2>
-            </div>
-            {isStintsOpen ? (
-              <ChevronDown className="h-5 w-5 text-amber-700" />
-            ) : (
-              <ChevronRight className="h-5 w-5 text-amber-700" />
-            )}
-          </button>
-        </div>
-        
-        {isStintsOpen && (
-          <div className="p-6">
-            {officer.stints && officer.stints.length > 0 ? (
-              <div className="space-y-4">
-                {officer.stints.map((stint) => (
-                  <div key={stint.stint.stint_id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-gray-900">
-                        {stint.stint.stint_name}
-                      </h4>
-                      <TypeBadge type={stint.stint.stint_type} />
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Completed {stint.completion_year}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Briefcase className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">No stints recorded</p>
-              </div>
-            )}
+              {isStintsOpen ? (
+                <ChevronDown className="h-5 w-5 text-amber-700" />
+              ) : (
+                <ChevronRight className="h-5 w-5 text-amber-700" />
+              )}
+            </button>
           </div>
-        )}
+          
+          {isStintsOpen && (
+            <div className="p-6">
+              {officer.stints && officer.stints.length > 0 ? (
+                <div className="space-y-3">
+                  {officer.stints.map((stint) => (
+                    <div key={stint.stint.stint_id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium text-gray-900 text-sm">
+                          {stint.stint.stint_name}
+                        </h4>
+                        <TypeBadge type={stint.stint.stint_type} />
+                      </div>
+                      <div className="flex items-center text-xs text-gray-600">
+                        <Calendar className="h-3 w-3 mr-1" />
+                        Completed {stint.completion_year}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Briefcase className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500">No stints recorded</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
