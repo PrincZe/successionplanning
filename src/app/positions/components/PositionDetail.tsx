@@ -64,13 +64,32 @@ function SuccessionTree({ position }: { position: PositionWithRelations }) {
             <div className="absolute top-[188px] left-1/2 -translate-x-1/2 w-px h-16 bg-gray-300"></div>
             
             <div className="relative w-full flex justify-center mt-8">
-              <div className="relative">
-                <SuccessionNode
-                  title="Immediate Successor 1"
-                  name={position.immediate_successors[0]?.name}
-                  officerId={position.immediate_successors[0]?.officer_id}
-                />
-              </div>
+              {position.immediate_successors.length === 1 ? (
+                /* Single immediate successor - centered */
+                <div className="relative">
+                  <SuccessionNode
+                    title="Immediate Successor"
+                    name={position.immediate_successors[0]?.name}
+                    officerId={position.immediate_successors[0]?.officer_id}
+                  />
+                </div>
+              ) : (
+                /* Multiple immediate successors - side by side */
+                <>
+                  <div className="absolute top-8 left-[30%] right-[30%] h-px bg-gray-300"></div>
+                  <div className="flex justify-between w-[40%]">
+                    {position.immediate_successors.map((successor, index) => (
+                      <div key={successor.officer_id} className="relative">
+                        <SuccessionNode
+                          title={`Immediate Successor ${index + 1}`}
+                          name={successor.name}
+                          officerId={successor.officer_id}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </>
         )}
