@@ -48,23 +48,6 @@ export default function LandingPage() {
               Empowering HR excellence in the public service through strategic succession planning, 
               competency development, and officer career management.
             </motion.p>
-            
-            <motion.div
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8, duration: 0.8 }}
-            >
-              <Button asChild size="lg" className="px-8 py-3 text-lg">
-                <Link href="/home">
-                  Access Dashboard
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-              <Badge variant="outline" className="text-sm py-1 px-3">
-                Authentication disabled for prototype
-              </Badge>
-            </motion.div>
           </div>
 
           {/* Feature Cards */}
@@ -153,7 +136,7 @@ export default function LandingPage() {
               Comprehensive HR Succession Planning
             </h2>
             <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Built specifically for government agencies to manage critical HR positions 
+              Built specifically for Public Service Division to manage critical HRL positions 
               and develop leadership pipelines across the public service.
             </p>
           </motion.div>
@@ -222,8 +205,7 @@ export default function LandingPage() {
               <div className="bg-white rounded-2xl shadow-xl p-8 border">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-500">SYSTEM OVERVIEW</span>
-                    <Badge variant="outline">Live Prototype</Badge>
+                    <span className="text-sm font-medium text-gray-500">OVERVIEW</span>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4">
@@ -269,7 +251,7 @@ export default function LandingPage() {
               Public Service Division - HR Succession Planning System
             </p>
             <p className="text-sm text-gray-500">
-              Built with Next.js, React, and Supabase
+              Built by William Wong (ITC) with love
             </p>
           </div>
         </div>
