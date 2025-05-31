@@ -70,20 +70,19 @@ export default function CompetencyDetail({ competency }: CompetencyDetailProps) 
         </div>
       </div>
 
-      {/* Competency Details & PL Scale - Side by Side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Competency Details Section */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-blue-200">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-200 rounded-lg mr-3">
-                <Hash className="h-5 w-5 text-blue-700" />
-              </div>
-              <h2 className="text-xl font-semibold text-blue-900">Competency Details</h2>
+      {/* Competency Details Section */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-blue-200">
+          <div className="flex items-center">
+            <div className="p-2 bg-blue-200 rounded-lg mr-3">
+              <Hash className="h-5 w-5 text-blue-700" />
             </div>
+            <h2 className="text-xl font-semibold text-blue-900">Competency Details</h2>
           </div>
-          
-          <div className="p-6">
+        </div>
+        
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-6">
               <div>
                 <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
@@ -100,7 +99,9 @@ export default function CompetencyDetail({ competency }: CompetencyDetailProps) 
                 </dt>
                 <dd className="text-lg font-semibold text-gray-900">{competency.competency_name}</dd>
               </div>
-              
+            </div>
+            
+            <div className="space-y-6">
               <div>
                 <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
                   <FileText className="h-4 w-4 mr-2" />
@@ -119,44 +120,6 @@ export default function CompetencyDetail({ competency }: CompetencyDetailProps) 
                 </dd>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Proficiency Level Scale Section */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-purple-50 to-purple-100 px-6 py-4 border-b border-purple-200">
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-200 rounded-lg mr-3">
-                <BarChart3 className="h-5 w-5 text-purple-700" />
-              </div>
-              <h2 className="text-xl font-semibold text-purple-900">Proficiency Level Scale</h2>
-            </div>
-          </div>
-          
-          <div className="p-6">
-            <div className="space-y-4">
-              {Array.from({ length: competency.max_pl_level }, (_, i) => i + 1).map((level) => (
-                <div key={level} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="flex items-center space-x-3">
-                    <PLBadge level={level} />
-                    <span className="text-sm font-medium text-gray-700">
-                      Proficiency Level {level}
-                    </span>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {Math.round((level / competency.max_pl_level) * 100)}%
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            {competency.max_pl_level < 5 && (
-              <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-sm text-amber-800">
-                  <strong>Note:</strong> This competency has a maximum level of PL{competency.max_pl_level} instead of the standard PL5.
-                </p>
-              </div>
-            )}
           </div>
         </div>
       </div>

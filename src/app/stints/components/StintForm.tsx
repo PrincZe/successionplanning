@@ -157,9 +157,6 @@ export default function StintForm({ stint, onSubmit }: StintFormProps) {
                 placeholder="Enter year"
                 required
               />
-              <p className="mt-1 text-xs text-gray-500">
-                The year this stint opportunity is available
-              </p>
             </div>
           </div>
         </div>

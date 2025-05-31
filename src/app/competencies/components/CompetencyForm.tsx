@@ -144,21 +144,6 @@ export default function CompetencyForm({ competency, onSubmit }: CompetencyFormP
                   </option>
                 ))}
               </select>
-              
-              {/* PL Level Preview */}
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">Proficiency Level Scale Preview</h4>
-                <div className="flex items-center space-x-2">
-                  {Array.from({ length: formData.max_pl_level }, (_, i) => i + 1).map((level) => (
-                    <PLBadge key={level} level={level} />
-                  ))}
-                  {formData.max_pl_level < 5 && (
-                    <span className="text-xs text-gray-500">
-                      (Maximum: PL{formData.max_pl_level})
-                    </span>
-                  )}
-                </div>
-              </div>
             </div>
           </div>
         </div>
