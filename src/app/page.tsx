@@ -2,30 +2,14 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Users, Target, TrendingUp, Shield, ArrowRight, CheckCircle } from 'lucide-react'
 
 export default function LandingPage() {
-  const router = useRouter()
-  const [isRedirecting, setIsRedirecting] = useState(false)
-
-  // For prototype, redirect to home page after a pause
-  useEffect(() => {
-    // Use a timeout to allow the page to render first
-    const timer = setTimeout(() => {
-      setIsRedirecting(true)
-      // Use push instead of replace to avoid navigation loop
-      router.push('/home')
-    }, 3000) // Longer timeout to avoid rapid navigation
-    
-    return () => clearTimeout(timer)
-  }, [router])
-
   return (
-    <div className="min-h-[calc(100vh-64px)]">
+    <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative overflow-hidden py-20 sm:py-32">
         <motion.div
@@ -34,8 +18,8 @@ export default function LandingPage() {
           transition={{ duration: 0.8 }}
           className="container mx-auto px-4"
         >
-          <div className="text-center max-w-4xl mx-auto">
-            <Badge variant="secondary" className="mb-4">
+          <div className="text-center max-w-4xl mx-auto mb-16">
+            <Badge variant="secondary" className="mb-4 text-sm font-medium">
               Public Service Division
             </Badge>
             <motion.h1 
@@ -47,45 +31,105 @@ export default function LandingPage() {
               CHRONOS
             </motion.h1>
             <motion.h2 
-              className="text-2xl sm:text-3xl text-gray-700 mb-4 font-medium"
+              className="text-2xl sm:text-3xl text-gray-700 mb-6 font-medium leading-tight"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.8 }}
             >
-              CHROO&apos;s Human Resource Officer Nexus and Organisational Succession Tool
+              CHROO&apos;s Human Resource Officer Nexus<br />
+              and Organisational Succession Tool
             </motion.h2>
             <motion.p 
-              className="text-gray-500 mb-8 text-lg"
+              className="text-gray-600 mb-8 text-lg leading-relaxed max-w-3xl mx-auto"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.8 }}
             >
-              Empowering HR excellence in the public service through strategic succession planning and officer development.
+              Empowering HR excellence in the public service through strategic succession planning, 
+              competency development, and officer career management.
             </motion.p>
             
-            {isRedirecting ? (
-              <motion.div
-                className="flex items-center justify-center space-x-2 text-blue-600"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span className="font-medium">Redirecting to dashboard...</span>
-              </motion.div>
-            ) : (
-              <motion.p
-                className="text-blue-600 font-medium"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1, duration: 0.5 }}
-              >
-                Authentication disabled for prototype. You will be redirected shortly...
-              </motion.p>
-            )}
+            <motion.div
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 0.8 }}
+            >
+              <Button asChild size="lg" className="px-8 py-3 text-lg">
+                <Link href="/home">
+                  Access Dashboard
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+              <Badge variant="outline" className="text-sm py-1 px-3">
+                Authentication disabled for prototype
+              </Badge>
+            </motion.div>
           </div>
+
+          {/* Feature Cards */}
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.0, duration: 0.8 }}
+          >
+            <Card className="text-center hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Users className="h-6 w-6 text-blue-600" />
+                </div>
+                <CardTitle className="text-lg">Officer Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription>
+                  Comprehensive profiles, competency tracking, and career development paths
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-4">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Target className="h-6 w-6 text-green-600" />
+                </div>
+                <CardTitle className="text-lg">Succession Planning</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription>
+                  Strategic succession mapping across immediate and long-term horizons
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-4">
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <TrendingUp className="h-6 w-6 text-purple-600" />
+                </div>
+                <CardTitle className="text-lg">Competency Framework</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription>
+                  Track proficiency levels and identify development opportunities
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-4">
+                <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Shield className="h-6 w-6 text-amber-600" />
+                </div>
+                <CardTitle className="text-lg">OOA Stints</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription>
+                  Manage out-of-agency attachments and development experiences
+                </CardDescription>
+              </CardContent>
+            </Card>
+          </motion.div>
         </motion.div>
 
         {/* Decorative elements */}
@@ -94,6 +138,142 @@ export default function LandingPage() {
           <div className="absolute -bottom-1/2 -right-1/4 w-[500px] h-[500px] bg-blue-200 rounded-full opacity-20 blur-3xl"></div>
         </div>
       </section>
+
+      {/* Key Features Section */}
+      <section className="py-20 bg-gray-50/50">
+        <div className="container mx-auto px-4">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+              Comprehensive HR Succession Planning
+            </h2>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              Built specifically for government agencies to manage critical HR positions 
+              and develop leadership pipelines across the public service.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              <div className="space-y-6">
+                <div className="flex items-start space-x-4">
+                  <CheckCircle className="h-6 w-6 text-green-500 mt-1 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Multi-Agency Position Tracking</h3>
+                    <p className="text-gray-600">
+                      Manage HR positions across PSD, MOE, MHA, MOH, MSF, MTI and other agencies with 
+                      comprehensive succession planning.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-4">
+                  <CheckCircle className="h-6 w-6 text-green-500 mt-1 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">4-Tier Succession Framework</h3>
+                    <p className="text-gray-600">
+                      Plan successors across immediate, 1-2 years, 3-5 years, and 5+ year horizons 
+                      for comprehensive workforce planning.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-4">
+                  <CheckCircle className="h-6 w-6 text-green-500 mt-1 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Competency-Based Development</h3>
+                    <p className="text-gray-600">
+                      Track officer proficiency across 10 HR competencies with PL1-PL5 assessment levels 
+                      for targeted development.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-4">
+                  <CheckCircle className="h-6 w-6 text-green-500 mt-1 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Career Development Tracking</h3>
+                    <p className="text-gray-600">
+                      Monitor OOA stints, external attachments, and cross-ministry experiences 
+                      for holistic officer development.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="relative"
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              <div className="bg-white rounded-2xl shadow-xl p-8 border">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-500">SYSTEM OVERVIEW</span>
+                    <Badge variant="outline">Live Prototype</Badge>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-4 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">150+</div>
+                      <div className="text-sm text-gray-600">HR Positions</div>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">300+</div>
+                      <div className="text-sm text-gray-600">Officers</div>
+                    </div>
+                    <div className="text-center p-4 bg-purple-50 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">10</div>
+                      <div className="text-sm text-gray-600">Competencies</div>
+                    </div>
+                    <div className="text-center p-4 bg-amber-50 rounded-lg">
+                      <div className="text-2xl font-bold text-amber-600">25+</div>
+                      <div className="text-sm text-gray-600">OOA Stints</div>
+                    </div>
+                  </div>
+                  
+                  <Button asChild className="w-full mt-6">
+                    <Link href="/home">
+                      Explore the Dashboard
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-12">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <div className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-blue-300 bg-clip-text text-transparent mb-4">
+              CHRONOS
+            </div>
+            <p className="text-gray-400 mb-4">
+              Public Service Division - HR Succession Planning System
+            </p>
+            <p className="text-sm text-gray-500">
+              Built with Next.js, React, and Supabase
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
