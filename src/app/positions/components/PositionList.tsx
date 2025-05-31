@@ -148,18 +148,27 @@ export default function PositionList({ positions }: PositionListProps) {
   // Calculate summary statistics
   const stats = {
     total: positions.length,
-    vacant: positions.filter(p => !p.incumbent).length,
-    wellSucceeded: positions.filter(p => {
-      const immediate = (p.immediate_successors || []).length
-      const shortTerm = (p.successors_1_2_years || []).length
-      return immediate >= 1 && shortTerm >= 2
-    }).length
+    vacant: positions.filter(p => !p.incumbent).length
+  }
+
+  // Custom search function to handle nested incumbent names
+  const customSearchableColumns = (item: PositionWithRelations, searchTerm: string) => {
+    const searchableFields = [
+      item.position_title,
+      item.agency,
+      item.position_id,
+      item.incumbent?.name || '' // Include incumbent name in search
+    ]
+    
+    return searchableFields.some(field => 
+      String(field || '').toLowerCase().includes(searchTerm.toLowerCase())
+    )
   }
 
   return (
     <div className="space-y-6">
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
           <div className="flex items-center">
             <div className="p-3 bg-blue-100 rounded-lg">
@@ -180,18 +189,7 @@ export default function PositionList({ positions }: PositionListProps) {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Vacant Positions</p>
               <p className="text-2xl font-bold text-gray-900">{stats.vacant}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-          <div className="flex items-center">
-            <div className="p-3 bg-green-100 rounded-lg">
-              <TrendingUp className="h-6 w-6 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Well Succeeded</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.wellSucceeded}</p>
+              <p className="text-xs text-gray-400 mt-1">No incumbent assigned</p>
             </div>
           </div>
         </div>
@@ -215,6 +213,7 @@ export default function PositionList({ positions }: PositionListProps) {
         columns={columns}
         onRowClick={(row) => router.push(`/positions/${row.position_id}`)}
         searchableColumns={['position_title', 'agency', 'position_id']}
+        customSearch={customSearchableColumns}
         itemsPerPage={12}
         title="Position Management"
       />

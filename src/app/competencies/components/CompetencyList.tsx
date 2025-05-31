@@ -67,40 +67,18 @@ export default function CompetencyList({ competencies }: CompetencyListProps) {
           <PLBadge level={row.max_pl_level} />
         </div>
       )
-    },
-    {
-      header: 'Progress Scale',
-      accessorKey: 'max_pl_level' as const,
-      cell: (row: HRCompetency) => (
-        <div className="flex items-center space-x-1">
-          {Array.from({ length: row.max_pl_level }, (_, i) => (
-            <div
-              key={i}
-              className={`h-2 w-4 rounded-full ${
-                i < row.max_pl_level ? 'bg-green-400' : 'bg-gray-200'
-              }`}
-            />
-          ))}
-        </div>
-      ),
-      sortable: false
     }
   ]
 
   // Calculate summary statistics
   const stats = {
-    total: competencies.length,
-    advanced: competencies.filter(c => c.max_pl_level >= 4).length,
-    basic: competencies.filter(c => c.max_pl_level <= 2).length,
-    avgLevel: competencies.length > 0 
-      ? Math.round((competencies.reduce((sum, c) => sum + c.max_pl_level, 0) / competencies.length) * 10) / 10
-      : 0
+    total: competencies.length
   }
 
   return (
     <div className="space-y-6">
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
           <div className="flex items-center">
             <div className="p-3 bg-purple-100 rounded-lg">
@@ -109,30 +87,6 @@ export default function CompetencyList({ competencies }: CompetencyListProps) {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Total Competencies</p>
               <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-          <div className="flex items-center">
-            <div className="p-3 bg-green-100 rounded-lg">
-              <TrendingUp className="h-6 w-6 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Advanced (PL4+)</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.advanced}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-          <div className="flex items-center">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <Target className="h-6 w-6 text-blue-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Average Level</p>
-              <p className="text-2xl font-bold text-gray-900">PL{stats.avgLevel}</p>
             </div>
           </div>
         </div>

@@ -17,6 +17,7 @@ interface DataTableProps<T> {
   columns: Column<T>[]
   onRowClick?: (row: T) => void
   searchableColumns?: (keyof T)[]
+  customSearch?: (item: T, searchTerm: string) => boolean
   itemsPerPage?: number
   title?: string
 }
@@ -26,6 +27,7 @@ export default function DataTable<T>({
   columns, 
   onRowClick, 
   searchableColumns = [],
+  customSearch,
   itemsPerPage = 10,
   title 
 }: DataTableProps<T>) {
@@ -39,12 +41,18 @@ export default function DataTable<T>({
     if (!searchTerm) return data
 
     return data.filter((item) => {
+      // Use custom search function if provided
+      if (customSearch) {
+        return customSearch(item, searchTerm)
+      }
+      
+      // Otherwise use default search behavior
       return searchableColumns.some((column) => {
         const value = item[column]
         return String(value || '').toLowerCase().includes(searchTerm.toLowerCase())
       })
     })
-  }, [data, searchTerm, searchableColumns])
+  }, [data, searchTerm, searchableColumns, customSearch])
 
   // Sort data
   const sortedData = useMemo(() => {
@@ -107,7 +115,7 @@ export default function DataTable<T>({
         </div>
 
         {/* Search Bar */}
-        {searchableColumns.length > 0 && (
+        {(searchableColumns.length > 0 || customSearch) && (
           <div className="relative max-w-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-5 w-5 text-gray-400" />

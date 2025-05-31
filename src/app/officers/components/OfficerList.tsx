@@ -139,14 +139,13 @@ export default function OfficerList({ officers }: OfficerListProps) {
   const stats = {
     total: officers.length,
     certified: officers.filter(o => o.ihrp_certification).length,
-    inPosition: officers.filter(o => o.positions && o.positions.length > 0).length,
-    withCompetencies: officers.filter(o => o.competencies && o.competencies.length > 0).length
+    inPosition: officers.filter(o => o.positions && o.positions.length > 0).length
   }
 
   return (
     <div className="space-y-6">
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
           <div className="flex items-center">
             <div className="p-3 bg-emerald-100 rounded-lg">
@@ -179,18 +178,6 @@ export default function OfficerList({ officers }: OfficerListProps) {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">In Position</p>
               <p className="text-2xl font-bold text-gray-900">{stats.inPosition}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-          <div className="flex items-center">
-            <div className="p-3 bg-green-100 rounded-lg">
-              <GraduationCap className="h-6 w-6 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">With Skills</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.withCompetencies}</p>
             </div>
           </div>
         </div>

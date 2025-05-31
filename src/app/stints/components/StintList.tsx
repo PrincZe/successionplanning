@@ -44,7 +44,7 @@ export default function StintList({ stints }: StintListProps) {
           </div>
         </div>
       ),
-      width: 'w-1/3'
+      width: 'w-1/2'
     },
     {
       header: 'Type & Year',
@@ -58,22 +58,6 @@ export default function StintList({ stints }: StintListProps) {
           </div>
         </div>
       )
-    },
-    {
-      header: 'Opportunities',
-      accessorKey: 'stint_id' as const,
-      cell: (row: OOAStint) => (
-        <div className="flex items-center space-x-2">
-          <div className="p-2 bg-green-100 rounded-lg">
-            <MapPin className="h-4 w-4 text-green-600" />
-          </div>
-          <div>
-            <div className="text-sm font-medium text-gray-900">Available</div>
-            <div className="text-xs text-gray-500">Development opportunity</div>
-          </div>
-        </div>
-      ),
-      sortable: false
     }
   ]
 
