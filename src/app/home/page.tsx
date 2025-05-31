@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { getQuickStats } from '@/lib/queries/stats'
-import { Users, Building2, Briefcase, TrendingUp, Plus, ArrowUpRight, Award, Target, Calendar, Clock } from 'lucide-react'
+import { Users, Building2, Briefcase, TrendingUp, Plus, ArrowUpRight } from 'lucide-react'
 
 // Revalidate every minute
 export const revalidate = 60
@@ -17,11 +17,11 @@ export default async function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <div className="container px-4 mx-auto py-8">
         {/* Welcome Header */}
-        <div className="mb-8">
+        <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-2">
             Welcome to CHRONOS
           </h1>
-          <p className="text-gray-600 text-lg">Your HR succession planning command center</p>
+          <p className="text-gray-600 text-lg">CHROO's HRL Succession Planning Command Center</p>
         </div>
         
         {/* Stats Overview */}
@@ -140,77 +140,6 @@ export default async function HomePage() {
                   <p className="text-gray-600 text-sm">Create OOA assignment</p>
                 </div>
               </div>
-            </Link>
-          </div>
-        </div>
-
-        {/* System Features Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Succession Planning Feature */}
-          <div className="bg-white rounded-2xl shadow-lg p-8">
-            <div className="flex items-center mb-6">
-              <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl mr-4">
-                <Target className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-800">Succession Planning</h3>
-                <p className="text-gray-600">Strategic workforce planning</p>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-center text-sm text-gray-600">
-                <Clock className="h-4 w-4 mr-2 text-blue-500" />
-                <span>Immediate successors tracking</span>
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <Calendar className="h-4 w-4 mr-2 text-green-500" />
-                <span>1-2 year development pipeline</span>
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <Award className="h-4 w-4 mr-2 text-purple-500" />
-                <span>Long-term talent cultivation</span>
-              </div>
-            </div>
-            <Link 
-              href="/positions" 
-              className="inline-flex items-center mt-6 px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium"
-            >
-              Manage Succession Plans
-              <ArrowUpRight className="ml-2 h-4 w-4" />
-            </Link>
-          </div>
-
-          {/* Competency Management Feature */}
-          <div className="bg-white rounded-2xl shadow-lg p-8">
-            <div className="flex items-center mb-6">
-              <div className="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl mr-4">
-                <Award className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-800">Competency Framework</h3>
-                <p className="text-gray-600">Skills development tracking</p>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-center text-sm text-gray-600">
-                <TrendingUp className="h-4 w-4 mr-2 text-blue-500" />
-                <span>PL1-PL5 proficiency levels</span>
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <Users className="h-4 w-4 mr-2 text-green-500" />
-                <span>10 core HR competencies</span>
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <Target className="h-4 w-4 mr-2 text-purple-500" />
-                <span>Development gap analysis</span>
-              </div>
-            </div>
-            <Link 
-              href="/competencies" 
-              className="inline-flex items-center mt-6 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors text-sm font-medium"
-            >
-              View Competencies
-              <ArrowUpRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
         </div>
