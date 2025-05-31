@@ -93,98 +93,101 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
         </div>
       </div>
 
-      {/* Officer Details Section */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-blue-200">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-200 rounded-lg mr-3">
-              <Hash className="h-5 w-5 text-blue-700" />
-            </div>
-            <h2 className="text-xl font-semibold text-blue-900">Officer Details</h2>
-          </div>
-        </div>
-        
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div>
-              <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
-                <Hash className="h-4 w-4 mr-2" />
-                Officer ID
-              </dt>
-              <dd className="text-lg font-semibold text-gray-900 font-mono">{officer.officer_id}</dd>
-            </div>
-            
-            <div>
-              <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
-                <GraduationCap className="h-4 w-4 mr-2" />
-                Grade
-              </dt>
-              <dd className="text-lg font-semibold text-gray-900">{officer.grade ?? 'Not assigned'}</dd>
-            </div>
-            
-            <div>
-              <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
-                <GraduationCap className="h-4 w-4 mr-2" />
-                MX Equivalent Grade
-              </dt>
-              <dd className="text-lg font-semibold text-gray-900">{officer.mx_equivalent_grade ?? 'Not assigned'}</dd>
-            </div>
-            
-            <div>
-              <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
-                <Award className="h-4 w-4 mr-2" />
-                IHRP Certification
-              </dt>
-              <dd className="text-lg font-semibold text-gray-900">{officer.ihrp_certification ?? 'None'}</dd>
-            </div>
-            
-            <div>
-              <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
-                <Award className="h-4 w-4 mr-2" />
-                HRLP
-              </dt>
-              <dd className="text-lg font-semibold text-gray-900">{officer.hrlp ?? 'None'}</dd>
+      {/* Officer Details & Current Positions - Side by Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Officer Details Section */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-blue-200">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-200 rounded-lg mr-3">
+                <Hash className="h-5 w-5 text-blue-700" />
+              </div>
+              <h2 className="text-xl font-semibold text-blue-900">Officer Details</h2>
             </div>
           </div>
+          
+          <div className="p-6">
+            <div className="space-y-6">
+              <div>
+                <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
+                  <Hash className="h-4 w-4 mr-2" />
+                  Officer ID
+                </dt>
+                <dd className="text-lg font-semibold text-gray-900 font-mono">{officer.officer_id}</dd>
+              </div>
+              
+              <div>
+                <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
+                  <GraduationCap className="h-4 w-4 mr-2" />
+                  Grade
+                </dt>
+                <dd className="text-lg font-semibold text-gray-900">{officer.grade ?? 'Not assigned'}</dd>
+              </div>
+              
+              <div>
+                <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
+                  <GraduationCap className="h-4 w-4 mr-2" />
+                  MX Equivalent Grade
+                </dt>
+                <dd className="text-lg font-semibold text-gray-900">{officer.mx_equivalent_grade ?? 'Not assigned'}</dd>
+              </div>
+              
+              <div>
+                <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
+                  <Award className="h-4 w-4 mr-2" />
+                  IHRP Certification
+                </dt>
+                <dd className="text-lg font-semibold text-gray-900">{officer.ihrp_certification ?? 'None'}</dd>
+              </div>
+              
+              <div>
+                <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
+                  <Award className="h-4 w-4 mr-2" />
+                  HRLP
+                </dt>
+                <dd className="text-lg font-semibold text-gray-900">{officer.hrlp ?? 'None'}</dd>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Current Positions Section */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-green-50 to-green-100 px-6 py-4 border-b border-green-200">
-          <div className="flex items-center">
-            <div className="p-2 bg-green-200 rounded-lg mr-3">
-              <Building2 className="h-5 w-5 text-green-700" />
+        {/* Current Positions Section */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-green-50 to-green-100 px-6 py-4 border-b border-green-200">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-200 rounded-lg mr-3">
+                <Building2 className="h-5 w-5 text-green-700" />
+              </div>
+              <h2 className="text-xl font-semibold text-green-900">Current Positions</h2>
             </div>
-            <h2 className="text-xl font-semibold text-green-900">Current Positions</h2>
           </div>
-        </div>
-        
-        <div className="p-6">
-          {officer.positions && officer.positions.length > 0 ? (
-            <div className="space-y-3">
-              {officer.positions.map((position) => (
-                <Link
-                  key={position.position_id}
-                  href={`/positions/${position.position_id}`}
-                  className="block p-4 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors"
-                >
-                  <div className="flex items-center">
-                    <Building2 className="h-5 w-5 text-blue-600 mr-3" />
-                    <div>
-                      <div className="font-medium text-blue-900">{position.position_title}</div>
-                      <div className="text-sm text-blue-600">{position.agency}</div>
+          
+          <div className="p-6">
+            {officer.positions && officer.positions.length > 0 ? (
+              <div className="space-y-3">
+                {officer.positions.map((position) => (
+                  <Link
+                    key={position.position_id}
+                    href={`/positions/${position.position_id}`}
+                    className="block p-4 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors"
+                  >
+                    <div className="flex items-center">
+                      <Building2 className="h-5 w-5 text-blue-600 mr-3" />
+                      <div>
+                        <div className="font-medium text-blue-900">{position.position_title}</div>
+                        <div className="text-sm text-blue-600">{position.agency}</div>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <Building2 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500">No current positions assigned</p>
-            </div>
-          )}
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Building2 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">No current positions assigned</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
