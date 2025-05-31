@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getQuickStats } from '@/lib/queries/stats'
+import { Users, Building2, Briefcase, TrendingUp, Plus, ArrowUpRight, Award, Target, Calendar, Clock } from 'lucide-react'
 
 // Revalidate every minute
 export const revalidate = 60
@@ -13,75 +14,203 @@ export default async function HomePage() {
   const stats = await getQuickStats()
 
   return (
-    <div className="py-8">
-      <div className="container px-4 mx-auto">
-        <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <div className="container px-4 mx-auto py-8">
+        {/* Welcome Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-2">
+            Welcome to CHRONOS
+          </h1>
+          <p className="text-gray-600 text-lg">Your HR succession planning command center</p>
+        </div>
         
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-gray-500 text-sm font-medium mb-1">Total Positions</h3>
-            <p className="text-3xl font-bold text-blue-600">{stats.totalPositions}</p>
-            <Link href="/positions" className="text-blue-500 text-sm hover:underline mt-2 inline-block">
-              View all positions →
-            </Link>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          {/* Total Positions Card */}
+          <div className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 opacity-0 group-hover:opacity-10 transition-opacity"></div>
+            <div className="p-8">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-blue-100 rounded-xl">
+                  <Building2 className="h-8 w-8 text-blue-600" />
+                </div>
+                <ArrowUpRight className="h-5 w-5 text-gray-400 group-hover:text-blue-500 transition-colors" />
+              </div>
+              <h3 className="text-gray-500 text-sm font-medium mb-2 uppercase tracking-wide">Total Positions</h3>
+              <p className="text-4xl font-bold text-gray-900 mb-3">{stats.totalPositions}</p>
+              <Link href="/positions" className="inline-flex items-center text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors group">
+                View all positions
+                <ArrowUpRight className="ml-1 h-4 w-4 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+              </Link>
+            </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-gray-500 text-sm font-medium mb-1">Total Officers</h3>
-            <p className="text-3xl font-bold text-blue-600">{stats.totalOfficers}</p>
-            <Link href="/officers" className="text-blue-500 text-sm hover:underline mt-2 inline-block">
-              View all officers →
-            </Link>
+          {/* Total Officers Card */}
+          <div className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-emerald-600 opacity-0 group-hover:opacity-10 transition-opacity"></div>
+            <div className="p-8">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-emerald-100 rounded-xl">
+                  <Users className="h-8 w-8 text-emerald-600" />
+                </div>
+                <ArrowUpRight className="h-5 w-5 text-gray-400 group-hover:text-emerald-500 transition-colors" />
+              </div>
+              <h3 className="text-gray-500 text-sm font-medium mb-2 uppercase tracking-wide">Total Officers</h3>
+              <p className="text-4xl font-bold text-gray-900 mb-3">{stats.totalOfficers}</p>
+              <Link href="/officers" className="inline-flex items-center text-emerald-600 text-sm font-medium hover:text-emerald-700 transition-colors group">
+                View all officers
+                <ArrowUpRight className="ml-1 h-4 w-4 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+              </Link>
+            </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-gray-500 text-sm font-medium mb-1">Active Stints</h3>
-            <p className="text-3xl font-bold text-amber-500">{stats.activeStints}</p>
-            <Link href="/stints" className="text-blue-500 text-sm hover:underline mt-2 inline-block">
-              View all stints →
+          {/* Active Stints Card */}
+          <div className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-500 to-orange-600 opacity-0 group-hover:opacity-10 transition-opacity"></div>
+            <div className="p-8">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-amber-100 rounded-xl">
+                  <Briefcase className="h-8 w-8 text-amber-600" />
+                </div>
+                <ArrowUpRight className="h-5 w-5 text-gray-400 group-hover:text-amber-500 transition-colors" />
+              </div>
+              <h3 className="text-gray-500 text-sm font-medium mb-2 uppercase tracking-wide">Active Stints</h3>
+              <p className="text-4xl font-bold text-gray-900 mb-3">{stats.activeStints}</p>
+              <Link href="/stints" className="inline-flex items-center text-amber-600 text-sm font-medium hover:text-amber-700 transition-colors group">
+                View all stints
+                <ArrowUpRight className="ml-1 h-4 w-4 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions Section */}
+        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+          <div className="flex items-center mb-8">
+            <div className="p-2 bg-purple-100 rounded-lg mr-3">
+              <TrendingUp className="h-6 w-6 text-purple-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800">Quick Actions</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Add Position Action */}
+            <Link 
+              href="/positions/new" 
+              className="group relative overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border border-blue-200 rounded-xl p-6 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg"
+            >
+              <div className="flex items-center">
+                <div className="p-3 bg-blue-500 rounded-xl mr-4 group-hover:scale-110 transition-transform">
+                  <Plus className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-800 text-lg mb-1">Add Position</h3>
+                  <p className="text-gray-600 text-sm">Create new HR position</p>
+                </div>
+              </div>
+            </Link>
+            
+            {/* Add Officer Action */}
+            <Link 
+              href="/officers/new" 
+              className="group relative overflow-hidden bg-gradient-to-br from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 border border-emerald-200 rounded-xl p-6 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg"
+            >
+              <div className="flex items-center">
+                <div className="p-3 bg-emerald-500 rounded-xl mr-4 group-hover:scale-110 transition-transform">
+                  <Plus className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-800 text-lg mb-1">Add Officer</h3>
+                  <p className="text-gray-600 text-sm">Register new HR officer</p>
+                </div>
+              </div>
+            </Link>
+            
+            {/* Add Stint Action */}
+            <Link 
+              href="/stints/new" 
+              className="group relative overflow-hidden bg-gradient-to-br from-amber-50 to-amber-100 hover:from-amber-100 hover:to-amber-200 border border-amber-200 rounded-xl p-6 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg"
+            >
+              <div className="flex items-center">
+                <div className="p-3 bg-amber-500 rounded-xl mr-4 group-hover:scale-110 transition-transform">
+                  <Plus className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-800 text-lg mb-1">Add Stint</h3>
+                  <p className="text-gray-600 text-sm">Create OOA assignment</p>
+                </div>
+              </div>
             </Link>
           </div>
         </div>
-        
-        {/* Quick Links */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-lg font-bold mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        {/* System Features Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Succession Planning Feature */}
+          <div className="bg-white rounded-2xl shadow-lg p-8">
+            <div className="flex items-center mb-6">
+              <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl mr-4">
+                <Target className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-800">Succession Planning</h3>
+                <p className="text-gray-600">Strategic workforce planning</p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center text-sm text-gray-600">
+                <Clock className="h-4 w-4 mr-2 text-blue-500" />
+                <span>Immediate successors tracking</span>
+              </div>
+              <div className="flex items-center text-sm text-gray-600">
+                <Calendar className="h-4 w-4 mr-2 text-green-500" />
+                <span>1-2 year development pipeline</span>
+              </div>
+              <div className="flex items-center text-sm text-gray-600">
+                <Award className="h-4 w-4 mr-2 text-purple-500" />
+                <span>Long-term talent cultivation</span>
+              </div>
+            </div>
             <Link 
-              href="/positions/new" 
-              className="bg-blue-50 hover:bg-blue-100 p-4 rounded-lg flex items-center"
+              href="/positions" 
+              className="inline-flex items-center mt-6 px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium"
             >
-              <span className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              </span>
-              <span>Add New Position</span>
+              Manage Succession Plans
+              <ArrowUpRight className="ml-2 h-4 w-4" />
             </Link>
-            
+          </div>
+
+          {/* Competency Management Feature */}
+          <div className="bg-white rounded-2xl shadow-lg p-8">
+            <div className="flex items-center mb-6">
+              <div className="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl mr-4">
+                <Award className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-800">Competency Framework</h3>
+                <p className="text-gray-600">Skills development tracking</p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center text-sm text-gray-600">
+                <TrendingUp className="h-4 w-4 mr-2 text-blue-500" />
+                <span>PL1-PL5 proficiency levels</span>
+              </div>
+              <div className="flex items-center text-sm text-gray-600">
+                <Users className="h-4 w-4 mr-2 text-green-500" />
+                <span>10 core HR competencies</span>
+              </div>
+              <div className="flex items-center text-sm text-gray-600">
+                <Target className="h-4 w-4 mr-2 text-purple-500" />
+                <span>Development gap analysis</span>
+              </div>
+            </div>
             <Link 
-              href="/officers/new" 
-              className="bg-blue-50 hover:bg-blue-100 p-4 rounded-lg flex items-center"
+              href="/competencies" 
+              className="inline-flex items-center mt-6 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors text-sm font-medium"
             >
-              <span className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              </span>
-              <span>Add New Officer</span>
-            </Link>
-            
-            <Link 
-              href="/stints/new" 
-              className="bg-blue-50 hover:bg-blue-100 p-4 rounded-lg flex items-center"
-            >
-              <span className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              </span>
-              <span>Add New Stint</span>
+              View Competencies
+              <ArrowUpRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
         </div>
