@@ -3,10 +3,54 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { 
+  User, 
+  ArrowLeft, 
+  Edit, 
+  Hash, 
+  Award, 
+  GraduationCap, 
+  Building2, 
+  Calendar,
+  Briefcase,
+  ChevronDown,
+  ChevronRight
+} from 'lucide-react'
 import type { OfficerWithRelations } from '@/lib/queries/officers'
 
 interface OfficerDetailProps {
   officer: OfficerWithRelations
+}
+
+function PLBadge({ level }: { level: number }) {
+  const colorClasses = {
+    1: 'bg-red-100 text-red-800',
+    2: 'bg-orange-100 text-orange-800', 
+    3: 'bg-yellow-100 text-yellow-800',
+    4: 'bg-blue-100 text-blue-800',
+    5: 'bg-green-100 text-green-800'
+  }
+  
+  return (
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClasses[level as keyof typeof colorClasses] || 'bg-gray-100 text-gray-800'}`}>
+      PL{level}
+    </span>
+  )
+}
+
+function TypeBadge({ type }: { type: string }) {
+  const colorClasses = {
+    'Attachment': 'bg-blue-100 text-blue-800',
+    'Secondment': 'bg-green-100 text-green-800',
+    'Exchange': 'bg-purple-100 text-purple-800',
+    'Training': 'bg-orange-100 text-orange-800'
+  }
+  
+  return (
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClasses[type as keyof typeof colorClasses] || 'bg-gray-100 text-gray-800'}`}>
+      {type}
+    </span>
+  )
 }
 
 export default function OfficerDetail({ officer }: OfficerDetailProps) {
@@ -15,139 +59,232 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
   const [isStintsOpen, setIsStintsOpen] = useState(true)
 
   return (
-    <div className="bg-white rounded-lg shadow max-w-3xl mx-auto">
-      <div className="p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-800">
-            {officer.name}
-          </h2>
-          <div className="flex space-x-4">
-            <Link
+    <div className="space-y-8">
+      {/* Header Section */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="p-8">
+          <div className="flex justify-between items-start mb-6">
+            <Link 
               href="/officers"
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors mb-4"
             >
+              <ArrowLeft className="h-4 w-4 mr-2" />
               Back to List
             </Link>
+            
             <button
               onClick={() => router.push(`/officers/${officer.officer_id}/edit`)}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-colors shadow-md"
             >
+              <Edit className="h-4 w-4 mr-2" />
               Edit Officer
             </button>
           </div>
+          
+          <div className="flex items-center space-x-4">
+            <div className="p-4 bg-emerald-100 rounded-xl">
+              <User className="h-10 w-10 text-emerald-600" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">{officer.name}</h1>
+              <p className="text-gray-600 mt-1">Officer Profile & Development</p>
+            </div>
+          </div>
         </div>
+      </div>
 
-        <div className="space-y-6">
-          {/* Officer Details */}
-          <div className="border-b pb-6">
-            <h3 className="text-lg font-medium text-gray-800 mb-4">Officer Details</h3>
-            <dl className="grid grid-cols-2 gap-4">
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Officer ID</dt>
-                <dd className="text-sm text-gray-900">{officer.officer_id}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Grade</dt>
-                <dd className="text-sm text-gray-900">{officer.grade ?? 'Not assigned'}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">MX Equivalent Grade</dt>
-                <dd className="text-sm text-gray-900">{officer.mx_equivalent_grade ?? 'Not assigned'}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">IHRP Certification</dt>
-                <dd className="text-sm text-gray-900">{officer.ihrp_certification ?? 'None'}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">HRLP</dt>
-                <dd className="text-sm text-gray-900">{officer.hrlp ?? 'None'}</dd>
-              </div>
-            </dl>
+      {/* Officer Details Section */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-blue-200">
+          <div className="flex items-center">
+            <div className="p-2 bg-blue-200 rounded-lg mr-3">
+              <Hash className="h-5 w-5 text-blue-700" />
+            </div>
+            <h2 className="text-xl font-semibold text-blue-900">Officer Details</h2>
           </div>
-
-          {/* Current Positions */}
-          <div className="border-b pb-6">
-            <h3 className="text-lg font-medium text-gray-800 mb-4">Current Positions</h3>
-            <ul className="space-y-2">
-              {officer.positions?.map((position) => (
-                <li key={position.position_id}>
-                  <Link
-                    href={`/positions/${position.position_id}`}
-                    className="text-blue-600 hover:text-blue-800"
-                  >
-                    {position.position_title} ({position.agency})
-                  </Link>
-                </li>
-              )) ?? <li className="text-sm text-gray-500">No current positions</li>}
-            </ul>
+        </div>
+        
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div>
+              <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
+                <Hash className="h-4 w-4 mr-2" />
+                Officer ID
+              </dt>
+              <dd className="text-lg font-semibold text-gray-900 font-mono">{officer.officer_id}</dd>
+            </div>
+            
+            <div>
+              <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
+                <GraduationCap className="h-4 w-4 mr-2" />
+                Grade
+              </dt>
+              <dd className="text-lg font-semibold text-gray-900">{officer.grade ?? 'Not assigned'}</dd>
+            </div>
+            
+            <div>
+              <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
+                <GraduationCap className="h-4 w-4 mr-2" />
+                MX Equivalent Grade
+              </dt>
+              <dd className="text-lg font-semibold text-gray-900">{officer.mx_equivalent_grade ?? 'Not assigned'}</dd>
+            </div>
+            
+            <div>
+              <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
+                <Award className="h-4 w-4 mr-2" />
+                IHRP Certification
+              </dt>
+              <dd className="text-lg font-semibold text-gray-900">{officer.ihrp_certification ?? 'None'}</dd>
+            </div>
+            
+            <div>
+              <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
+                <Award className="h-4 w-4 mr-2" />
+                HRLP
+              </dt>
+              <dd className="text-lg font-semibold text-gray-900">{officer.hrlp ?? 'None'}</dd>
+            </div>
           </div>
+        </div>
+      </div>
 
-          {/* Competencies - Collapsible */}
-          <div className="border-b pb-6">
-            <button
-              onClick={() => setIsCompetenciesOpen(!isCompetenciesOpen)}
-              className="flex justify-between items-center w-full text-left"
-            >
-              <h3 className="text-lg font-medium text-gray-800">Competencies</h3>
-              <span className="text-gray-500">
-                {isCompetenciesOpen ? '▼' : '▶'}
-              </span>
-            </button>
-            {isCompetenciesOpen && (
-              <div className="mt-4 space-y-4">
-                {officer.competencies?.map((comp) => (
-                  <div key={comp.competency.competency_id}>
-                    <h4 className="text-sm font-medium text-gray-700">
-                      {comp.competency.competency_name}
-                    </h4>
-                    <div className="flex items-center mt-1">
-                      <div className="flex-1 h-2 bg-gray-200 rounded">
-                        <div
-                          className="h-2 bg-blue-600 rounded"
-                          style={{ width: `${(comp.achieved_pl_level / 5) * 100}%` }}
-                        />
-                      </div>
-                      <span className="ml-2 text-sm text-gray-600">
-                        PL{comp.achieved_pl_level}
-                      </span>
+      {/* Current Positions Section */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-green-50 to-green-100 px-6 py-4 border-b border-green-200">
+          <div className="flex items-center">
+            <div className="p-2 bg-green-200 rounded-lg mr-3">
+              <Building2 className="h-5 w-5 text-green-700" />
+            </div>
+            <h2 className="text-xl font-semibold text-green-900">Current Positions</h2>
+          </div>
+        </div>
+        
+        <div className="p-6">
+          {officer.positions && officer.positions.length > 0 ? (
+            <div className="space-y-3">
+              {officer.positions.map((position) => (
+                <Link
+                  key={position.position_id}
+                  href={`/positions/${position.position_id}`}
+                  className="block p-4 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors"
+                >
+                  <div className="flex items-center">
+                    <Building2 className="h-5 w-5 text-blue-600 mr-3" />
+                    <div>
+                      <div className="font-medium text-blue-900">{position.position_title}</div>
+                      <div className="text-sm text-blue-600">{position.agency}</div>
                     </div>
                   </div>
-                )) ?? (
-                  <p className="text-sm text-gray-500">No competencies recorded</p>
-                )}
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Building2 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500">No current positions assigned</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Competencies Section */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-purple-50 to-purple-100 px-6 py-4 border-b border-purple-200">
+          <button
+            onClick={() => setIsCompetenciesOpen(!isCompetenciesOpen)}
+            className="flex items-center justify-between w-full text-left"
+          >
+            <div className="flex items-center">
+              <div className="p-2 bg-purple-200 rounded-lg mr-3">
+                <Award className="h-5 w-5 text-purple-700" />
+              </div>
+              <h2 className="text-xl font-semibold text-purple-900">Competencies</h2>
+            </div>
+            {isCompetenciesOpen ? (
+              <ChevronDown className="h-5 w-5 text-purple-700" />
+            ) : (
+              <ChevronRight className="h-5 w-5 text-purple-700" />
+            )}
+          </button>
+        </div>
+        
+        {isCompetenciesOpen && (
+          <div className="p-6">
+            {officer.competencies && officer.competencies.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {officer.competencies.map((comp) => (
+                  <div key={comp.competency.competency_id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium text-gray-900">
+                        {comp.competency.competency_name}
+                      </h4>
+                      <PLBadge level={comp.achieved_pl_level} />
+                    </div>
+                    {comp.competency.description && (
+                      <p className="text-sm text-gray-600">{comp.competency.description}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Award className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">No competencies recorded</p>
               </div>
             )}
           </div>
+        )}
+      </div>
 
-          {/* OOA Stints - Collapsible */}
-          <div>
-            <button
-              onClick={() => setIsStintsOpen(!isStintsOpen)}
-              className="flex justify-between items-center w-full text-left"
-            >
-              <h3 className="text-lg font-medium text-gray-800">OOA Stints</h3>
-              <span className="text-gray-500">
-                {isStintsOpen ? '▼' : '▶'}
-              </span>
-            </button>
-            {isStintsOpen && (
-              <div className="mt-4 space-y-2">
-                {officer.stints?.map((stint) => (
-                  <div key={stint.stint.stint_id} className="text-sm">
-                    <div className="font-medium text-gray-700">
-                      {stint.stint.stint_name}
+      {/* OOA Stints Section */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-amber-50 to-amber-100 px-6 py-4 border-b border-amber-200">
+          <button
+            onClick={() => setIsStintsOpen(!isStintsOpen)}
+            className="flex items-center justify-between w-full text-left"
+          >
+            <div className="flex items-center">
+              <div className="p-2 bg-amber-200 rounded-lg mr-3">
+                <Briefcase className="h-5 w-5 text-amber-700" />
+              </div>
+              <h2 className="text-xl font-semibold text-amber-900">OOA Stints</h2>
+            </div>
+            {isStintsOpen ? (
+              <ChevronDown className="h-5 w-5 text-amber-700" />
+            ) : (
+              <ChevronRight className="h-5 w-5 text-amber-700" />
+            )}
+          </button>
+        </div>
+        
+        {isStintsOpen && (
+          <div className="p-6">
+            {officer.stints && officer.stints.length > 0 ? (
+              <div className="space-y-4">
+                {officer.stints.map((stint) => (
+                  <div key={stint.stint.stint_id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium text-gray-900">
+                        {stint.stint.stint_name}
+                      </h4>
+                      <TypeBadge type={stint.stint.stint_type} />
                     </div>
-                    <div className="text-gray-500">
-                      {stint.stint.stint_type} • Completed {stint.completion_year}
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Completed {stint.completion_year}
                     </div>
                   </div>
-                )) ?? (
-                  <p className="text-sm text-gray-500">No stints recorded</p>
-                )}
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Briefcase className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">No stints recorded</p>
               </div>
             )}
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

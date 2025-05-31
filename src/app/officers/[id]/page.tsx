@@ -22,32 +22,34 @@ export default async function OfficerPage({ params }: Props) {
   }
 
   return (
-    <main className="container mx-auto px-4 py-8">
-      <OfficerDetail officer={officer} />
-      
-      <div className="mt-8">
-        <OfficerRemarks
-          officer_id={params.id}
-          remarks={remarks}
-          onAddRemark={async (data) => {
-            'use server'
-            try {
-              await addOfficerRemark({
-                officer_id: params.id,
-                remark_date: data.remark_date,
-                place: data.place,
-                details: data.details
-              })
-              
-              revalidatePath(`/officers/${params.id}`)
-              return { success: true }
-            } catch (error) {
-              console.error('Error adding remark:', error)
-              return { success: false, error: 'Failed to add remark' }
-            }
-          }}
-        />
-      </div>
-    </main>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100">
+      <main className="container mx-auto px-4 py-8">
+        <OfficerDetail officer={officer} />
+        
+        <div className="mt-8">
+          <OfficerRemarks
+            officer_id={params.id}
+            remarks={remarks}
+            onAddRemark={async (data) => {
+              'use server'
+              try {
+                await addOfficerRemark({
+                  officer_id: params.id,
+                  remark_date: data.remark_date,
+                  place: data.place,
+                  details: data.details
+                })
+                
+                revalidatePath(`/officers/${params.id}`)
+                return { success: true }
+              } catch (error) {
+                console.error('Error adding remark:', error)
+                return { success: false, error: 'Failed to add remark' }
+              }
+            }}
+          />
+        </div>
+      </main>
+    </div>
   )
 }
