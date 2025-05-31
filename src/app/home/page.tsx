@@ -21,7 +21,7 @@ export default async function HomePage() {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-2">
             Welcome to CHRONOS
           </h1>
-          <p className="text-gray-600 text-lg">CHROO's HRL Succession Planning Command Center</p>
+          <p className="text-gray-600 text-lg">CHROO&apos;s HRL Succession Planning Command Center</p>
         </div>
         
         {/* Stats Overview */}
