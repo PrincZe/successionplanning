@@ -9,20 +9,6 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'HR Succession Planning System',
   description: 'Manage HR positions, officers, and succession planning',
-  icons: {
-    icon: [
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-      {
-        url: '/favicon.ico',
-        sizes: '32x32',
-      },
-    ],
-    shortcut: '/favicon.ico',
-    apple: '/apple-icon.png',
-  },
 }
 
 export default function RootLayout({
@@ -33,6 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="light">
       <head>
+        <link rel="icon" href="/icon.svg?v=2" type="image/svg+xml" />
         <Script 
           type="module" 
           src="https://cdn.jsdelivr.net/npm/@govtechsg/sgds-web-component@2.1.2/components/Masthead/index.umd.js"
