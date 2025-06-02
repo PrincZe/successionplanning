@@ -251,7 +251,7 @@ export default function LandingPage() {
               Public Service Division - HR Succession Planning System
             </p>
             <p className="text-sm text-gray-500">
-              Built by William Wong (ITC) with love
+              Baked by William Wong (ITC) with love ❤️
             </p>
           </div>
         </div>
