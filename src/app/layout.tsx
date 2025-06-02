@@ -9,6 +9,20 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'HR Succession Planning System',
   description: 'Manage HR positions, officers, and succession planning',
+  icons: {
+    icon: [
+      {
+        url: '/icon.svg',
+        type: 'image/svg+xml',
+      },
+      {
+        url: '/favicon.ico',
+        sizes: '32x32',
+      },
+    ],
+    shortcut: '/favicon.ico',
+    apple: '/apple-icon.png',
+  },
 }
 
 export default function RootLayout({
