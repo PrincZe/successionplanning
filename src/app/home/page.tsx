@@ -27,9 +27,9 @@ export default async function HomePage() {
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           {/* Total Positions Card */}
-          <div className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 opacity-0 group-hover:opacity-10 transition-opacity"></div>
-            <div className="p-8">
+          <Link href="/positions" className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 block focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"></div>
+            <div className="p-8 relative z-10">
               <div className="flex items-center justify-between mb-4">
                 <div className="p-3 bg-blue-100 rounded-xl">
                   <Building2 className="h-8 w-8 text-blue-600" />
@@ -38,17 +38,17 @@ export default async function HomePage() {
               </div>
               <h3 className="text-gray-500 text-sm font-medium mb-2 uppercase tracking-wide">Total Positions</h3>
               <p className="text-4xl font-bold text-gray-900 mb-3">{stats.totalPositions}</p>
-              <Link href="/positions" className="flex items-center gap-1 text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors group cursor-pointer py-1 px-2">
+              <div className="flex items-center gap-1 text-blue-600 text-sm font-medium group-hover:text-blue-700 transition-colors">
                 <span>View all positions</span>
                 <ArrowUpRight className="h-4 w-4 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-              </Link>
+              </div>
             </div>
-          </div>
+          </Link>
           
           {/* Total Officers Card */}
-          <div className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-emerald-600 opacity-0 group-hover:opacity-10 transition-opacity"></div>
-            <div className="p-8">
+          <Link href="/officers" className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 block focus:outline-none focus:ring-2 focus:ring-emerald-400">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-emerald-600 opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"></div>
+            <div className="p-8 relative z-10">
               <div className="flex items-center justify-between mb-4">
                 <div className="p-3 bg-emerald-100 rounded-xl">
                   <Users className="h-8 w-8 text-emerald-600" />
@@ -57,17 +57,17 @@ export default async function HomePage() {
               </div>
               <h3 className="text-gray-500 text-sm font-medium mb-2 uppercase tracking-wide">Total Officers</h3>
               <p className="text-4xl font-bold text-gray-900 mb-3">{stats.totalOfficers}</p>
-              <Link href="/officers" className="flex items-center gap-1 text-emerald-600 text-sm font-medium hover:text-emerald-700 transition-colors group cursor-pointer py-1 px-2">
+              <div className="flex items-center gap-1 text-emerald-600 text-sm font-medium group-hover:text-emerald-700 transition-colors">
                 <span>View all officers</span>
                 <ArrowUpRight className="h-4 w-4 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-              </Link>
+              </div>
             </div>
-          </div>
+          </Link>
           
           {/* Active Stints Card */}
-          <div className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-500 to-orange-600 opacity-0 group-hover:opacity-10 transition-opacity"></div>
-            <div className="p-8">
+          <Link href="/stints" className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 block focus:outline-none focus:ring-2 focus:ring-amber-400">
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-500 to-orange-600 opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"></div>
+            <div className="p-8 relative z-10">
               <div className="flex items-center justify-between mb-4">
                 <div className="p-3 bg-amber-100 rounded-xl">
                   <Briefcase className="h-8 w-8 text-amber-600" />
@@ -76,12 +76,12 @@ export default async function HomePage() {
               </div>
               <h3 className="text-gray-500 text-sm font-medium mb-2 uppercase tracking-wide">Active Stints</h3>
               <p className="text-4xl font-bold text-gray-900 mb-3">{stats.activeStints}</p>
-              <Link href="/stints" className="flex items-center gap-1 text-amber-600 text-sm font-medium hover:text-amber-700 transition-colors group cursor-pointer py-1 px-2">
+              <div className="flex items-center gap-1 text-amber-600 text-sm font-medium group-hover:text-amber-700 transition-colors">
                 <span>View all stints</span>
                 <ArrowUpRight className="h-4 w-4 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-              </Link>
+              </div>
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* Quick Actions Section */}
