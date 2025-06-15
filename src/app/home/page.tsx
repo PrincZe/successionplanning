@@ -38,9 +38,9 @@ export default async function HomePage() {
               </div>
               <h3 className="text-gray-500 text-sm font-medium mb-2 uppercase tracking-wide">Total Positions</h3>
               <p className="text-4xl font-bold text-gray-900 mb-3">{stats.totalPositions}</p>
-              <Link href="/positions" className="inline-flex items-center text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors group">
-                View all positions
-                <ArrowUpRight className="ml-1 h-4 w-4 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+              <Link href="/positions" className="flex items-center gap-1 text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors group cursor-pointer w-fit py-1">
+                <span>View all positions</span>
+                <ArrowUpRight className="h-4 w-4 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
               </Link>
             </div>
           </div>
@@ -57,9 +57,9 @@ export default async function HomePage() {
               </div>
               <h3 className="text-gray-500 text-sm font-medium mb-2 uppercase tracking-wide">Total Officers</h3>
               <p className="text-4xl font-bold text-gray-900 mb-3">{stats.totalOfficers}</p>
-              <Link href="/officers" className="inline-flex items-center text-emerald-600 text-sm font-medium hover:text-emerald-700 transition-colors group">
-                View all officers
-                <ArrowUpRight className="ml-1 h-4 w-4 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+              <Link href="/officers" className="flex items-center gap-1 text-emerald-600 text-sm font-medium hover:text-emerald-700 transition-colors group cursor-pointer w-fit py-1">
+                <span>View all officers</span>
+                <ArrowUpRight className="h-4 w-4 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
               </Link>
             </div>
           </div>
@@ -76,9 +76,9 @@ export default async function HomePage() {
               </div>
               <h3 className="text-gray-500 text-sm font-medium mb-2 uppercase tracking-wide">Active Stints</h3>
               <p className="text-4xl font-bold text-gray-900 mb-3">{stats.activeStints}</p>
-              <Link href="/stints" className="inline-flex items-center text-amber-600 text-sm font-medium hover:text-amber-700 transition-colors group">
-                View all stints
-                <ArrowUpRight className="ml-1 h-4 w-4 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+              <Link href="/stints" className="flex items-center gap-1 text-amber-600 text-sm font-medium hover:text-amber-700 transition-colors group cursor-pointer w-fit py-1">
+                <span>View all stints</span>
+                <ArrowUpRight className="h-4 w-4 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
               </Link>
             </div>
           </div>
