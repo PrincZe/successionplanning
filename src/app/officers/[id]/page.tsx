@@ -1,9 +1,9 @@
 import { notFound } from 'next/navigation'
 import { getOfficerById } from '@/lib/queries/officers'
-import { getOfficerRemarks, addOfficerRemark } from '@/lib/queries/remarks'
+import { getOfficerRemarks } from '@/lib/queries/remarks'
 import OfficerDetail from '../components/OfficerDetail'
 import OfficerRemarks from '../components/OfficerRemarks'
-import { revalidatePath } from 'next/cache'
+import { addRemarkAction } from '@/app/actions/remarks'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,28 +25,12 @@ export default async function OfficerPage({ params }: Props) {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100">
       <main className="container mx-auto px-4 py-8">
         <OfficerDetail officer={officer} />
-        
+
         <div className="mt-8">
           <OfficerRemarks
             officer_id={params.id}
             remarks={remarks}
-            onAddRemark={async (data) => {
-              'use server'
-              try {
-                await addOfficerRemark({
-                  officer_id: params.id,
-                  remark_date: data.remark_date,
-                  place: data.place,
-                  details: data.details
-                })
-                
-                revalidatePath(`/officers/${params.id}`)
-                return { success: true }
-              } catch (error) {
-                console.error('Error adding remark:', error)
-                return { success: false, error: 'Failed to add remark' }
-              }
-            }}
+            onAddRemark={addRemarkAction.bind(null, params.id)}
           />
         </div>
       </main>

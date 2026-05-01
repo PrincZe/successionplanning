@@ -97,7 +97,14 @@ export default function OfficerRemarks({ officer_id, remarks, onAddRemark }: Off
 
     try {
       const res = await fetch(`/api/officers/${officer_id}/synthesise`, { method: 'POST' })
-      const json = await res.json()
+      const raw = await res.text()
+      let json: any
+      try {
+        json = JSON.parse(raw)
+      } catch {
+        setSynthesisError(`Server error (${res.status}). Please try again.`)
+        return
+      }
       if (!res.ok) {
         setSynthesisError(json.error ?? 'Synthesis failed')
       } else {
@@ -113,6 +120,58 @@ export default function OfficerRemarks({ officer_id, remarks, onAddRemark }: Off
 
   return (
     <div className="space-y-6">
+      {/* AI Synthesis Panel — shown above remarks when a synthesis exists or is loading */}
+      {(synthesis || synthesisError || isSynthesising) && (
+        <div className="bg-white rounded-xl shadow-lg border border-violet-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-violet-50 to-violet-100 px-6 py-4 border-b border-violet-200">
+            <button
+              onClick={() => setIsSynthesisOpen(!isSynthesisOpen)}
+              className="flex items-center justify-between w-full text-left"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-violet-200 rounded-lg">
+                  <Sparkles className="h-5 w-5 text-violet-700" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-violet-900">AI Synthesis</h2>
+                  {generatedAt && (
+                    <p className="text-xs text-violet-600">
+                      Last generated {new Date(generatedAt).toLocaleDateString('en-SG', {
+                        day: 'numeric', month: 'short', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
+                      })}
+                    </p>
+                  )}
+                </div>
+              </div>
+              {isSynthesisOpen ? (
+                <ChevronDown className="h-5 w-5 text-violet-700" />
+              ) : (
+                <ChevronRight className="h-5 w-5 text-violet-700" />
+              )}
+            </button>
+          </div>
+
+          {isSynthesisOpen && (
+            <div className="p-6">
+              {isSynthesising ? (
+                <div className="flex items-center justify-center py-8 text-violet-600">
+                  <Loader2 className="h-6 w-6 animate-spin mr-3" />
+                  Analysing remarks with AI...
+                </div>
+              ) : synthesisError ? (
+                <div className="flex items-center p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+                  <X className="h-5 w-5 mr-2 flex-shrink-0" />
+                  {synthesisError}
+                </div>
+              ) : synthesis ? (
+                <SynthesisPanel content={synthesis} />
+              ) : null}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Remarks Card */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
         <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 px-6 py-4 border-b border-indigo-200">
@@ -272,52 +331,6 @@ export default function OfficerRemarks({ officer_id, remarks, onAddRemark }: Off
         </div>
       </div>
 
-      {/* AI Synthesis Panel */}
-      {(synthesis || synthesisError) && (
-        <div className="bg-white rounded-xl shadow-lg border border-violet-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-violet-50 to-violet-100 px-6 py-4 border-b border-violet-200">
-            <button
-              onClick={() => setIsSynthesisOpen(!isSynthesisOpen)}
-              className="flex items-center justify-between w-full text-left"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-violet-200 rounded-lg">
-                  <Sparkles className="h-5 w-5 text-violet-700" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-violet-900">AI Synthesis</h2>
-                  {generatedAt && (
-                    <p className="text-xs text-violet-600">
-                      Last generated {new Date(generatedAt).toLocaleDateString('en-SG', {
-                        day: 'numeric', month: 'short', year: 'numeric',
-                        hour: '2-digit', minute: '2-digit'
-                      })}
-                    </p>
-                  )}
-                </div>
-              </div>
-              {isSynthesisOpen ? (
-                <ChevronDown className="h-5 w-5 text-violet-700" />
-              ) : (
-                <ChevronRight className="h-5 w-5 text-violet-700" />
-              )}
-            </button>
-          </div>
-
-          {isSynthesisOpen && (
-            <div className="p-6">
-              {synthesisError ? (
-                <div className="flex items-center p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-                  <X className="h-5 w-5 mr-2 flex-shrink-0" />
-                  {synthesisError}
-                </div>
-              ) : synthesis ? (
-                <SynthesisPanel content={synthesis} />
-              ) : null}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   )
 }
