@@ -91,11 +91,14 @@ export async function updateOfficer(
 }
 
 export async function deleteOfficer(id: string) {
-  const { error } = await supabase
-    .from('officers')
-    .delete()
-    .eq('officer_id', id)
+  // Clear FK references before deleting the officer
+  await supabase.from('positions').update({ incumbent_id: null }).eq('incumbent_id', id)
+  await supabase.from('position_successors').delete().eq('successor_id', id)
+  await supabase.from('officer_competencies').delete().eq('officer_id', id)
+  await supabase.from('officer_stints').delete().eq('officer_id', id)
+  await supabase.from('officer_remarks').delete().eq('officer_id', id)
 
+  const { error } = await supabase.from('officers').delete().eq('officer_id', id)
   if (error) throw error
 }
 

@@ -106,7 +106,7 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
     competencies: officer?.competencies?.map(comp => ({
       competency_id: comp.competency.competency_id.toString(),
       achieved_pl_level: comp.achieved_pl_level,
-      assessment_date: new Date().toISOString().split('T')[0]
+      assessment_date: comp.assessment_date
     })) ?? [],
     stints: officer?.stints?.map(stint => ({
       stint_id: Number(stint.stint.stint_id),
@@ -327,6 +327,7 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 >
                   <option value="">Select status</option>
+                  <option value="Not Started">Not Started</option>
                   <option value="In Progress">In Progress</option>
                   <option value="Completed">Completed</option>
                 </select>

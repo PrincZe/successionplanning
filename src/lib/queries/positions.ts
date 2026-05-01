@@ -154,11 +154,10 @@ export async function updatePosition(
 }
 
 export async function deletePosition(id: string) {
-  const { error } = await supabase
-    .from('positions')
-    .delete()
-    .eq('position_id', id)
+  // Remove successor entries before deleting the position
+  await supabase.from('position_successors').delete().eq('position_id', id)
 
+  const { error } = await supabase.from('positions').delete().eq('position_id', id)
   if (error) throw error
 }
 
