@@ -1,45 +1,52 @@
 import { NextResponse, NextRequest } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
     const reqURL = new URL(req.url)
     const code = reqURL.searchParams.get('code')
+    const tokenHash = reqURL.searchParams.get('token_hash')
+    const type = reqURL.searchParams.get('type')
+
+    const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        { auth: { autoRefreshToken: false, persistSession: false } }
+    )
+
+    let session = null
 
     if (code) {
-        const cookieStore = cookies()
-        const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
-
-        try {
-            const { error, data } = await supabase.auth.exchangeCodeForSession(code)
-
-            if (!error && data.session) {
-                const sessionData = {
-                    email: data.session.user.email,
-                    authenticated: true,
-                    loginTime: new Date().toISOString(),
-                    supabaseSession: data.session
-                }
-
-                cookieStore.set('chronos_session', JSON.stringify(sessionData), {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite: 'lax',
-                    maxAge: 60 * 60 * 8,
-                    path: '/'
-                })
-
-                return NextResponse.redirect(new URL('/home', reqURL.origin))
-            } else {
-                throw error || new Error('No session returned')
-            }
-        } catch (error) {
-            console.error('Error exchanging code:', error)
-            return NextResponse.redirect(new URL('/auth/auth-code-error', reqURL.origin))
-        }
-    } else {
-        return NextResponse.redirect(new URL('/auth/auth-code-error', reqURL.origin))
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+        if (!error) session = data.session
+    } else if (tokenHash && type) {
+        const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: type as any
+        })
+        if (!error) session = data.session
     }
+
+    if (session) {
+        const sessionData = {
+            email: session.user.email,
+            authenticated: true,
+            loginTime: new Date().toISOString(),
+            supabaseSession: session
+        }
+
+        const response = NextResponse.redirect(new URL('/home', reqURL.origin))
+        response.cookies.set('chronos_session', JSON.stringify(sessionData), {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 8,
+            path: '/'
+        })
+        return response
+    }
+
+    console.error('Auth callback failed — no session returned')
+    return NextResponse.redirect(new URL('/auth/auth-code-error', reqURL.origin))
 }
