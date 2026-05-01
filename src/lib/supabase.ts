@@ -45,7 +45,8 @@ export const supabaseServer = process.env.SUPABASE_SERVICE_ROLE_KEY
       {
         auth: {
           autoRefreshToken: false,
-          persistSession: false
+          persistSession: false,
+          flowType: 'implicit' // server-side: no browser storage for PKCE verifier
         }
       }
     )
