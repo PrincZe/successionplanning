@@ -12,7 +12,7 @@ import { Mail, Shield, ArrowLeft, Loader2 } from 'lucide-react'
 import { sendOTPAction, verifyOTPAction } from '@/app/actions/auth'
 import { useAuth } from '@/lib/contexts/AuthContext'
 
-type LoginStep = 'email' | 'otp'
+type LoginStep = 'email' | 'sent'
 
 export default function LoginPage() {
   const [step, setStep] = useState<LoginStep>('email')
@@ -40,8 +40,7 @@ export default function LoginPage() {
       const result = await sendOTPAction(email.trim())
       
       if (result.success) {
-        setMessage(result.message || 'Verification code sent successfully!')
-        setStep('otp')
+        setStep('sent')
       } else {
         setError(result.error || 'Failed to send verification code')
       }
@@ -136,7 +135,7 @@ export default function LoginPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center space-x-2">
-              {step === 'otp' && (
+              {step === 'sent' && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -154,12 +153,12 @@ export default function LoginPage() {
                 )}
                 <div>
                   <CardTitle>
-                    {step === 'email' ? 'Enter Email Address' : 'Enter Verification Code'}
+                    {step === 'email' ? 'Enter Email Address' : 'Check Your Inbox'}
                   </CardTitle>
                   <CardDescription>
-                    {step === 'email' 
-                      ? 'Enter your authorized email to receive a verification code'
-                      : `Enter the 6-digit code sent to ${email}`
+                    {step === 'email'
+                      ? 'Enter your authorized email to receive a login link'
+                      : `A login link has been sent to ${email}`
                     }
                   </CardDescription>
                 </div>
@@ -224,54 +223,23 @@ export default function LoginPage() {
               </form>
             )}
 
-            {/* OTP Form */}
-            {step === 'otp' && (
-              <div className="space-y-4">
-                <form onSubmit={handleOTPSubmit} className="space-y-4">
-                  <div>
-                    <Label htmlFor="otp">Verification Code</Label>
-                    <Input
-                      id="otp"
-                      type="text"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      placeholder="000000"
-                      maxLength={6}
-                      required
-                      disabled={loading}
-                      className="mt-1 text-center text-lg font-mono tracking-wider"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Enter the 6-digit code sent to your email
-                    </p>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={loading || otp.length !== 6}
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Verifying...
-                      </>
-                    ) : (
-                      'Verify & Sign In'
-                    )}
-                  </Button>
-                </form>
-
-                <div className="text-center">
-                  <button
-                    type="button"
-                    onClick={handleResendOTP}
-                    disabled={loading}
-                    className="text-sm text-blue-600 hover:text-blue-500 underline"
-                  >
-                    Didn&apos;t receive the code? Resend
-                  </button>
+            {/* Magic link sent */}
+            {step === 'sent' && (
+              <div className="space-y-4 text-center">
+                <div className="py-4">
+                  <Shield className="h-12 w-12 text-green-500 mx-auto mb-3" />
+                  <p className="text-sm text-gray-600">
+                    Click the link in your email to sign in. The link expires after 1 hour.
+                  </p>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleResendOTP}
+                  disabled={loading}
+                  className="text-sm text-blue-600 hover:text-blue-500 underline"
+                >
+                  {loading ? 'Sending...' : "Didn't receive it? Resend"}
+                </button>
               </div>
             )}
           </CardContent>
