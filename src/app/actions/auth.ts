@@ -26,11 +26,14 @@ export async function sendOTPAction(email: string) {
 
     console.log('Email is whitelisted, sending OTP via Supabase Auth...')
     
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://chronos.psd.gov.sg'
+
     // Use Supabase Auth to send OTP
     const { data, error } = await supabase.auth.signInWithOtp({
       email: email.toLowerCase().trim(),
       options: {
         shouldCreateUser: true, // allowed_emails whitelist above is the gate; create on first login
+        emailRedirectTo: `${siteUrl}/auth/callback`,
       }
     })
 
