@@ -40,9 +40,10 @@ export default function LoginPage() {
       const result = await sendOTPAction(email.trim())
       
       if (result.success) {
-        setStep('sent')
+        await refreshAuth()
+        router.push('/home')
       } else {
-        setError(result.error || 'Failed to send verification code')
+        setError(result.error || 'Email not authorized')
       }
     } catch (error) {
       setError('An unexpected error occurred. Please try again.')
