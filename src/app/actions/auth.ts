@@ -30,7 +30,7 @@ export async function sendOTPAction(email: string) {
     const { data, error } = await supabase.auth.signInWithOtp({
       email: email.toLowerCase().trim(),
       options: {
-        shouldCreateUser: false, // Don't auto-create users, only allow whitelisted emails
+        shouldCreateUser: true, // allowed_emails whitelist above is the gate; create on first login
       }
     })
 
