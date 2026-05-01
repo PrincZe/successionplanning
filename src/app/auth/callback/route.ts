@@ -15,17 +15,23 @@ export async function GET(req: NextRequest) {
         { auth: { autoRefreshToken: false, persistSession: false } }
     )
 
+    console.log('Auth callback params:', { code: !!code, tokenHash: !!tokenHash, type, allParams: Object.fromEntries(reqURL.searchParams) })
+
     let session = null
 
     if (code) {
         const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+        console.log('exchangeCodeForSession result:', { hasSession: !!data?.session, error: error?.message, errorCode: error?.code })
         if (!error) session = data.session
     } else if (tokenHash && type) {
         const { data, error } = await supabase.auth.verifyOtp({
             token_hash: tokenHash,
             type: type as any
         })
+        console.log('verifyOtp result:', { hasSession: !!data?.session, error: error?.message, errorCode: error?.code })
         if (!error) session = data.session
+    } else {
+        console.error('No code or token_hash received in callback')
     }
 
     if (session) {
