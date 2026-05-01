@@ -32,6 +32,9 @@ export async function handlePositionSubmit(data: PositionFormData, id?: string) 
     console.log('Updating 3-5 year successors...', data.successors_3_5_years)
     await updateSuccessors(id, '3-5_years', data.successors_3_5_years)
 
+    console.log('Updating >5 year successors...', data.more_than_5_years_successors)
+    await updateSuccessors(id, 'more_than_5_years', data.more_than_5_years_successors)
+
     console.log('All successors updated successfully')
 
     // Revalidate all related paths
