@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { MessageSquare, Plus, Calendar, MapPin, FileText, X, Sparkles, Loader2, ChevronDown, ChevronRight } from 'lucide-react'
 import type { OfficerRemark } from '@/lib/queries/remarks'
@@ -47,8 +47,22 @@ export default function OfficerRemarks({ officer_id, remarks, onAddRemark }: Off
 
   const [isSynthesising, setIsSynthesising] = useState(false)
   const [synthesis, setSynthesis] = useState<string>()
+  const [generatedAt, setGeneratedAt] = useState<string>()
   const [synthesisError, setSynthesisError] = useState<string>()
   const [isSynthesisOpen, setIsSynthesisOpen] = useState(true)
+
+  useEffect(() => {
+    fetch(`/api/officers/${officer_id}/synthesise`)
+      .then(r => r.json())
+      .then(data => {
+        if (data?.synthesis) {
+          setSynthesis(data.synthesis)
+          setGeneratedAt(data.generated_at)
+          setIsSynthesisOpen(true)
+        }
+      })
+      .catch(() => {})
+  }, [officer_id])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -88,6 +102,7 @@ export default function OfficerRemarks({ officer_id, remarks, onAddRemark }: Off
         setSynthesisError(json.error ?? 'Synthesis failed')
       } else {
         setSynthesis(json.synthesis)
+        setGeneratedAt(json.generated_at)
       }
     } catch {
       setSynthesisError('Network error. Please try again.')
@@ -265,11 +280,21 @@ export default function OfficerRemarks({ officer_id, remarks, onAddRemark }: Off
               onClick={() => setIsSynthesisOpen(!isSynthesisOpen)}
               className="flex items-center justify-between w-full text-left"
             >
-              <div className="flex items-center">
-                <div className="p-2 bg-violet-200 rounded-lg mr-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-violet-200 rounded-lg">
                   <Sparkles className="h-5 w-5 text-violet-700" />
                 </div>
-                <h2 className="text-xl font-semibold text-violet-900">AI Synthesis</h2>
+                <div>
+                  <h2 className="text-xl font-semibold text-violet-900">AI Synthesis</h2>
+                  {generatedAt && (
+                    <p className="text-xs text-violet-600">
+                      Last generated {new Date(generatedAt).toLocaleDateString('en-SG', {
+                        day: 'numeric', month: 'short', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
+                      })}
+                    </p>
+                  )}
+                </div>
               </div>
               {isSynthesisOpen ? (
                 <ChevronDown className="h-5 w-5 text-violet-700" />

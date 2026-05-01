@@ -4,6 +4,16 @@ import { supabaseServer } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 
+export async function GET(req: Request, { params }: { params: { id: string } }) {
+  const { data } = await supabaseServer
+    .from('officer_synthesis')
+    .select('synthesis, generated_at')
+    .eq('officer_id', params.id)
+    .single()
+
+  return Response.json(data ?? null)
+}
+
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const { id } = params
 
@@ -94,7 +104,14 @@ Provide your response in exactly this format:
       maxTokens: 1024,
     })
 
-    return Response.json({ synthesis: text })
+    const generated_at = new Date().toISOString()
+
+    // Persist to DB (upsert — one row per officer)
+    await supabaseServer
+      .from('officer_synthesis')
+      .upsert({ officer_id: id, synthesis: text, generated_at }, { onConflict: 'officer_id' })
+
+    return Response.json({ synthesis: text, generated_at })
   } catch (error: any) {
     console.error('Claude API error:', error)
     return Response.json({ error: 'AI synthesis failed. Check ANTHROPIC_API_KEY.' }, { status: 500 })
