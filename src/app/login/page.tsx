@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Mail, Shield, ArrowLeft, Loader2 } from 'lucide-react'
-import { sendOTPAction, verifyOTPAction } from '@/app/actions/auth'
+import { sendOTPAction } from '@/app/actions/auth'
 import { useAuth } from '@/lib/contexts/AuthContext'
 
 type LoginStep = 'email' | 'sent'
