@@ -72,4 +72,72 @@ create table officer_remarks (
   details text not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
-); 
+);
+
+-- =============================================================================
+-- Phase 2: Pipeline Strength scoring foundation
+-- =============================================================================
+
+-- What each role requires
+create table position_required_competencies (
+  position_id varchar references positions(position_id) on delete cascade,
+  competency_id integer references hr_competencies(competency_id),
+  required_pl_level integer not null check (required_pl_level between 1 and 5),
+  weight numeric not null default 1.0 check (weight > 0),
+  primary key (position_id, competency_id)
+);
+
+-- Incumbent risk: when does the current holder likely vacate
+create table incumbent_risk (
+  position_id varchar primary key references positions(position_id) on delete cascade,
+  risk_horizon_months integer not null check (risk_horizon_months >= 0),
+  risk_reason text,
+  updated_at timestamptz not null default now()
+);
+
+-- CHROO criteria as editable JSONB config (tune without code change)
+create table pipeline_criteria (
+  criterion_key varchar primary key,
+  value jsonb not null,
+  description text,
+  updated_at timestamptz not null default now()
+);
+
+-- AI-extracted qualitative signals from officer_remarks (cached)
+create table officer_qualitative_signals (
+  officer_id varchar primary key references officers(officer_id) on delete cascade,
+  endorsement_count integer not null default 0,
+  endorsement_specificity_score numeric not null default 0,
+  endorsement_seniority_score numeric not null default 0,
+  domain_match_keywords text[] not null default '{}',
+  concerns_count integer not null default 0,
+  sentiment_trajectory varchar check (sentiment_trajectory in ('improving','stable','declining','unknown')),
+  qualitative_score numeric not null default 0,
+  signals jsonb,
+  source_remark_ids integer[] not null default '{}',
+  generated_at timestamptz not null default now(),
+  generation_method varchar not null default 'ai' check (generation_method in ('mock','ai'))
+);
+
+-- Cached pipeline assessments (dashboard reads from here, not live compute)
+create table pipeline_assessments (
+  position_id varchar primary key references positions(position_id) on delete cascade,
+  overall_score numeric not null,
+  overall_band varchar not null check (overall_band in ('green','amber','red')),
+  sub_scores jsonb not null,
+  reasons jsonb not null,
+  ai_narration text,
+  ai_interventions jsonb,
+  computed_at timestamptz not null default now()
+);
+
+alter table position_required_competencies enable row level security;
+alter table incumbent_risk enable row level security;
+alter table pipeline_criteria enable row level security;
+alter table officer_qualitative_signals enable row level security;
+alter table pipeline_assessments enable row level security;
+
+create index idx_prc_position on position_required_competencies(position_id);
+create index idx_prc_competency on position_required_competencies(competency_id);
+create index idx_pa_band on pipeline_assessments(overall_band);
+create index idx_pa_score on pipeline_assessments(overall_score);

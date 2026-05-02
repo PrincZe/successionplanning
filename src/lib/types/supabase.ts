@@ -83,6 +83,63 @@ export interface OTPVerification {
   created_at: string
 }
 
+export interface OfficerRemark {
+  remark_id: number
+  officer_id: string
+  remark_date: string
+  place: string
+  details: string
+  created_at: string
+  updated_at: string
+}
+
+export interface PositionRequiredCompetency {
+  position_id: string
+  competency_id: number
+  required_pl_level: number
+  weight: number
+}
+
+export interface IncumbentRisk {
+  position_id: string
+  risk_horizon_months: number
+  risk_reason: string | null
+  updated_at: string
+}
+
+export interface PipelineCriterion {
+  criterion_key: string
+  value: Json
+  description: string | null
+  updated_at: string
+}
+
+export interface OfficerQualitativeSignals {
+  officer_id: string
+  endorsement_count: number
+  endorsement_specificity_score: number
+  endorsement_seniority_score: number
+  domain_match_keywords: string[]
+  concerns_count: number
+  sentiment_trajectory: 'improving' | 'stable' | 'declining' | 'unknown' | null
+  qualitative_score: number
+  signals: Json
+  source_remark_ids: number[]
+  generated_at: string
+  generation_method: 'mock' | 'ai'
+}
+
+export interface PipelineAssessment {
+  position_id: string
+  overall_score: number
+  overall_band: 'green' | 'amber' | 'red'
+  sub_scores: Json
+  reasons: Json
+  ai_narration: string | null
+  ai_interventions: Json
+  computed_at: string
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -131,6 +188,36 @@ export interface Database {
         Insert: Omit<OTPVerification, 'id' | 'created_at'>
         Update: Partial<Omit<OTPVerification, 'id' | 'created_at'>>
       }
+      officer_remarks: {
+        Row: OfficerRemark
+        Insert: Omit<OfficerRemark, 'remark_id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<OfficerRemark, 'remark_id' | 'created_at' | 'updated_at'>>
+      }
+      position_required_competencies: {
+        Row: PositionRequiredCompetency
+        Insert: PositionRequiredCompetency
+        Update: Partial<PositionRequiredCompetency>
+      }
+      incumbent_risk: {
+        Row: IncumbentRisk
+        Insert: Omit<IncumbentRisk, 'updated_at'>
+        Update: Partial<Omit<IncumbentRisk, 'updated_at'>>
+      }
+      pipeline_criteria: {
+        Row: PipelineCriterion
+        Insert: Omit<PipelineCriterion, 'updated_at'>
+        Update: Partial<Omit<PipelineCriterion, 'updated_at'>>
+      }
+      officer_qualitative_signals: {
+        Row: OfficerQualitativeSignals
+        Insert: Partial<OfficerQualitativeSignals> & { officer_id: string }
+        Update: Partial<OfficerQualitativeSignals>
+      }
+      pipeline_assessments: {
+        Row: PipelineAssessment
+        Insert: Omit<PipelineAssessment, 'computed_at'>
+        Update: Partial<Omit<PipelineAssessment, 'computed_at'>>
+      }
     }
   }
-} 
+}
