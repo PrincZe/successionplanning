@@ -34,8 +34,17 @@ export type PipelineSuccessor = {
   sentiment_trajectory: 'improving' | 'stable' | 'declining' | 'unknown' | null
 }
 
+export type Intervention = {
+  title: string
+  detail: string
+  priority: 'high' | 'medium' | 'low'
+  kind: 'develop' | 'rotate' | 'hire_external' | 'process' | 'monitor'
+}
+
 export type PipelineHealthDetail = PipelineHealthRow & {
   successors: PipelineSuccessor[]
+  ai_narration: string | null
+  ai_interventions: Intervention[] | null
 }
 
 const EMPTY_SUB: SubScore = { score: 0, band: 'red', reasons: [] }
@@ -173,6 +182,8 @@ export async function getPipelineDetail(positionId: string): Promise<PipelineHea
     computed_at: a?.computed_at ?? null,
     successor_count: counts,
     successors,
+    ai_narration: a?.ai_narration ?? null,
+    ai_interventions: (a?.ai_interventions as Intervention[] | null) ?? null,
   }
 }
 
