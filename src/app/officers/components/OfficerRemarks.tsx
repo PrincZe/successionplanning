@@ -52,7 +52,7 @@ export default function OfficerRemarks({ officer_id, remarks, onAddRemark }: Off
   const [isSynthesisOpen, setIsSynthesisOpen] = useState(true)
 
   useEffect(() => {
-    fetch(`/api/officers/${officer_id}/synthesise`)
+    fetch(`/api/synthesise/${officer_id}`)
       .then(r => r.json())
       .then(data => {
         if (data?.synthesis) {
@@ -96,7 +96,7 @@ export default function OfficerRemarks({ officer_id, remarks, onAddRemark }: Off
     setIsSynthesisOpen(true)
 
     try {
-      const res = await fetch(`/api/officers/${officer_id}/synthesise`, { method: 'POST' })
+      const res = await fetch(`/api/synthesise/${officer_id}`, { method: 'POST' })
       const raw = await res.text()
       let json: any
       try {
