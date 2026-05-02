@@ -93,12 +93,9 @@ Respond in this exact format:
     const text: string = anthropicData.content?.[0]?.text ?? ''
     const generated_at = new Date().toISOString()
 
-    // Save to DB (non-blocking — don't let a save failure kill the response)
-    supabaseServer
+    await supabaseServer
       .from('officer_synthesis')
       .upsert({ officer_id: id, synthesis: text, generated_at }, { onConflict: 'officer_id' })
-      .then(() => {})
-      .catch((e: any) => console.error('Synthesis save error:', e?.message))
 
     return NextResponse.json({ synthesis: text, generated_at })
   } catch (error: any) {
