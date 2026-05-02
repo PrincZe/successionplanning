@@ -5,7 +5,9 @@ import {
 } from '@/lib/qualitative-signals/extract'
 
 export const dynamic = 'force-dynamic'
-export const maxDuration = 300
+// Hobby plan caps maxDuration at 60s. Batch extraction for >~15 officers
+// will time out via this route — use the tsx script for full backfills.
+export const maxDuration = 60
 
 export async function POST(request: NextRequest) {
   try {
