@@ -93,6 +93,16 @@ export default function Header() {
                 >
                   Stints
                 </Link>
+                <Link
+                  href="/pipeline-health"
+                  className={`text-sm font-medium transition-colors hover:text-primary ${
+                    isActive('/pipeline-health')
+                      ? 'text-primary'
+                      : 'text-muted-foreground'
+                  }`}
+                >
+                  Pipeline Health
+                </Link>
               </div>
             )}
           </div>

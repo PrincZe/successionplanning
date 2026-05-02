@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getQuickStats } from '@/lib/queries/stats'
-import { Users, Building2, Briefcase, TrendingUp, Plus, ArrowUpRight } from 'lucide-react'
+import { getPipelineHealthOverview, summarizeBands } from '@/lib/queries/pipeline-health'
+import { Users, Building2, Briefcase, TrendingUp, Plus, ArrowUpRight, Gauge } from 'lucide-react'
 
 // Revalidate every minute
 export const revalidate = 60
@@ -12,6 +13,8 @@ export default async function HomePage() {
   // Authentication is disabled and we use a mock user
 
   const stats = await getQuickStats()
+  const pipelineRows = await getPipelineHealthOverview()
+  const pipelineSummary = summarizeBands(pipelineRows)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -83,6 +86,41 @@ export default async function HomePage() {
             </div>
           </Link>
         </div>
+
+        {/* Pipeline Health Section */}
+        <Link
+          href="/pipeline-health"
+          className="group relative block bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 mb-8 overflow-hidden"
+        >
+          <div className="p-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-indigo-100 rounded-xl">
+                  <Gauge className="h-7 w-7 text-indigo-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-800">Pipeline Health</h2>
+                  <p className="text-sm text-gray-600">Traffic-light view of succession strength across {pipelineSummary.total} positions</p>
+                </div>
+              </div>
+              <ArrowUpRight className="h-5 w-5 text-gray-400 group-hover:text-indigo-500 transition-colors" />
+            </div>
+            <div className="grid grid-cols-3 gap-4 mt-6">
+              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                <div className="text-3xl font-bold text-red-700">{pipelineSummary.red}</div>
+                <div className="text-xs text-red-600 uppercase tracking-wide font-semibold mt-1">Red</div>
+              </div>
+              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                <div className="text-3xl font-bold text-amber-700">{pipelineSummary.amber}</div>
+                <div className="text-xs text-amber-600 uppercase tracking-wide font-semibold mt-1">Amber</div>
+              </div>
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+                <div className="text-3xl font-bold text-emerald-700">{pipelineSummary.green}</div>
+                <div className="text-xs text-emerald-600 uppercase tracking-wide font-semibold mt-1">Green</div>
+              </div>
+            </div>
+          </div>
+        </Link>
 
         {/* Quick Actions Section */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
