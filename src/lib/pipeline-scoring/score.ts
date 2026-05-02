@@ -204,7 +204,7 @@ function scoreFit(
   }
   const score = fitPcts.reduce((a, b) => a + b, 0) / fitPcts.length
   const band = bandFromScore(score, thresholds)
-  const topGaps = [...gapsPerCompetency.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([cid]) => `C${cid}`)
+  const topGaps = Array.from(gapsPerCompetency.entries()).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([cid]) => `C${cid}`)
   if (band !== 'green' && topGaps.length > 0) {
     reasons.push(`Avg fit ${score.toFixed(0)}% — top gaps: ${topGaps.join(', ')}`)
   } else if (band === 'green') {
@@ -366,7 +366,8 @@ export async function scorePipeline(positionId: string): Promise<PipelineAssessm
 export async function scoreAllPipelines(): Promise<PipelineAssessment[]> {
   const data = await loadScoringData()
   const results: PipelineAssessment[] = []
-  for (const positionId of data.positions.keys()) {
+  const positionIds = Array.from(data.positions.keys())
+  for (const positionId of positionIds) {
     const r = scorePipelineFromData(positionId, data)
     results.push(r)
     await persistAssessment(r)
