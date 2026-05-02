@@ -1,72 +1,54 @@
+import { NextRequest, NextResponse } from 'next/server'
 import { anthropic } from '@ai-sdk/anthropic'
 import { generateText } from 'ai'
+import { getOfficerById } from '@/lib/queries/officers'
+import { getOfficerRemarks } from '@/lib/queries/remarks'
 import { supabaseServer } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const { data } = await supabaseServer
     .from('officer_synthesis')
     .select('synthesis, generated_at')
     .eq('officer_id', params.id)
     .single()
 
-  return Response.json(data ?? null)
+  return NextResponse.json(data ?? null)
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
-  const { id } = params
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const officer = await getOfficerById(params.id)
+    if (!officer) {
+      return NextResponse.json({ error: 'Officer not found' }, { status: 404 })
+    }
 
-  // Fetch officer profile
-  const { data: officer, error: officerError } = await supabaseServer
-    .from('officers')
-    .select(`
-      *,
-      competencies:officer_competencies(
-        achieved_pl_level,
-        competency:hr_competencies(competency_name)
-      ),
-      stints:officer_stints(
-        completion_year,
-        stint:ooa_stints(stint_name, stint_type)
-      )
-    `)
-    .eq('officer_id', id)
-    .single()
+    const remarks = await getOfficerRemarks(params.id)
+    if (!remarks || remarks.length === 0) {
+      return NextResponse.json({ error: 'No remarks to synthesise' }, { status: 400 })
+    }
 
-  if (officerError || !officer) {
-    return Response.json({ error: 'Officer not found' }, { status: 404 })
-  }
+    // Build officer context
+    const competencyLines = officer.competencies?.map((c: any) =>
+      `  - ${c.competency?.competency_name}: PL${c.achieved_pl_level}`
+    ).join('\n') || '  None recorded'
 
-  // Fetch all remarks
-  const { data: remarks, error: remarksError } = await supabaseServer
-    .from('officer_remarks')
-    .select('*')
-    .eq('officer_id', id)
-    .order('remark_date', { ascending: true })
+    const stintLines = officer.stints?.map((s: any) =>
+      `  - ${s.stint?.stint_name} (${s.stint?.stint_type}), completed ${s.completion_year}`
+    ).join('\n') || '  None recorded'
 
-  if (remarksError) {
-    return Response.json({ error: 'Failed to fetch remarks' }, { status: 500 })
-  }
+    const remarkLines = remarks.map((r: any) =>
+      `[${r.remark_date} | ${r.place}]\n${r.details}`
+    ).join('\n\n')
 
-  if (!remarks || remarks.length === 0) {
-    return Response.json({ error: 'No remarks to synthesise' }, { status: 400 })
-  }
-
-  // Build officer context
-  const competencyLines = officer.competencies?.map((c: any) =>
-    `  - ${c.competency?.competency_name}: PL${c.achieved_pl_level}`
-  ).join('\n') || '  None recorded'
-
-  const stintLines = officer.stints?.map((s: any) =>
-    `  - ${s.stint?.stint_name} (${s.stint?.stint_type}), completed ${s.completion_year}`
-  ).join('\n') || '  None recorded'
-
-  const remarkLines = remarks.map((r: any) =>
-    `[${r.remark_date} | ${r.place}]\n${r.details}`
-  ).join('\n\n')
-
-  const prompt = `You are an HR succession planning advisor for a government HR department. Analyse the following officer profile and management remarks, then provide a structured assessment.
+    const prompt = `You are an HR succession planning advisor for a government HR department. Analyse the following officer profile and management remarks, then provide a structured assessment.
 
 OFFICER PROFILE
 Name: ${officer.name}
@@ -97,23 +79,24 @@ Provide your response in exactly this format:
 ## Key Observations
 [3–5 bullet points highlighting the most critical insights for succession planning purposes.]`
 
-  try {
     const { text } = await generateText({
-      model: anthropic('claude-3-5-sonnet-20240620'),
+      model: anthropic('claude-3-5-sonnet-20241022'),
       prompt,
-      maxTokens: 1024,
+      maxTokens: 1200,
     })
 
     const generated_at = new Date().toISOString()
 
-    // Persist to DB (upsert — one row per officer)
     await supabaseServer
       .from('officer_synthesis')
-      .upsert({ officer_id: id, synthesis: text, generated_at }, { onConflict: 'officer_id' })
+      .upsert({ officer_id: params.id, synthesis: text, generated_at }, { onConflict: 'officer_id' })
 
-    return Response.json({ synthesis: text, generated_at })
+    return NextResponse.json({ synthesis: text, generated_at })
   } catch (error: any) {
-    console.error('Claude API error:', error)
-    return Response.json({ error: 'AI synthesis failed. Check ANTHROPIC_API_KEY.' }, { status: 500 })
+    console.error('Synthesise error:', error)
+    return NextResponse.json(
+      { error: error?.message || 'AI synthesis failed' },
+      { status: 500 }
+    )
   }
 }
