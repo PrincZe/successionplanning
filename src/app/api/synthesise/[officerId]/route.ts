@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getOfficerById } from '@/lib/queries/officers'
-import { getOfficerRemarks } from '@/lib/queries/remarks'
 import { supabaseServer } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 export async function GET(
   request: NextRequest,
@@ -23,61 +22,54 @@ export async function POST(
   { params }: { params: { officerId: string } }
 ) {
   try {
-    const officer = await getOfficerById(params.officerId)
-    if (!officer) {
+    const id = params.officerId
+
+    // Fetch officer and remarks in parallel
+    const [officerRes, remarksRes] = await Promise.all([
+      supabaseServer
+        .from('officers')
+        .select('name, grade, mx_equivalent_grade, ihrp_certification, hrlp')
+        .eq('officer_id', id)
+        .single(),
+      supabaseServer
+        .from('officer_remarks')
+        .select('remark_date, place, details')
+        .eq('officer_id', id)
+        .order('remark_date', { ascending: true }),
+    ])
+
+    if (officerRes.error || !officerRes.data) {
       return NextResponse.json({ error: 'Officer not found' }, { status: 404 })
     }
-
-    const remarks = await getOfficerRemarks(params.officerId)
-    if (!remarks || remarks.length === 0) {
+    if (remarksRes.error || !remarksRes.data || remarksRes.data.length === 0) {
       return NextResponse.json({ error: 'No remarks to synthesise' }, { status: 400 })
     }
 
-    // Build context
-    const competencyLines = officer.competencies?.map((c: any) =>
-      `  - ${c.competency?.competency_name}: PL${c.achieved_pl_level}`
-    ).join('\n') || '  None recorded'
-
-    const stintLines = officer.stints?.map((s: any) =>
-      `  - ${s.stint?.stint_name} (${s.stint?.stint_type}), completed ${s.completion_year}`
-    ).join('\n') || '  None recorded'
+    const officer = officerRes.data
+    const remarks = remarksRes.data
 
     const remarkLines = remarks.map((r: any) =>
-      `[${r.remark_date} | ${r.place}]\n${r.details}`
-    ).join('\n\n')
+      `[${r.remark_date} | ${r.place}] ${r.details}`
+    ).join('\n')
 
-    const prompt = `You are an HR succession planning advisor for a government HR department. Analyse the following officer profile and management remarks, then provide a structured assessment.
+    const prompt = `You are an HR succession planning advisor. Based on the officer profile and management remarks below, provide a concise structured assessment.
 
-OFFICER PROFILE
-Name: ${officer.name}
-Grade: ${officer.grade ?? 'Not specified'}
-MX Equivalent Grade: ${officer.mx_equivalent_grade ?? 'Not specified'}
-IHRP Certification: ${officer.ihrp_certification ?? 'None'}
-HRLP Status: ${officer.hrlp ?? 'Not Started'}
+Officer: ${officer.name} | Grade: ${officer.grade ?? 'N/A'} | IHRP: ${officer.ihrp_certification ?? 'None'} | HRLP: ${officer.hrlp ?? 'Not Started'}
 
-COMPETENCIES ACHIEVED
-${competencyLines}
-
-OOA STINTS COMPLETED
-${stintLines}
-
-MANAGEMENT REMARKS (${remarks.length} entries, chronological order)
+REMARKS:
 ${remarkLines}
 
----
-
-Provide your response in exactly this format:
+Respond in this exact format:
 
 ## Summary
-[2–3 paragraph synthesis of all remarks. Identify recurring themes, notable strengths, areas for development, and any consistent observations across different meetings and occasions.]
+[2 paragraphs: key themes, strengths, and development areas from the remarks.]
 
 ## Career Trajectory
-[Based on the officer's profile, competencies, stints, and the pattern of remarks, suggest 2–3 specific career development recommendations. For each, state the suggested next role or posting type, the rationale, and the expected timeframe.]
+[2–3 specific next role suggestions with rationale and timeframe.]
 
 ## Key Observations
-[3–5 bullet points highlighting the most critical insights for succession planning purposes.]`
+[3–5 bullet points for succession planning.]`
 
-    // Call Anthropic API directly — avoids old @ai-sdk/anthropic version incompatibilities
     const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -87,7 +79,7 @@ Provide your response in exactly this format:
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 800,
+        max_tokens: 700,
         messages: [{ role: 'user', content: prompt }],
       }),
     })
@@ -99,15 +91,14 @@ Provide your response in exactly this format:
 
     const anthropicData = await anthropicRes.json()
     const text: string = anthropicData.content?.[0]?.text ?? ''
-
     const generated_at = new Date().toISOString()
 
-    await supabaseServer
+    // Save to DB (non-blocking — don't let a save failure kill the response)
+    supabaseServer
       .from('officer_synthesis')
-      .upsert(
-        { officer_id: params.officerId, synthesis: text, generated_at },
-        { onConflict: 'officer_id' }
-      )
+      .upsert({ officer_id: id, synthesis: text, generated_at }, { onConflict: 'officer_id' })
+      .then(() => {})
+      .catch((e: any) => console.error('Synthesis save error:', e?.message))
 
     return NextResponse.json({ synthesis: text, generated_at })
   } catch (error: any) {
