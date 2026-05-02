@@ -53,10 +53,22 @@ function TypeBadge({ type }: { type: string }) {
   )
 }
 
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .slice(0, 2)
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+}
+
 export default function OfficerDetail({ officer }: OfficerDetailProps) {
   const router = useRouter()
   const [isCompetenciesOpen, setIsCompetenciesOpen] = useState(true)
   const [isStintsOpen, setIsStintsOpen] = useState(true)
+
+  const competencyCount = officer.competencies?.length ?? 0
+  const stintCount = officer.stints?.length ?? 0
 
   return (
     <div className="space-y-8">
@@ -64,14 +76,14 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
         <div className="p-8">
           <div className="flex justify-between items-start mb-6">
-            <Link 
+            <Link
               href="/officers"
-              className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors mb-4"
+              className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to List
             </Link>
-            
+
             <button
               onClick={() => router.push(`/officers/${officer.officer_id}/edit`)}
               className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-colors shadow-md"
@@ -80,14 +92,14 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
               Edit Officer
             </button>
           </div>
-          
+
           <div className="flex items-center space-x-4">
-            <div className="p-4 bg-emerald-100 rounded-xl">
-              <User className="h-10 w-10 text-emerald-600" />
+            <div className="h-16 w-16 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <span className="text-emerald-700 font-bold text-xl">{getInitials(officer.name)}</span>
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">{officer.name}</h1>
-              <p className="text-gray-600 mt-1">Officer Profile & Development</p>
+              <p className="text-gray-600 mt-1">Officer Profile &amp; Development</p>
             </div>
           </div>
         </div>
@@ -200,11 +212,14 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
               onClick={() => setIsCompetenciesOpen(!isCompetenciesOpen)}
               className="flex items-center justify-between w-full text-left"
             >
-              <div className="flex items-center">
-                <div className="p-2 bg-purple-200 rounded-lg mr-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-200 rounded-lg">
                   <Award className="h-5 w-5 text-purple-700" />
                 </div>
                 <h2 className="text-xl font-semibold text-purple-900">Competencies</h2>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-200 text-purple-800">
+                  {competencyCount}
+                </span>
               </div>
               {isCompetenciesOpen ? (
                 <ChevronDown className="h-5 w-5 text-purple-700" />
@@ -234,8 +249,14 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <Award className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">No competencies recorded</p>
+                  <Award className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-600 font-medium">No competencies recorded</p>
+                  <button
+                    onClick={() => router.push(`/officers/${officer.officer_id}/edit`)}
+                    className="mt-3 text-sm text-purple-600 hover:text-purple-800 font-medium transition-colors"
+                  >
+                    Add via Edit Officer →
+                  </button>
                 </div>
               )}
             </div>
@@ -249,11 +270,14 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
               onClick={() => setIsStintsOpen(!isStintsOpen)}
               className="flex items-center justify-between w-full text-left"
             >
-              <div className="flex items-center">
-                <div className="p-2 bg-amber-200 rounded-lg mr-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-amber-200 rounded-lg">
                   <Briefcase className="h-5 w-5 text-amber-700" />
                 </div>
                 <h2 className="text-xl font-semibold text-amber-900">OOA Stints</h2>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-200 text-amber-800">
+                  {stintCount}
+                </span>
               </div>
               {isStintsOpen ? (
                 <ChevronDown className="h-5 w-5 text-amber-700" />
@@ -284,8 +308,14 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <Briefcase className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">No stints recorded</p>
+                  <Briefcase className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-600 font-medium">No stints recorded</p>
+                  <button
+                    onClick={() => router.push(`/officers/${officer.officer_id}/edit`)}
+                    className="mt-3 text-sm text-amber-600 hover:text-amber-800 font-medium transition-colors"
+                  >
+                    Add via Edit Officer →
+                  </button>
                 </div>
               )}
             </div>

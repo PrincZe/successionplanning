@@ -139,7 +139,8 @@ export default function OfficerList({ officers }: OfficerListProps) {
   const stats = {
     total: officers.length,
     certified: officers.filter(o => o.ihrp_certification).length,
-    inPosition: officers.filter(o => o.positions && o.positions.length > 0).length
+    inPosition: officers.filter(o => o.positions && o.positions.length > 0).length,
+    noPosition: officers.filter(o => !o.positions || o.positions.length === 0).length,
   }
 
   return (
@@ -183,16 +184,27 @@ export default function OfficerList({ officers }: OfficerListProps) {
         </div>
 
         <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-          <div className="flex items-center justify-center h-full">
-            <button
-              onClick={() => router.push('/officers/new')}
-              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white text-sm font-medium rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-colors shadow-md"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Officer
-            </button>
+          <div className="flex items-center">
+            <div className="p-3 bg-rose-100 rounded-lg">
+              <Users className="h-6 w-6 text-rose-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-500">Without Position</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.noPosition}</p>
+            </div>
           </div>
         </div>
+      </div>
+
+      {/* Table header row with Add Officer */}
+      <div className="flex items-center justify-end">
+        <button
+          onClick={() => router.push('/officers/new')}
+          className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white text-sm font-medium rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-colors shadow-md"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add Officer
+        </button>
       </div>
 
       {/* Enhanced Data Table */}
