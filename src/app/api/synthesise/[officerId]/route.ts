@@ -77,15 +77,28 @@ Provide your response in exactly this format:
 ## Key Observations
 [3–5 bullet points highlighting the most critical insights for succession planning purposes.]`
 
-    // Dynamic import so module-level failures don't break GET
-    const { generateText } = await import('ai')
-    const { anthropic } = await import('@ai-sdk/anthropic')
-
-    const { text } = await generateText({
-      model: anthropic('claude-3-5-sonnet-20240620'),
-      prompt,
-      maxTokens: 1200,
+    // Call Anthropic API directly — avoids old @ai-sdk/anthropic version incompatibilities
+    const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY!,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 1200,
+        messages: [{ role: 'user', content: prompt }],
+      }),
     })
+
+    if (!anthropicRes.ok) {
+      const errBody = await anthropicRes.text()
+      throw new Error(`Anthropic API error ${anthropicRes.status}: ${errBody}`)
+    }
+
+    const anthropicData = await anthropicRes.json()
+    const text: string = anthropicData.content?.[0]?.text ?? ''
 
     const generated_at = new Date().toISOString()
 
