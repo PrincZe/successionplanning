@@ -82,7 +82,7 @@ Provide your response in exactly this format:
     const { anthropic } = await import('@ai-sdk/anthropic')
 
     const { text } = await generateText({
-      model: anthropic('claude-3-5-sonnet-20241022'),
+      model: anthropic('claude-3-5-sonnet-20240620'),
       prompt,
       maxTokens: 1200,
     })
