@@ -11,11 +11,11 @@ const BAND_STYLES: Record<Band, { bg: string; text: string; border: string; bar:
 }
 
 const SUB_INFO: Record<'A' | 'B' | 'C' | 'D' | 'E', { label: string; weight: string; description: string }> = {
-  A: { label: 'Qualitative endorsement', weight: '35%', description: 'AI-extracted strength of senior endorsements across successors' },
+  A: { label: 'Senior endorsement', weight: '35%', description: 'AI-extracted strength of senior endorsements across successors' },
   B: { label: 'Competency fit', weight: '25%', description: 'How well successor competencies match required levels' },
-  C: { label: 'Coverage', weight: '20%', description: 'Bench depth across readiness bands' },
-  D: { label: 'Urgency', weight: '15%', description: 'Match between incumbent risk horizon and bench timing' },
-  E: { label: 'Development momentum', weight: '5%', description: 'Recent OOA stint exposure of successors' },
+  C: { label: 'Bench depth', weight: '20%', description: 'Number of successors at each readiness band' },
+  D: { label: 'Timing match', weight: '15%', description: 'Match between incumbent risk horizon and bench timing' },
+  E: { label: 'Development pace', weight: '5%', description: 'Share of successors with a recent out-of-agency stint' },
 }
 
 const SUCCESSION_LABEL: Record<string, string> = {

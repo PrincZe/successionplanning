@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { getPipelineHealthOverview, summarizeBands } from '@/lib/queries/pipeline-health'
 import PipelineHealthDashboard from './components/PipelineHealthDashboard'
+import HowItWorks from './components/HowItWorks'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,6 +20,8 @@ export default async function PipelineHealthPage() {
             Traffic-light view of succession pipeline strength across {summary.total} positions, scored against CHROO criteria.
           </p>
         </div>
+
+        <HowItWorks />
 
         <Suspense fallback={<div className="text-gray-500">Loading…</div>}>
           <PipelineHealthDashboard rows={rows} summary={summary} />

@@ -10,11 +10,11 @@ const BAND_STYLES: Record<Band, { ring: string; chip: string; dot: string; text:
 }
 
 const SUB_LABELS: Record<keyof PipelineHealthRow['sub_scores'], string> = {
-  A: 'Qualitative',
-  B: 'Fit',
-  C: 'Coverage',
-  D: 'Urgency',
-  E: 'Momentum',
+  A: 'Senior endorsement',
+  B: 'Competency fit',
+  C: 'Bench depth',
+  D: 'Timing match',
+  E: 'Development pace',
 }
 
 export default function PipelineCard({ row, onSelect }: { row: PipelineHealthRow; onSelect: () => void }) {
