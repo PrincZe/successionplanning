@@ -167,6 +167,38 @@ export interface SuccessorRecommendations {
   generation_method: 'engine' | 'ai'
 }
 
+export type OfferingKind = 'stint' | 'rotation' | 'mentorship' | 'project' | 'training'
+export type EffortLevel = 'low' | 'medium' | 'high'
+
+export interface DevelopmentOffering {
+  offering_id: number
+  name: string
+  kind: OfferingKind
+  duration_months: number
+  effort_level: EffortLevel
+  target_competency_ids: number[]
+  builds_to_pl_level: number
+  description: string | null
+  notes: string | null
+  active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export type DevelopmentPlanStatus = 'draft' | 'active' | 'completed' | 'superseded'
+
+export interface OfficerDevelopmentPlan {
+  plan_id: number
+  officer_id: string
+  target_position_id: string | null
+  status: DevelopmentPlanStatus
+  plan: Json
+  generation_method: 'engine' | 'ai'
+  generated_at: string
+  hr_notes: string | null
+  updated_at: string
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -259,6 +291,16 @@ export interface Database {
         Row: SuccessorRecommendations
         Insert: Omit<SuccessorRecommendations, 'generated_at'> & { generated_at?: string }
         Update: Partial<SuccessorRecommendations>
+      }
+      development_offerings: {
+        Row: DevelopmentOffering
+        Insert: Omit<DevelopmentOffering, 'offering_id' | 'created_at' | 'updated_at'> & { offering_id?: number; created_at?: string; updated_at?: string }
+        Update: Partial<Omit<DevelopmentOffering, 'offering_id'>>
+      }
+      officer_development_plans: {
+        Row: OfficerDevelopmentPlan
+        Insert: Omit<OfficerDevelopmentPlan, 'plan_id' | 'generated_at' | 'updated_at'> & { plan_id?: number; generated_at?: string; updated_at?: string }
+        Update: Partial<Omit<OfficerDevelopmentPlan, 'plan_id'>>
       }
     }
   }

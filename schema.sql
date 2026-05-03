@@ -182,3 +182,51 @@ alter table successor_recommendations enable row level security;
 create index idx_aspirations_officer on officer_aspirations(officer_id);
 create index idx_aspirations_target_position on officer_aspirations(target_position_id);
 create index idx_availability_status on officer_availability(status);
+
+-- =============================================================================
+-- Phase 7: Development Pathway (HR-driven, top-down)
+-- =============================================================================
+
+-- Catalog of deployable interventions HR can assign to develop officers.
+-- Five kinds: stint (cross-agency), rotation (longer/strategic), mentorship
+-- (pairing), project (cross-functional), training (formal). Training entries
+-- are deliberately high-level — actual course selection is owned by the
+-- separate L&D / course platform.
+create table development_offerings (
+  offering_id serial primary key,
+  name varchar not null,
+  kind varchar not null check (kind in ('stint','rotation','mentorship','project','training')),
+  duration_months integer not null check (duration_months > 0),
+  effort_level varchar not null check (effort_level in ('low','medium','high')),
+  target_competency_ids integer[] not null default '{}',
+  builds_to_pl_level integer not null check (builds_to_pl_level between 1 and 5),
+  description text,
+  notes text,
+  active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Generated development plans per (officer, target_position).
+-- Multiple historic plans per pair are allowed; UI shows the latest.
+create table officer_development_plans (
+  plan_id serial primary key,
+  officer_id varchar not null references officers(officer_id) on delete cascade,
+  target_position_id varchar references positions(position_id) on delete set null,
+  status varchar not null default 'draft' check (status in ('draft','active','completed','superseded')),
+  plan jsonb not null,
+  generation_method varchar not null default 'ai' check (generation_method in ('engine','ai')),
+  generated_at timestamptz not null default now(),
+  hr_notes text,
+  updated_at timestamptz not null default now()
+);
+
+alter table development_offerings enable row level security;
+alter table officer_development_plans enable row level security;
+
+create index idx_offerings_active on development_offerings(active) where active = true;
+create index idx_offerings_kind on development_offerings(kind);
+create index idx_plans_officer on officer_development_plans(officer_id);
+create index idx_plans_target on officer_development_plans(target_position_id);
+create index idx_plans_status on officer_development_plans(status);
+create index idx_plans_generated_at on officer_development_plans(generated_at desc);
