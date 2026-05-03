@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Trophy,
   Check,
+  Plus,
 } from 'lucide-react'
 import { addSuccessorAction } from '@/app/actions/positions'
 
@@ -327,9 +328,11 @@ function CandidateCard({
               </ul>
             )}
 
-            {/* Add as successor — inline pill row (no popover so nothing can clip) */}
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xs font-medium text-gray-600 mr-1">Add as:</span>
+            {/* Add as successor — inline buttons styled as obvious CTAs */}
+            <div className="flex flex-wrap items-center gap-1.5 mt-2 pt-3 border-t border-gray-100">
+              <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide mr-1">
+                Add to pipeline as
+              </span>
               {SUCCESSION_TYPES.map((t) => {
                 const key = `${c.officer_id}:${t.value}`
                 const isAdded = addedKey === key
@@ -338,13 +341,13 @@ function CandidateCard({
                     key={t.value}
                     type="button"
                     onClick={() => onAdd(c.officer_id, t.value)}
-                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium border transition-colors ${
+                    className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-semibold shadow-sm transition-all ${
                       isAdded
-                        ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
-                        : 'bg-white border-gray-300 text-gray-700 hover:bg-violet-50 hover:border-violet-300 hover:text-violet-800'
+                        ? 'bg-emerald-600 text-white border border-emerald-700'
+                        : 'bg-violet-600 text-white border border-violet-700 hover:bg-violet-700 hover:shadow-md active:scale-95'
                     }`}
                   >
-                    {isAdded && <Check className="h-3 w-3" />}
+                    {isAdded ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
                     {t.label}
                   </button>
                 )
