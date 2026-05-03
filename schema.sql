@@ -141,3 +141,44 @@ create index idx_prc_position on position_required_competencies(position_id);
 create index idx_prc_competency on position_required_competencies(competency_id);
 create index idx_pa_band on pipeline_assessments(overall_band);
 create index idx_pa_score on pipeline_assessments(overall_score);
+
+-- =============================================================================
+-- Phase 6: Successor Recommender foundation
+-- =============================================================================
+
+-- What officers want next: target position, grade, or domain. Many per officer.
+create table officer_aspirations (
+  aspiration_id serial primary key,
+  officer_id varchar not null references officers(officer_id) on delete cascade,
+  target_position_id varchar references positions(position_id) on delete set null,
+  target_jr_grade varchar,
+  target_domain varchar,
+  notes text,
+  updated_at timestamptz not null default now()
+);
+
+-- Whether an officer is currently a viable successor candidate. One per officer.
+create table officer_availability (
+  officer_id varchar primary key references officers(officer_id) on delete cascade,
+  status varchar not null default 'available'
+    check (status in ('available','recently_placed','on_leave','flight_risk')),
+  available_from date,
+  notes text,
+  updated_at timestamptz not null default now()
+);
+
+-- Cached AI-reranked successor recommendations (UI reads from here)
+create table successor_recommendations (
+  position_id varchar primary key references positions(position_id) on delete cascade,
+  candidates jsonb not null,
+  generated_at timestamptz not null default now(),
+  generation_method varchar not null default 'ai' check (generation_method in ('engine','ai'))
+);
+
+alter table officer_aspirations enable row level security;
+alter table officer_availability enable row level security;
+alter table successor_recommendations enable row level security;
+
+create index idx_aspirations_officer on officer_aspirations(officer_id);
+create index idx_aspirations_target_position on officer_aspirations(target_position_id);
+create index idx_availability_status on officer_availability(status);

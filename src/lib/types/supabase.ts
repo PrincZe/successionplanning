@@ -140,6 +140,33 @@ export interface PipelineAssessment {
   computed_at: string
 }
 
+export interface OfficerAspiration {
+  aspiration_id: number
+  officer_id: string
+  target_position_id: string | null
+  target_jr_grade: string | null
+  target_domain: string | null
+  notes: string | null
+  updated_at: string
+}
+
+export type AvailabilityStatus = 'available' | 'recently_placed' | 'on_leave' | 'flight_risk'
+
+export interface OfficerAvailability {
+  officer_id: string
+  status: AvailabilityStatus
+  available_from: string | null
+  notes: string | null
+  updated_at: string
+}
+
+export interface SuccessorRecommendations {
+  position_id: string
+  candidates: Json
+  generated_at: string
+  generation_method: 'engine' | 'ai'
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -217,6 +244,21 @@ export interface Database {
         Row: PipelineAssessment
         Insert: Omit<PipelineAssessment, 'computed_at'>
         Update: Partial<Omit<PipelineAssessment, 'computed_at'>>
+      }
+      officer_aspirations: {
+        Row: OfficerAspiration
+        Insert: Omit<OfficerAspiration, 'aspiration_id' | 'updated_at'> & { aspiration_id?: number; updated_at?: string }
+        Update: Partial<Omit<OfficerAspiration, 'aspiration_id'>>
+      }
+      officer_availability: {
+        Row: OfficerAvailability
+        Insert: Partial<OfficerAvailability> & { officer_id: string }
+        Update: Partial<OfficerAvailability>
+      }
+      successor_recommendations: {
+        Row: SuccessorRecommendations
+        Insert: Omit<SuccessorRecommendations, 'generated_at'> & { generated_at?: string }
+        Update: Partial<SuccessorRecommendations>
       }
     }
   }
