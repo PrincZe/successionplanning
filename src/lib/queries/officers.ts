@@ -1,5 +1,5 @@
 import { supabaseServer as supabase } from '../supabase'
-import type { Database, Officer } from '../types/supabase'
+import type { Database, Officer, OfficerQualitativeSignals } from '../types/supabase'
 
 export type OfficerWithRelations = Officer & {
   positions?: Database['public']['Tables']['positions']['Row'][]
@@ -62,6 +62,19 @@ export async function getOfficerById(id: string) {
 
   if (error) throw error
   return officer as OfficerWithRelations
+}
+
+export async function getOfficerQualitativeSignals(
+  id: string
+): Promise<OfficerQualitativeSignals | null> {
+  const { data, error } = await supabase
+    .from('officer_qualitative_signals')
+    .select('*')
+    .eq('officer_id', id)
+    .maybeSingle()
+
+  if (error) throw error
+  return (data as OfficerQualitativeSignals | null) ?? null
 }
 
 export async function createOfficer(officer: Database['public']['Tables']['officers']['Insert']) {
