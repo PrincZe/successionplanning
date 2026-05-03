@@ -1,6 +1,6 @@
 # AI Succession Planning — Implementation Plan
 
-Living document. Update at end of each phase. Last updated: 2026-05-02.
+Living document. Update at end of each phase. Last updated: 2026-05-03.
 
 ## Goal
 
@@ -23,13 +23,19 @@ Build prototype AI features mapping to CHROO workflow steps 9–12:
 ## Phase status
 
 - [x] **Phase 1**: Rubric design — LOCKED below
-- [ ] **Phase 2**: Schema additions + mock seed — *next*
-- [ ] **Phase 3**: Deterministic scoring engine
-- [ ] **Phase 4**: Traffic-light dashboard
-- [ ] **Phase 5**: AI qualitative extraction + narration + intervention ranking
-- [ ] **Phase 6**: Successor recommender (step 10a)
+- [x] **Phase 2**: Schema additions + mock seed
+- [x] **Phase 3**: Deterministic scoring engine
+- [x] **Phase 4**: Traffic-light dashboard
+- [x] **Phase 5**: AI qualitative extraction + narration + intervention ranking
+- [ ] **Phase 6**: Successor recommender (step 10a) — *next*
 - [ ] **Phase 7**: Skill gap + dev pathway (step 10b/c)
 - [ ] **Phase 8**: Plan generation + export (step 12)
+
+**Deferred from Phase 5 (operational polish, do before production):**
+- Audit log every Claude call (extractor + narrator)
+- Zero-retention header on Anthropic API requests
+- Batch "Extract qualitative signals for all officers" button on admin dashboard
+- Bias audit pass on extracted signals
 
 ---
 
