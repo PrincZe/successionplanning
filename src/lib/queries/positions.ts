@@ -161,6 +161,22 @@ export async function deletePosition(id: string) {
   if (error) throw error
 }
 
+export async function addSuccessor(
+  positionId: string,
+  successorId: string,
+  successionType: 'immediate' | '1-2_years' | '3-5_years' | 'more_than_5_years'
+) {
+  // Idempotent insert — composite PK (position_id, successor_id, succession_type)
+  // means a duplicate add silently succeeds via onConflict ignore.
+  const { error } = await supabase
+    .from('position_successors')
+    .upsert(
+      { position_id: positionId, successor_id: successorId, succession_type: successionType },
+      { onConflict: 'position_id,successor_id,succession_type', ignoreDuplicates: true }
+    )
+  if (error) throw error
+}
+
 export async function updateSuccessors(
   positionId: string,
   successionType: 'immediate' | '1-2_years' | '3-5_years' | 'more_than_5_years',

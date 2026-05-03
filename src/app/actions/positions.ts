@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createPosition, updatePosition, updateSuccessors, deletePosition } from '@/lib/queries/positions'
+import { createPosition, updatePosition, updateSuccessors, deletePosition, addSuccessor } from '@/lib/queries/positions'
 import type { Database } from '@/lib/types/supabase'
 import { supabase } from '@/lib/supabase'
 
@@ -122,5 +122,20 @@ export async function deletePositionAction(id: string) {
   } catch (error) {
     console.error('Error deleting position:', error)
     return { success: false, error: 'Failed to delete position' }
+  }
+}
+
+export async function addSuccessorAction(
+  positionId: string,
+  successorId: string,
+  successionType: 'immediate' | '1-2_years' | '3-5_years' | 'more_than_5_years'
+) {
+  try {
+    await addSuccessor(positionId, successorId, successionType)
+    revalidatePath(`/positions/${positionId}`)
+    return { success: true }
+  } catch (error) {
+    console.error('Error adding successor:', error)
+    return { success: false, error: 'Failed to add successor' }
   }
 } 

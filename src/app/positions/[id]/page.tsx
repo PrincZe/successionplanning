@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { getPositionById } from '@/lib/queries/positions'
 import PositionDetail from '../components/PositionDetail'
+import SuccessorRecommender from '../components/SuccessorRecommender'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,8 +19,9 @@ export default async function PositionDetailPage({ params }: PositionDetailPageP
   }
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="container mx-auto px-4 py-8 space-y-8">
       <PositionDetail position={position} />
+      <SuccessorRecommender positionId={params.id} />
     </main>
   )
-} 
+}
