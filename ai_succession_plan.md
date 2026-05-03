@@ -27,8 +27,8 @@ Build prototype AI features mapping to CHROO workflow steps 9–12:
 - [x] **Phase 3**: Deterministic scoring engine
 - [x] **Phase 4**: Traffic-light dashboard
 - [x] **Phase 5**: AI qualitative extraction + narration + intervention ranking
-- [ ] **Phase 6**: Successor recommender (step 10a) — *next*
-- [ ] **Phase 7**: Skill gap + dev pathway (step 10b/c)
+- [x] **Phase 6**: Successor recommender (step 10a)
+- [ ] **Phase 7**: Skill gap + dev pathway (step 10b/c) — *next*
 - [ ] **Phase 8**: Plan generation + export (step 12)
 
 **Deferred from Phase 5 (operational polish, do before production):**
