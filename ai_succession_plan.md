@@ -1,6 +1,6 @@
 # AI Succession Planning — Implementation Plan
 
-Living document. Update at end of each phase. Last updated: 2026-05-03.
+Living document. Update at end of each phase. Last updated: 2026-05-03 (Phase 7 shipped).
 
 ## Goal
 
@@ -28,8 +28,8 @@ Build prototype AI features mapping to CHROO workflow steps 9–12:
 - [x] **Phase 4**: Traffic-light dashboard
 - [x] **Phase 5**: AI qualitative extraction + narration + intervention ranking
 - [x] **Phase 6**: Successor recommender (step 10a)
-- [ ] **Phase 7**: Skill gap + dev pathway (step 10b/c) — *next*
-- [ ] **Phase 8**: Plan generation + export (step 12)
+- [x] **Phase 7**: Skill gap + dev pathway (step 10b/c)
+- [ ] **Phase 8**: Plan generation + export (step 12) — *next*
 
 **Deferred from Phase 5 (operational polish, do before production):**
 - Audit log every Claude call (extractor + narrator)
@@ -267,14 +267,42 @@ Flow per position:
 
 ---
 
-## Phase 7 — Skill Gap + Dev Pathway (step 10b/c)
+## Phase 7 — Skill Gap + Dev Pathway (step 10b/c) — SHIPPED
 
-Adds `development_offerings` table (mock catalog of stints, training, mentorships, rotations).
+**Framing locked:** HR-driven (top-down), not officer self-serve. CHROO/HR generates a plan and assigns interventions; the officer is the subject, not the actor. Distinct from any external course-recommendation platform — this orchestrates the broader portfolio (5 intervention kinds) and treats training entries as high-level placeholders so the L&D platform stays the source of truth for course-level specifics.
 
-Per (officer, target_position):
-1. Engine: gap = required_pl - achieved_pl per competency, weighted
-2. AI: pick interventions from catalog matching the gaps, rank by ROI/duration/feasibility
-3. Output: structured "development plan" with timeline, stored on officer or in new `officer_development_plans` table
+### Schema (`development_offerings`, `officer_development_plans`)
+
+- `development_offerings`: catalog of deployable interventions, 5 kinds:
+  - **stint** (cross-agency attachment, ~4-12mo)
+  - **rotation** (longer/strategic, ~12-18mo)
+  - **mentorship** (pairing with senior leader, ~12mo, runs in parallel with other things)
+  - **project** (cross-functional WOG initiative, ~3-6mo)
+  - **training** (formal programme, high-level — actual course routed via L&D platform)
+  - Each entry: `target_competency_ids[]`, `builds_to_pl_level`, `duration_months`, `effort_level`
+- `officer_development_plans`: one row per generation per (officer, target_position) pair. Status: draft → active → completed (or superseded when regenerated). Plan JSONB includes a snapshot of gaps + candidate offerings at generation for audit.
+
+### Engine (`src/lib/development-pathway/compute.ts`)
+
+- Compute weighted gaps from `position_required_competencies` − `officer_competencies`
+- For each offering, score gap coverage = Σ over targeted competencies of `lift × weight` where `lift = min(builds_to_pl_level, required_pl) − achieved_pl`
+- ROI = `gap_coverage / (duration_months × effort_factor)` where effort_factor = low:1, medium:1.5, high:2.5
+- Returns top 12 candidate offerings + full gap list + officer's qualitative profile + incumbent risk horizon
+
+### AI sequencer (`src/lib/development-pathway/sequence.ts`)
+
+- Claude (Haiku, tool use) takes engine context and composes a sequenced plan
+- Tool: `record_development_plan` — summary, total wall-clock duration (accounting for parallel mentorships/training), 3-6 sequenced interventions with `starts_after_month` + `runs_for_months` + per-item rationale, optional caveats
+- Mentorship + training run in parallel with stint/rotation; foundational training before stretch projects
+- Engine-only fallback if AI off or no offerings address gaps (still produces a usable sequence)
+- Defensive: drops AI-hallucinated offering_ids silently rather than poisoning the plan
+
+### API + UI
+
+- `POST /api/admin/development-plans` — generate (creates new draft, supersedes prior active for the pair)
+- `GET /api/admin/development-plans?officerId=&targetPositionId=` — latest plan
+- `PATCH /api/admin/development-plans/[planId]` — HR moves status / adds notes
+- UI: `DevelopmentPathway` panel on `/officers/[id]` — position picker, generate button, sequenced timeline view with month indicators, status transition buttons
 
 ---
 
