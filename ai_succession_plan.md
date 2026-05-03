@@ -341,6 +341,10 @@ Each route also serves JSON (default `?format=json`) for downstream tooling. Mar
 
 ### Deferred / future polish
 
+- **Visual QA in a real browser** — Phase 8 was verified by curl status codes + HTML body inspection only. Open `/plans/position/POS001`, `/plans/agency/PSD`, `/plans/organization` in the browser and:
+  - Trigger the print preview (Cmd/Ctrl-P) on each — check page breaks, that header/masthead/`no-print` toolbar are hidden, and that tables don't split awkwardly.
+  - Confirm BandPill colours, sub-score table layout, and ranked successors reasoning column wrap nicely.
+  - Confirm `/plans/agency/<name>` "at-risk narratives" section renders when narrations exist (PSD has them).
 - Real `react-pdf` if the browser-print output ever proves insufficient (e.g., page-locked tables, exact CHROO letterhead).
 - Snapshotting plans (current export is regenerated live each request — fine for the prototype, but a "publish a snapshot" flow would let CHROO compare versions over time).
 - Agency narrative paragraph (composed via Claude) summarising the agency-level mix; currently we surface per-position narratives only.
