@@ -14,7 +14,6 @@ import {
   ChevronDown,
   ChevronRight,
   Trophy,
-  Plus,
   Check,
 } from 'lucide-react'
 import { addSuccessorAction } from '@/app/actions/positions'
@@ -254,13 +253,12 @@ function CandidateCard({
   onAdd: (officerId: string, type: 'immediate' | '1-2_years' | '3-5_years' | 'more_than_5_years') => void
   addedKey: string | null
 }) {
-  const [menuOpen, setMenuOpen] = useState(false)
   const compositeBand = bandFromScore(c.composite_score)
   const compStyle = BAND_STYLES[compositeBand]
   const hasAi = c.ai_rank !== null
 
   return (
-    <li className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+    <li className="rounded-xl border border-gray-200 bg-white shadow-sm">
       <div className="p-4">
         <div className="flex items-start gap-4">
           {/* Rank badge */}
@@ -329,43 +327,28 @@ function CandidateCard({
               </ul>
             )}
 
-            {/* Add-as menu */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setMenuOpen((v) => !v)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded-md text-xs font-medium text-gray-700 transition-colors"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                Add as successor
-                <ChevronDown className="h-3 w-3" />
-              </button>
-
-              {menuOpen && (
-                <div
-                  className="absolute z-10 left-0 mt-1 w-44 bg-white border border-gray-200 rounded-md shadow-lg py-1"
-                  onMouseLeave={() => setMenuOpen(false)}
-                >
-                  {SUCCESSION_TYPES.map((t) => {
-                    const key = `${c.officer_id}:${t.value}`
-                    const isAdded = addedKey === key
-                    return (
-                      <button
-                        key={t.value}
-                        type="button"
-                        onClick={() => {
-                          setMenuOpen(false)
-                          onAdd(c.officer_id, t.value)
-                        }}
-                        className="w-full text-left px-3 py-2 text-xs hover:bg-violet-50 flex items-center justify-between"
-                      >
-                        <span>{t.label} successor</span>
-                        {isAdded && <Check className="h-3.5 w-3.5 text-emerald-600" />}
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
+            {/* Add as successor — inline pill row (no popover so nothing can clip) */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs font-medium text-gray-600 mr-1">Add as:</span>
+              {SUCCESSION_TYPES.map((t) => {
+                const key = `${c.officer_id}:${t.value}`
+                const isAdded = addedKey === key
+                return (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => onAdd(c.officer_id, t.value)}
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium border transition-colors ${
+                      isAdded
+                        ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                        : 'bg-white border-gray-300 text-gray-700 hover:bg-violet-50 hover:border-violet-300 hover:text-violet-800'
+                    }`}
+                  >
+                    {isAdded && <Check className="h-3 w-3" />}
+                    {t.label}
+                  </button>
+                )
+              })}
             </div>
           </div>
         </div>
