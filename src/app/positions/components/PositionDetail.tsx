@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Crown, User, Users, Clock, Calendar, CalendarDays,
-  ArrowLeft, Edit, Hash, Building2, Award
+  ArrowLeft, Edit, Hash, Building2, Award, FileText
 } from 'lucide-react'
 import type { PositionWithRelations } from '@/lib/queries/positions'
 
@@ -235,13 +235,22 @@ export default function PositionDetail({ position }: PositionDetailProps) {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to List
             </Link>
-            <button
-              onClick={() => router.push(`/positions/${position.position_id}/edit`)}
-              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-colors shadow-md"
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Position
-            </button>
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/plans/position/${position.position_id}`}
+                className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Generate Plan
+              </Link>
+              <button
+                onClick={() => router.push(`/positions/${position.position_id}/edit`)}
+                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-colors shadow-md"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Position
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center space-x-4">

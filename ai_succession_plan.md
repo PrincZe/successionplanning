@@ -1,6 +1,6 @@
 # AI Succession Planning — Implementation Plan
 
-Living document. Update at end of each phase. Last updated: 2026-05-03 (Phase 7 shipped).
+Living document. Update at end of each phase. Last updated: 2026-05-03 (Phase 8 shipped).
 
 ## Goal
 
@@ -29,7 +29,7 @@ Build prototype AI features mapping to CHROO workflow steps 9–12:
 - [x] **Phase 5**: AI qualitative extraction + narration + intervention ranking
 - [x] **Phase 6**: Successor recommender (step 10a)
 - [x] **Phase 7**: Skill gap + dev pathway (step 10b/c)
-- [ ] **Phase 8**: Plan generation + export (step 12) — *next*
+- [x] **Phase 8**: Plan generation + export (step 12)
 
 **Deferred from Phase 5 (operational polish, do before production):**
 - Audit log every Claude call (extractor + narrator)
@@ -306,12 +306,44 @@ Flow per position:
 
 ---
 
-## Phase 8 — Plan Generation + Export (step 12)
+## Phase 8 — Plan Generation + Export (step 12) — SHIPPED
 
-- Per-pipeline, per-agency, organization-wide plan documents
-- Composes: traffic-light snapshot + AI narration + recommended successors + intervention plans
-- Export: PDF via `react-pdf` or HTML → print, plus markdown for emails
-- Real-time dashboard already covered in Phase 4
+**Approach locked:** No new dependencies. HTML→browser-print ("Save as PDF") is the PDF path; rendering is print-CSS only. The same composition feeds a parallel markdown endpoint for email/Slack pasting.
+
+### Composition layer (`src/lib/plan-export/compose.ts`)
+
+- `composePositionPlan(positionId)` — pulls cached `pipeline_assessments` (sub-scores, narration, interventions), cached `successor_recommendations` (ranked candidates), and the latest `officer_development_plans` for the **top 3 ranked successors** at this position.
+- `composeAgencyPlan(agency)` — filters the overview to one agency, computes band summary, sorts at-risk positions by band → risk horizon ascending → score ascending; attaches AI narration to each row in one extra `pipeline_assessments` query.
+- `composeOrgPlan()` — agency rollup (sorted worst-band first, then volume of red+amber), org-wide at-risk list (top 25 surfaced, full count noted).
+
+All three return frozen "generated_at" timestamps so a print/markdown export is internally consistent.
+
+### Print routes (`src/app/plans/...`)
+
+- `/plans/position/[id]` — header, sub-score table, narrative, interventions, ranked successors table, dev-plan timeline per top successor.
+- `/plans/agency/[agency]` — pipeline mix counts, at-risk table, at-risk narratives, full roster.
+- `/plans/organization` — pipeline mix, agency rollup table linked through to agency plans, top 25 at-risk linked through to position plans.
+
+Shared: `print-doc` wrapper class + global print CSS in `globals.css` (hides header/masthead/`no-print`, drops backgrounds, paginates with `@page` margins and `.page-break` markers). `PrintToolbar` shows a back link + Markdown link + Print/Save-PDF button — all hidden in print.
+
+### Markdown export (`src/lib/plan-export/markdown.ts` + `src/app/api/admin/plans/...`)
+
+- `GET /api/admin/plans/position/[id]?format=md`
+- `GET /api/admin/plans/agency/[agency]?format=md`
+- `GET /api/admin/plans/organization?format=md`
+
+Each route also serves JSON (default `?format=json`) for downstream tooling. Markdown renderers reuse the composition output verbatim.
+
+### Entry points
+
+- "Generate Plan" button on `PositionDetail` next to "Edit Position".
+- "Org plan" button always visible on the pipeline-health filter row; "Agency plan" button appears when the agency filter is set (so the dashboard's agency dropdown is the agency picker).
+
+### Deferred / future polish
+
+- Real `react-pdf` if the browser-print output ever proves insufficient (e.g., page-locked tables, exact CHROO letterhead).
+- Snapshotting plans (current export is regenerated live each request — fine for the prototype, but a "publish a snapshot" flow would let CHROO compare versions over time).
+- Agency narrative paragraph (composed via Claude) summarising the agency-level mix; currently we surface per-position narratives only.
 
 ---
 

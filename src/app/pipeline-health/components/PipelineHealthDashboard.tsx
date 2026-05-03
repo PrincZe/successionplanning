@@ -2,7 +2,8 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { RefreshCw, AlertTriangle, CheckCircle2, AlertCircle, X } from 'lucide-react'
+import Link from 'next/link'
+import { RefreshCw, AlertTriangle, CheckCircle2, AlertCircle, X, FileText } from 'lucide-react'
 import type { Band, BandSummary, PipelineHealthRow } from '@/lib/queries/pipeline-health'
 import PipelineCard from './PipelineCard'
 import PipelineDrillDown from './PipelineDrillDown'
@@ -76,6 +77,22 @@ export default function PipelineHealthDashboard({ rows, summary }: Props) {
               ⚠ {recomputeError.slice(0, 60)}
             </span>
           )}
+          {agencyFilter !== 'all' && (
+            <Link
+              href={`/plans/agency/${encodeURIComponent(agencyFilter)}`}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+            >
+              <FileText className="h-4 w-4" />
+              Agency plan
+            </Link>
+          )}
+          <Link
+            href="/plans/organization"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+          >
+            <FileText className="h-4 w-4" />
+            Org plan
+          </Link>
           <button
             type="button"
             onClick={handleRecompute}

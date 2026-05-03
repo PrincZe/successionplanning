@@ -90,3 +90,43 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Phase 8 — print styles for /plans/* routes. Trigger by adding class
+   `print-doc` on the page wrapper. Use `no-print` to hide elements
+   when printing, and `page-break` to force a page break. */
+@media print {
+  :root, html, body {
+    background: #fff !important;
+  }
+  body > div[class*="absolute"][class*="-z-10"],
+  sgds-masthead,
+  header {
+    display: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-doc {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 11pt;
+    line-height: 1.45;
+  }
+  .print-doc a {
+    color: #000 !important;
+    text-decoration: none !important;
+  }
+  .print-doc .page-break {
+    break-before: page;
+    page-break-before: always;
+  }
+  .print-doc h1, .print-doc h2, .print-doc h3 {
+    break-after: avoid;
+  }
+  .print-doc table, .print-doc tr, .print-doc td, .print-doc th {
+    break-inside: avoid;
+  }
+  @page {
+    margin: 18mm 15mm 18mm 15mm;
+  }
+}
