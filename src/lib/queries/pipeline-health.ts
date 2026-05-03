@@ -121,7 +121,7 @@ export async function getPipelineDetail(positionId: string): Promise<PipelineHea
       .from('positions')
       .select('position_id, position_title, agency, jr_grade, incumbent_id, incumbent:officers!positions_incumbent_id_fkey(name)')
       .eq('position_id', positionId)
-      .single(),
+      .maybeSingle(),
     supabase.from('pipeline_assessments').select('*').eq('position_id', positionId).maybeSingle(),
     supabase.from('incumbent_risk').select('risk_horizon_months').eq('position_id', positionId).maybeSingle(),
     supabase
