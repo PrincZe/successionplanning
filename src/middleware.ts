@@ -54,6 +54,13 @@ export async function middleware(request: NextRequest) {
     // Role-based route protection
     const role = session.role
 
+    // If session lacks role (old cookie format), force re-login for protected routes
+    if (!role && (pathname.startsWith('/agency') || pathname.startsWith('/psd') || pathname.startsWith('/admin'))) {
+      const response = NextResponse.redirect(new URL('/login', request.url))
+      response.cookies.delete('chronos_session')
+      return response
+    }
+
     if (pathname.startsWith('/agency')) {
       if (role !== 'agency_hr' && role !== 'admin') {
         return NextResponse.redirect(new URL('/home', request.url))
