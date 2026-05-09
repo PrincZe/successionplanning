@@ -28,7 +28,7 @@ const DIMENSIONS = [
     weight: '20%',
     technical: 'Coverage',
     explanation:
-      'Are there enough successors at each readiness band? CHROO’s rule of thumb: at least 2 immediate, 3 in the 1–2 year band, and 4 in the 3–5 year band.',
+      "Are there enough successors at each readiness band? Rule of thumb: at least 3 in the 0–4 year band, and 3 in the 4–10 year band.",
     color: 'bg-cyan-50 border-cyan-200 text-cyan-900',
   },
   {
@@ -37,7 +37,7 @@ const DIMENSIONS = [
     weight: '15%',
     technical: 'Urgency',
     explanation:
-      'Does the bench timing match how soon the incumbent will leave? If the incumbent retires in 8 months and there is no immediate successor, this dimension goes red and forces the overall pipeline to red regardless of the other scores.',
+      'Does the bench timing match how soon the incumbent will leave? If the incumbent retires within 24 months and there are no 0-4yr successors, this dimension goes red and forces the overall pipeline to red regardless of the other scores.',
     color: 'bg-amber-50 border-amber-200 text-amber-900',
   },
   {
@@ -72,7 +72,7 @@ export default function HowItWorks() {
         <div className="px-5 pb-5 space-y-4 border-t border-gray-100">
           <div className="pt-4 text-sm text-gray-700 leading-relaxed space-y-3">
             <p>
-              A <strong>pipeline</strong> is the set of officers identified as potential successors for one position, grouped by how soon they could step in: <em>immediate</em>, <em>1–2 years</em>, <em>3–5 years</em>.
+              A <strong>pipeline</strong> is the set of officers identified as potential successors for one position, grouped by how soon they could step in: <em>0–4 years</em> or <em>4–10 years</em>.
             </p>
             <p>
               Each pipeline gets an overall <strong>0–100 score</strong> built from five dimensions (below). The score maps to a traffic light:
@@ -104,7 +104,7 @@ export default function HowItWorks() {
           </div>
 
           <div className="mt-2 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-900">
-            <strong>Hard override:</strong> if Timing match (D) is red, the overall pipeline is forced to red — even if other dimensions are green. Look for the <span className="font-bold bg-red-100 px-1.5 py-0.5 rounded">URGENCY</span> badge on cards. The most common case: an incumbent leaving within 12 months with no immediate successor.
+            <strong>Hard override:</strong> if Timing match (D) is red, the overall pipeline is forced to red — even if other dimensions are green. Look for the <span className="font-bold bg-red-100 px-1.5 py-0.5 rounded">URGENCY</span> badge on cards. The most common case: an incumbent leaving within 24 months with no 0–4yr successor.
           </div>
 
           <div className="text-xs text-gray-500">

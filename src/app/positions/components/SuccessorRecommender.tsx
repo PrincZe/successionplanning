@@ -40,11 +40,9 @@ const TRAJECTORY_ICON: Record<string, React.ReactNode> = {
   unknown: null,
 }
 
-const SUCCESSION_TYPES: Array<{ value: 'immediate' | '1-2_years' | '3-5_years' | 'more_than_5_years'; label: string }> = [
-  { value: 'immediate', label: 'Immediate' },
-  { value: '1-2_years', label: '1–2 yrs' },
-  { value: '3-5_years', label: '3–5 yrs' },
-  { value: 'more_than_5_years', label: '5+ yrs' },
+const SUCCESSION_TYPES: Array<{ value: '0-4_years' | '4-10_years'; label: string }> = [
+  { value: '0-4_years', label: '0–4 yrs' },
+  { value: '4-10_years', label: '4–10 yrs' },
 ]
 
 type SubScores = {
@@ -128,7 +126,7 @@ export default function SuccessorRecommender({ positionId }: { positionId: strin
     }
   }
 
-  async function addAs(officerId: string, type: 'immediate' | '1-2_years' | '3-5_years' | 'more_than_5_years') {
+  async function addAs(officerId: string, type: '0-4_years' | '4-10_years') {
     const key = `${officerId}:${type}`
     setAddedKey(key)
     try {
@@ -251,7 +249,7 @@ function CandidateCard({
   addedKey,
 }: {
   candidate: RankedCandidate
-  onAdd: (officerId: string, type: 'immediate' | '1-2_years' | '3-5_years' | 'more_than_5_years') => void
+  onAdd: (officerId: string, type: '0-4_years' | '4-10_years') => void
   addedKey: string | null
 }) {
   const compositeBand = bandFromScore(c.composite_score)

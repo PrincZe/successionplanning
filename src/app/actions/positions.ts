@@ -11,10 +11,8 @@ export async function createPositionAction(data: {
   agency: string
   jr_grade: string
   incumbent_id: string | null
-  immediate_successors: string[]
-  successors_1_2_years: string[]
-  successors_3_5_years: string[]
-  more_than_5_years_successors: string[]
+  successors_0_4_years: string[]
+  successors_4_10_years: string[]
 }) {
   try {
     console.log('Starting createPositionAction with data:', data)
@@ -53,10 +51,8 @@ export async function createPositionAction(data: {
     // Add successors
     try {
       await Promise.all([
-        updateSuccessors(position.position_id, 'immediate', data.immediate_successors),
-        updateSuccessors(position.position_id, '1-2_years', data.successors_1_2_years),
-        updateSuccessors(position.position_id, '3-5_years', data.successors_3_5_years),
-        updateSuccessors(position.position_id, 'more_than_5_years', data.more_than_5_years_successors)
+        updateSuccessors(position.position_id, '0-4_years', data.successors_0_4_years),
+        updateSuccessors(position.position_id, '4-10_years', data.successors_4_10_years),
       ])
       console.log('All successors added successfully')
     } catch (successorError) {
@@ -81,10 +77,8 @@ export async function updatePositionAction(
     agency: string
     jr_grade: string
     incumbent_id: string | null
-    immediate_successors: string[]
-    successors_1_2_years: string[]
-    successors_3_5_years: string[]
-    more_than_5_years_successors: string[]
+    successors_0_4_years: string[]
+    successors_4_10_years: string[]
   }
 ) {
   try {
@@ -98,10 +92,8 @@ export async function updatePositionAction(
 
     // Update successors
     await Promise.all([
-      updateSuccessors(id, 'immediate', data.immediate_successors),
-      updateSuccessors(id, '1-2_years', data.successors_1_2_years),
-      updateSuccessors(id, '3-5_years', data.successors_3_5_years),
-      updateSuccessors(id, 'more_than_5_years', data.more_than_5_years_successors)
+      updateSuccessors(id, '0-4_years', data.successors_0_4_years),
+      updateSuccessors(id, '4-10_years', data.successors_4_10_years),
     ])
 
     revalidatePath('/positions')
@@ -128,7 +120,7 @@ export async function deletePositionAction(id: string) {
 export async function addSuccessorAction(
   positionId: string,
   successorId: string,
-  successionType: 'immediate' | '1-2_years' | '3-5_years' | 'more_than_5_years'
+  successionType: '0-4_years' | '4-10_years'
 ) {
   try {
     await addSuccessor(positionId, successorId, successionType)

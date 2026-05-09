@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  Crown, User, Users, Clock, Calendar, CalendarDays,
+  Crown, User, Clock, CalendarDays,
   ArrowLeft, Edit, Hash, Building2, Award, FileText
 } from 'lucide-react'
 import type { PositionWithRelations } from '@/lib/queries/positions'
@@ -13,18 +13,16 @@ interface SuccessionNodeProps {
   name?: string
   officerId?: string
   className?: string
-  variant?: 'position' | 'incumbent' | 'immediate' | '1-2years' | '3-5years' | '5plus'
+  variant?: 'position' | 'incumbent' | '0-4years' | '4-10years'
   icon?: React.ReactNode
 }
 
-function SuccessionNode({ title, name, officerId, className = '', variant = 'immediate', icon }: SuccessionNodeProps) {
+function SuccessionNode({ title, name, officerId, className = '', variant = '0-4years', icon }: SuccessionNodeProps) {
   const variantStyles = {
     position: 'bg-gradient-to-br from-slate-500 to-slate-600 text-white border-slate-300 shadow-lg',
     incumbent: 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-emerald-300 shadow-lg',
-    immediate: 'bg-gradient-to-br from-blue-50 to-blue-100 text-blue-900 border-blue-200 shadow-md hover:shadow-lg transition-all duration-200',
-    '1-2years': 'bg-gradient-to-br from-green-50 to-emerald-100 text-green-900 border-green-200 shadow-md hover:shadow-lg transition-all duration-200',
-    '3-5years': 'bg-gradient-to-br from-purple-50 to-violet-100 text-purple-900 border-purple-200 shadow-md hover:shadow-lg transition-all duration-200',
-    '5plus': 'bg-gradient-to-br from-orange-50 to-amber-100 text-orange-900 border-orange-200 shadow-md hover:shadow-lg transition-all duration-200'
+    '0-4years': 'bg-gradient-to-br from-blue-50 to-blue-100 text-blue-900 border-blue-200 shadow-md hover:shadow-lg transition-all duration-200',
+    '4-10years': 'bg-gradient-to-br from-purple-50 to-violet-100 text-purple-900 border-purple-200 shadow-md hover:shadow-lg transition-all duration-200',
   }
 
   return (
@@ -45,9 +43,8 @@ function SuccessionNode({ title, name, officerId, className = '', variant = 'imm
 }
 
 function SuccessionTree({ position }: { position: PositionWithRelations }) {
-  const mainSuccessors = position.successors_3_5_years?.slice(0, 3) || []
-  const fourthSuccessor = position.successors_3_5_years?.[3]
-  const moreThan5YearsSuccessors = position.more_than_5_years_successors || []
+  const shortTermSuccessors = position.successors_0_4_years || []
+  const longTermSuccessors = position.successors_4_10_years || []
 
   return (
     <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl shadow-xl p-8 border border-gray-200">
@@ -78,68 +75,30 @@ function SuccessionTree({ position }: { position: PositionWithRelations }) {
           />
         </div>
 
-        {position.immediate_successors && position.immediate_successors.length > 0 && (
+        {shortTermSuccessors.length > 0 && (
           <>
             <div className="w-1 h-12 bg-gradient-to-b from-emerald-400 to-blue-400 rounded-full"></div>
 
-            <div className="relative w-full flex justify-center">
-              {position.immediate_successors.length === 1 ? (
-                <div className="relative">
-                  <SuccessionNode
-                    title="Immediate Successor"
-                    name={position.immediate_successors[0]?.name}
-                    officerId={position.immediate_successors[0]?.officer_id}
-                    variant="immediate"
-                    icon={<Clock className="h-4 w-4" />}
-                  />
-                </div>
-              ) : (
-                <div className="relative flex items-center">
-                  <div className="absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-blue-300 via-blue-400 to-blue-300 rounded-full transform -translate-y-1/2"></div>
-                  <div className="flex justify-between w-full gap-32 relative z-10">
-                    {position.immediate_successors.map((successor, index) => (
-                      <div key={successor.officer_id} className="relative">
-                        <div className="absolute top-1/2 left-1/2 w-1 h-8 bg-blue-400 rounded-full transform -translate-x-1/2 -translate-y-full"></div>
-                        <SuccessionNode
-                          title={`Immediate Successor ${index + 1}`}
-                          name={successor.name}
-                          officerId={successor.officer_id}
-                          variant="immediate"
-                          icon={<Clock className="h-4 w-4" />}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </>
-        )}
-
-        {position.successors_1_2_years && position.successors_1_2_years.length > 0 && (
-          <>
-            <div className="w-1 h-12 bg-gradient-to-b from-blue-400 to-green-400 rounded-full"></div>
-
             <div className="relative w-full flex flex-col items-center">
               <div className="text-center mb-6">
-                <div className="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-semibold">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  1-2 Year Development Pipeline
+                <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">
+                  <Clock className="h-4 w-4 mr-2" />
+                  0–4 Year Successors
                 </div>
               </div>
 
               <div className="relative flex items-center w-full max-w-4xl">
-                <div className="absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-green-300 via-green-400 to-green-300 rounded-full transform -translate-y-1/2"></div>
+                <div className="absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-blue-300 via-blue-400 to-blue-300 rounded-full transform -translate-y-1/2"></div>
                 <div className="flex justify-between w-full relative z-10">
-                  {position.successors_1_2_years.map((successor, index) => (
+                  {shortTermSuccessors.map((successor, index) => (
                     <div key={successor.officer_id} className="relative">
-                      <div className="absolute top-1/2 left-1/2 w-1 h-8 bg-green-400 rounded-full transform -translate-x-1/2 -translate-y-full"></div>
+                      <div className="absolute top-1/2 left-1/2 w-1 h-8 bg-blue-400 rounded-full transform -translate-x-1/2 -translate-y-full"></div>
                       <SuccessionNode
-                        title={`1-2 Year Successor ${index + 1}`}
+                        title={`0-4yr Successor ${index + 1}`}
                         name={successor.name}
                         officerId={successor.officer_id}
-                        variant="1-2years"
-                        icon={<Calendar className="h-4 w-4" />}
+                        variant="0-4years"
+                        icon={<Clock className="h-4 w-4" />}
                       />
                     </div>
                   ))}
@@ -149,60 +108,27 @@ function SuccessionTree({ position }: { position: PositionWithRelations }) {
           </>
         )}
 
-        {mainSuccessors.length > 0 && (
+        {longTermSuccessors.length > 0 && (
           <>
-            <div className="w-1 h-12 bg-gradient-to-b from-green-400 to-purple-400 rounded-full"></div>
+            <div className="w-1 h-12 bg-gradient-to-b from-blue-400 to-purple-400 rounded-full"></div>
 
             <div className="relative w-full flex flex-col items-center">
               <div className="text-center mb-6">
                 <div className="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-semibold">
                   <CalendarDays className="h-4 w-4 mr-2" />
-                  Medium-Term Development Pool
+                  4–10 Year Successors
                 </div>
               </div>
 
-              <div className="relative flex items-center w-full max-w-5xl">
-                <div className="absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-purple-300 via-purple-400 to-purple-300 rounded-full transform -translate-y-1/2"></div>
-                <div className="flex justify-between w-full relative z-10">
-                  {mainSuccessors.map((successor, index) => (
-                    <div key={successor.officer_id} className="relative">
-                      <div className="absolute top-1/2 left-1/2 w-1 h-8 bg-purple-400 rounded-full transform -translate-x-1/2 -translate-y-full"></div>
-                      <SuccessionNode
-                        title={`3-5 Year Successor ${index + 1}`}
-                        name={successor.name}
-                        officerId={successor.officer_id}
-                        variant="3-5years"
-                        icon={<CalendarDays className="h-4 w-4" />}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-
-        {moreThan5YearsSuccessors.length > 0 && (
-          <>
-            <div className="w-1 h-12 bg-gradient-to-b from-purple-400 to-orange-400 rounded-full"></div>
-
-            <div className="relative w-full flex flex-col items-center">
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center px-4 py-2 bg-orange-100 text-orange-800 rounded-full text-sm font-semibold">
-                  <Users className="h-4 w-4 mr-2" />
-                  Long-Term Talent Pipeline
-                </div>
-              </div>
-
-              <div className="flex flex-wrap justify-center gap-8 w-full max-w-6xl">
-                {moreThan5YearsSuccessors.map((successor, index) => (
+              <div className="flex flex-wrap justify-center gap-8 w-full max-w-5xl">
+                {longTermSuccessors.map((successor, index) => (
                   <div key={successor.officer_id} className="relative">
                     <SuccessionNode
-                      title={`Future Leader ${index + 1}`}
+                      title={`4-10yr Successor ${index + 1}`}
                       name={successor.name}
                       officerId={successor.officer_id}
-                      variant="5plus"
-                      icon={<Users className="h-4 w-4" />}
+                      variant="4-10years"
+                      icon={<CalendarDays className="h-4 w-4" />}
                     />
                   </div>
                 ))}

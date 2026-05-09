@@ -33,7 +33,7 @@ create table hr_competencies (
 create table position_successors (
   position_id varchar references positions(position_id),
   successor_id varchar references officers(officer_id),
-  succession_type varchar check (succession_type in ('immediate', '1-2_years', '3-5_years', 'more_than_5_years')),
+  succession_type varchar check (succession_type in ('0-4_years', '4-10_years')),
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   primary key (position_id, successor_id, succession_type)
 );

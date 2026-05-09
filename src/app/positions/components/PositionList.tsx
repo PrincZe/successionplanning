@@ -104,44 +104,26 @@ export default function PositionList({ positions }: PositionListProps) {
       )
     },
     {
-      header: 'Immediate',
-      accessorKey: 'immediate_successors' as const,
+      header: '0-4 Years',
+      accessorKey: 'successors_0_4_years' as const,
       cell: (row: PositionWithRelations) => (
-        <SuccessorDisplay 
-          successors={row.immediate_successors || []} 
-          max={2} 
-          type="Immediate" 
+        <SuccessorDisplay
+          successors={row.successors_0_4_years || []}
+          max={5}
+          type="0-4Y"
         />
       )
     },
     {
-      header: '1-2 Years',
-      accessorKey: 'successors_1_2_years' as const,
+      header: '4-10 Years',
+      accessorKey: 'successors_4_10_years' as const,
       cell: (row: PositionWithRelations) => (
-        <SuccessorDisplay 
-          successors={row.successors_1_2_years || []} 
-          max={5} 
-          type="1-2Y" 
+        <SuccessorDisplay
+          successors={row.successors_4_10_years || []}
+          max={5}
+          type="4-10Y"
         />
       )
-    },
-    {
-      header: 'Long-term',
-      accessorKey: 'successors_3_5_years' as const,
-      cell: (row: PositionWithRelations) => {
-        const shortTerm = row.successors_3_5_years || []
-        const longTerm = row.more_than_5_years_successors || []
-        const total = shortTerm.length + longTerm.length
-        
-        return (
-          <div className="space-y-1">
-            <StatusBadge count={total} max={15} label="Total" />
-            <div className="text-xs text-gray-500">
-              3-5Y: {shortTerm.length} • 5Y+: {longTerm.length}
-            </div>
-          </div>
-        )
-      }
     }
   ]
 

@@ -17,13 +17,13 @@ export type PipelineAssessment = {
   reasons: string[]
 }
 
-type SuccessionType = 'immediate' | '1-2_years' | '3-5_years' | 'more_than_5_years'
+type SuccessionType = '0-4_years' | '4-10_years'
 
 type Criteria = {
   weights: { A_qualitative: number; B_fit: number; C_coverage: number; D_urgency: number; E_momentum: number }
   qualitative_thresholds: { green: number; amber: number }
   fit_thresholds: { green: number; amber: number }
-  coverage_thresholds: Record<'immediate' | '1_2_years' | '3_5_years', { red_max: number; amber_max: number; green_min: number }>
+  coverage_thresholds: Record<'0_4_years' | '4_10_years', { red_max: number; amber_max: number; green_min: number }>
   momentum_thresholds: { green_pct: number; amber_pct: number }
   overall_band_thresholds: { green: number; amber: number }
   qualitative_band_weights: Record<string, number>
@@ -41,7 +41,7 @@ type LoadedData = {
   incumbentRisk: Map<string, number>
 }
 
-const ALL_BANDS: SuccessionType[] = ['immediate', '1-2_years', '3-5_years', 'more_than_5_years']
+const ALL_BANDS: SuccessionType[] = ['0-4_years', '4-10_years']
 
 function bandFromScore(score: number, thresholds: { green: number; amber: number }): Band {
   if (score >= thresholds.green) return 'green'
@@ -183,9 +183,9 @@ function scoreFit(
   if (required.length === 0) {
     return { score: 0, band: 'red', reasons: ['Position has no required competencies defined'] }
   }
-  const considered = successors.filter((s) => s.succession_type === 'immediate' || s.succession_type === '1-2_years')
+  const considered = successors.filter((s) => s.succession_type === '0-4_years')
   if (considered.length === 0) {
-    return { score: 0, band: 'red', reasons: ['No immediate or 1-2yr successors to score fit'] }
+    return { score: 0, band: 'red', reasons: ['No 0-4yr successors to score fit'] }
   }
   const fitPcts: number[] = []
   const gapsPerCompetency = new Map<number, number>()
@@ -220,39 +220,35 @@ function scoreCoverage(
   thresholds: Criteria['coverage_thresholds']
 ): SubScore {
   const counts: Record<SuccessionType, number> = {
-    immediate: 0,
-    '1-2_years': 0,
-    '3-5_years': 0,
-    more_than_5_years: 0,
+    '0-4_years': 0,
+    '4-10_years': 0,
   }
   for (const s of successors) counts[s.succession_type]++
 
   const reasons: string[] = []
-  const bandFromBand = (key: 'immediate' | '1_2_years' | '3_5_years', count: number): { sub: number; band: Band } => {
+  const bandFromBand = (key: '0_4_years' | '4_10_years', count: number): { sub: number; band: Band } => {
     const t = thresholds[key]
     if (count <= t.red_max) return { sub: 20, band: 'red' }
     if (count <= t.amber_max) return { sub: 60, band: 'amber' }
     if (count >= t.green_min) return { sub: 100, band: 'green' }
     return { sub: 60, band: 'amber' }
   }
-  const r1 = bandFromBand('immediate', counts.immediate)
-  const r2 = bandFromBand('1_2_years', counts['1-2_years'])
-  const r3 = bandFromBand('3_5_years', counts['3-5_years'])
+  const r1 = bandFromBand('0_4_years', counts['0-4_years'])
+  const r2 = bandFromBand('4_10_years', counts['4-10_years'])
 
-  if (r1.band === 'red') reasons.push(`Immediate band has ${counts.immediate} successor(s)`)
-  if (r2.band === 'red') reasons.push(`1-2yr band has ${counts['1-2_years']} successor(s)`)
-  if (r3.band === 'red') reasons.push(`3-5yr band has ${counts['3-5_years']} successor(s)`)
-  if (r1.band === 'green' && r2.band === 'green' && r3.band === 'green') {
-    reasons.push(`Healthy coverage: ${counts.immediate} immediate / ${counts['1-2_years']} (1-2yr) / ${counts['3-5_years']} (3-5yr)`)
+  if (r1.band === 'red') reasons.push(`0-4yr band has ${counts['0-4_years']} successor(s)`)
+  if (r2.band === 'red') reasons.push(`4-10yr band has ${counts['4-10_years']} successor(s)`)
+  if (r1.band === 'green' && r2.band === 'green') {
+    reasons.push(`Healthy coverage: ${counts['0-4_years']} (0-4yr) / ${counts['4-10_years']} (4-10yr)`)
   }
 
-  const score = (r1.sub + r2.sub + r3.sub) / 3
+  const score = (r1.sub + r2.sub) / 2
   const band = score >= 75 ? 'green' : score >= 50 ? 'amber' : 'red'
   return {
     score: Math.round(score * 10) / 10,
     band,
     reasons,
-    detail: { immediate: counts.immediate, '1-2_years': counts['1-2_years'], '3-5_years': counts['3-5_years'] },
+    detail: { '0-4_years': counts['0-4_years'], '4-10_years': counts['4-10_years'] },
   }
 }
 
@@ -267,20 +263,16 @@ function scoreUrgency(
   if (riskHorizon === undefined) {
     return { score: 60, band: 'amber', reasons: ['No incumbent risk horizon recorded — treating as amber'] }
   }
-  const immediate = successors.filter((s) => s.succession_type === 'immediate').length
-  const yr1_2 = successors.filter((s) => s.succession_type === '1-2_years').length
+  const shortTerm = successors.filter((s) => s.succession_type === '0-4_years').length
 
-  if (riskHorizon <= 12) {
-    if (immediate >= 1) return { score: 100, band: 'green', reasons: [`Incumbent risk ${riskHorizon}mo, ${immediate} immediate successor(s)`] }
-    return { score: 20, band: 'red', reasons: [`Incumbent risk ${riskHorizon}mo with NO immediate successor`] }
-  }
   if (riskHorizon <= 24) {
-    if (immediate >= 1 || yr1_2 >= 2) return { score: 100, band: 'green', reasons: [`Incumbent risk ${riskHorizon}mo, ${immediate} imm / ${yr1_2} 1-2yr`] }
-    return { score: 60, band: 'amber', reasons: [`Incumbent risk ${riskHorizon}mo: only ${immediate} imm / ${yr1_2} 1-2yr (need imm>=1 or 1-2yr>=2)`] }
+    if (shortTerm >= 2) return { score: 100, band: 'green', reasons: [`Incumbent risk ${riskHorizon}mo, ${shortTerm} successor(s) in 0-4yr band`] }
+    if (shortTerm >= 1) return { score: 60, band: 'amber', reasons: [`Incumbent risk ${riskHorizon}mo: only ${shortTerm} in 0-4yr band (need >=2)`] }
+    return { score: 20, band: 'red', reasons: [`Incumbent risk ${riskHorizon}mo with NO 0-4yr successor`] }
   }
-  if (riskHorizon <= 36) {
-    if (yr1_2 >= 2) return { score: 100, band: 'green', reasons: [`Incumbent risk ${riskHorizon}mo, ${yr1_2} successor(s) in 1-2yr band`] }
-    return { score: 60, band: 'amber', reasons: [`Incumbent risk ${riskHorizon}mo: ${yr1_2} in 1-2yr (need >=2)`] }
+  if (riskHorizon <= 48) {
+    if (shortTerm >= 1) return { score: 100, band: 'green', reasons: [`Incumbent risk ${riskHorizon}mo, ${shortTerm} successor(s) in 0-4yr band`] }
+    return { score: 60, band: 'amber', reasons: [`Incumbent risk ${riskHorizon}mo: no 0-4yr successors (need >=1)`] }
   }
   return { score: 100, band: 'green', reasons: [`Incumbent risk horizon ${riskHorizon}mo — long runway`] }
 }
@@ -332,9 +324,9 @@ export function scorePipelineFromData(positionId: string, data: LoadedData): Pip
     if (overall_band !== 'red') overrideReasons.push('Hard override: urgency=red forces overall=red')
     overall_band = 'red'
   }
-  const immediateCount = successors.filter((s) => s.succession_type === 'immediate').length
-  if (A.band === 'red' && immediateCount === 1 && overall_band === 'green') {
-    overrideReasons.push('Hard override: qualitative=red with single immediate successor caps overall at amber')
+  const shortTermCount = successors.filter((s) => s.succession_type === '0-4_years').length
+  if (A.band === 'red' && shortTermCount === 1 && overall_band === 'green') {
+    overrideReasons.push('Hard override: qualitative=red with single 0-4yr successor caps overall at amber')
     overall_band = 'amber'
   }
 

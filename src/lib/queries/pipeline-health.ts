@@ -22,14 +22,14 @@ export type PipelineHealthRow = {
   sub_scores: { A: SubScore; B: SubScore; C: SubScore; D: SubScore; E: SubScore }
   reasons: string[]
   computed_at: string | null
-  successor_count: { immediate: number; '1-2_years': number; '3-5_years': number; more_than_5_years: number }
+  successor_count: { '0-4_years': number; '4-10_years': number }
 }
 
 export type PipelineSuccessor = {
   officer_id: string
   name: string
   grade: string | null
-  succession_type: 'immediate' | '1-2_years' | '3-5_years' | 'more_than_5_years'
+  succession_type: '0-4_years' | '4-10_years'
   qualitative_score: number | null
   sentiment_trajectory: 'improving' | 'stable' | 'declining' | 'unknown' | null
 }
@@ -78,7 +78,7 @@ export async function getPipelineHealthOverview(): Promise<PipelineHealthRow[]> 
   for (const r of psRes.data ?? []) {
     const prev =
       countsByPosition.get(r.position_id) ??
-      ({ immediate: 0, '1-2_years': 0, '3-5_years': 0, more_than_5_years: 0 } as PipelineHealthRow['successor_count'])
+      ({ '0-4_years': 0, '4-10_years': 0 } as PipelineHealthRow['successor_count'])
     prev[r.succession_type as keyof typeof prev]++
     countsByPosition.set(r.position_id, prev)
   }
@@ -100,7 +100,7 @@ export async function getPipelineHealthOverview(): Promise<PipelineHealthRow[]> 
       computed_at: a?.computed_at ?? null,
       successor_count:
         countsByPosition.get(p.position_id) ??
-        ({ immediate: 0, '1-2_years': 0, '3-5_years': 0, more_than_5_years: 0 } as PipelineHealthRow['successor_count']),
+        ({ '0-4_years': 0, '4-10_years': 0 } as PipelineHealthRow['successor_count']),
     }
   })
 
@@ -160,10 +160,8 @@ export async function getPipelineDetail(positionId: string): Promise<PipelineHea
   })
 
   const counts: PipelineHealthRow['successor_count'] = {
-    immediate: 0,
-    '1-2_years': 0,
-    '3-5_years': 0,
-    more_than_5_years: 0,
+    '0-4_years': 0,
+    '4-10_years': 0,
   }
   for (const s of successors) counts[s.succession_type]++
 

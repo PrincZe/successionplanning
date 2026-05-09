@@ -38,7 +38,7 @@ export interface HRCompetency {
 export interface PositionSuccessor {
   position_id: string
   successor_id: string
-  succession_type: 'immediate' | '1-2_years' | '3-5_years'
+  succession_type: '0-4_years' | '4-10_years'
   created_at: string
 }
 

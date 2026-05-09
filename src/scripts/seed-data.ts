@@ -104,12 +104,12 @@ async function seedDatabase() {
         { 
           position_id: 'POS001', 
           successor_id: 'OFF002', 
-          succession_type: 'immediate'
+          succession_type: '0-4_years'
         },
         { 
           position_id: 'POS001', 
           successor_id: 'OFF003', 
-          succession_type: 'immediate'
+          succession_type: '0-4_years'
         }
       ])
 

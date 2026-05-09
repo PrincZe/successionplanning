@@ -13,18 +13,14 @@ const SUB_LABELS: Record<'A' | 'B' | 'C' | 'D' | 'E', string> = {
   E: 'Development momentum (5%)',
 }
 
-const BAND_ORDER: Array<'immediate' | '1-2_years' | '3-5_years' | 'more_than_5_years'> = [
-  'immediate',
-  '1-2_years',
-  '3-5_years',
-  'more_than_5_years',
+const BAND_ORDER: Array<'0-4_years' | '4-10_years'> = [
+  '0-4_years',
+  '4-10_years',
 ]
 
 const BAND_LABEL: Record<string, string> = {
-  immediate: 'Immediate',
-  '1-2_years': '1–2 years',
-  '3-5_years': '3–5 years',
-  more_than_5_years: '5+ years',
+  '0-4_years': '0–4 years',
+  '4-10_years': '4–10 years',
 }
 
 const PRIORITY_STYLES: Record<'high' | 'medium' | 'low', string> = {

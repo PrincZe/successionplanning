@@ -217,10 +217,8 @@ export interface PositionFormData {
   agency: string
   jr_grade: string
   incumbent_id: string | null
-  immediate_successors: string[]
-  successors_1_2_years: string[]
-  successors_3_5_years: string[]
-  more_than_5_years_successors: string[]
+  successors_0_4_years: string[]
+  successors_4_10_years: string[]
 }
 
 interface PositionFormProps {
@@ -241,10 +239,8 @@ export default function PositionForm({ position, officers, onSubmit }: PositionF
     agency: position?.agency ?? '',
     jr_grade: position?.jr_grade ?? '',
     incumbent_id: position?.incumbent_id ?? null,
-    immediate_successors: position?.immediate_successors?.map(s => s.officer_id) ?? [],
-    successors_1_2_years: position?.successors_1_2_years?.map(s => s.officer_id) ?? [],
-    successors_3_5_years: position?.successors_3_5_years?.map(s => s.officer_id) ?? [],
-    more_than_5_years_successors: position?.more_than_5_years_successors?.map(s => s.officer_id) ?? []
+    successors_0_4_years: position?.successors_0_4_years?.map(s => s.officer_id) ?? [],
+    successors_4_10_years: position?.successors_4_10_years?.map(s => s.officer_id) ?? []
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -371,68 +367,36 @@ export default function PositionForm({ position, officers, onSubmit }: PositionF
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Immediate Successors */}
+              {/* 0-4 Year Successors */}
               <div>
                 <label className="flex items-center text-sm font-medium text-gray-700 mb-3">
                   <Calendar className="h-4 w-4 mr-2" />
-                  Immediate Successors
+                  0–4 Year Successors
                 </label>
                 <MultiSelect
                   options={officers}
-                  value={formData.immediate_successors}
-                  onChange={(value) => setFormData(prev => ({ ...prev, immediate_successors: value }))}
-                  maxSelections={2}
-                  placeholder="Search immediate successors..."
-                />
-                <p className="mt-2 text-sm text-gray-500">Select up to 2 immediate successors</p>
-              </div>
-
-              {/* 1-2 Year Successors */}
-              <div>
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-3">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  1-2 Year Successors
-                </label>
-                <MultiSelect
-                  options={officers}
-                  value={formData.successors_1_2_years}
-                  onChange={(value) => setFormData(prev => ({ ...prev, successors_1_2_years: value }))}
+                  value={formData.successors_0_4_years}
+                  onChange={(value) => setFormData(prev => ({ ...prev, successors_0_4_years: value }))}
                   maxSelections={5}
-                  placeholder="Search 1-2 year successors..."
+                  placeholder="Search 0-4 year successors..."
                 />
                 <p className="mt-2 text-sm text-gray-500">Select up to 5 successors</p>
               </div>
 
-              {/* 3-5 Year Successors */}
+              {/* 4-10 Year Successors */}
               <div>
                 <label className="flex items-center text-sm font-medium text-gray-700 mb-3">
                   <Calendar className="h-4 w-4 mr-2" />
-                  3-5 Year Successors
+                  4–10 Year Successors
                 </label>
                 <MultiSelect
                   options={officers}
-                  value={formData.successors_3_5_years}
-                  onChange={(value) => setFormData(prev => ({ ...prev, successors_3_5_years: value }))}
+                  value={formData.successors_4_10_years}
+                  onChange={(value) => setFormData(prev => ({ ...prev, successors_4_10_years: value }))}
                   maxSelections={5}
-                  placeholder="Search 3-5 year successors..."
+                  placeholder="Search 4-10 year successors..."
                 />
                 <p className="mt-2 text-sm text-gray-500">Select up to 5 successors</p>
-              </div>
-
-              {/* More Than 5 Years Successors */}
-              <div>
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-3">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  More Than 5 Years Successors
-                </label>
-                <MultiSelect
-                  options={officers}
-                  value={formData.more_than_5_years_successors}
-                  onChange={(value) => setFormData(prev => ({ ...prev, more_than_5_years_successors: value }))}
-                  maxSelections={10}
-                  placeholder="Search >5 year successors..."
-                />
-                <p className="mt-2 text-sm text-gray-500">Select up to 10 successors</p>
               </div>
             </div>
           </div>

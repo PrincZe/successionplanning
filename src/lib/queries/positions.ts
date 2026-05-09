@@ -3,16 +3,14 @@ import type { Database, Position } from '../types/supabase'
 
 type Officer = Database['public']['Tables']['officers']['Row']
 type PositionSuccessor = {
-  succession_type: 'immediate' | '1-2_years' | '3-5_years' | 'more_than_5_years'
+  succession_type: '0-4_years' | '4-10_years'
   successor: Officer
 }
 
 export type PositionWithRelations = Position & {
   incumbent?: Officer | null
-  immediate_successors?: Officer[]
-  successors_1_2_years?: Officer[]
-  successors_3_5_years?: Officer[]
-  more_than_5_years_successors?: Officer[]
+  successors_0_4_years?: Officer[]
+  successors_4_10_years?: Officer[]
   position_successors?: PositionSuccessor[]
 }
 
@@ -35,18 +33,12 @@ export async function getPositions() {
     const successors = position.position_successors || []
     return {
       ...position,
-      immediate_successors: successors
-        .filter((s: PositionSuccessor) => s.succession_type === 'immediate')
+      successors_0_4_years: successors
+        .filter((s: PositionSuccessor) => s.succession_type === '0-4_years')
         .map((s: PositionSuccessor) => s.successor),
-      successors_1_2_years: successors
-        .filter((s: PositionSuccessor) => s.succession_type === '1-2_years')
+      successors_4_10_years: successors
+        .filter((s: PositionSuccessor) => s.succession_type === '4-10_years')
         .map((s: PositionSuccessor) => s.successor),
-      successors_3_5_years: successors
-        .filter((s: PositionSuccessor) => s.succession_type === '3-5_years')
-        .map((s: PositionSuccessor) => s.successor),
-      more_than_5_years_successors: successors
-        .filter((s: PositionSuccessor) => s.succession_type === 'more_than_5_years')
-        .map((s: PositionSuccessor) => s.successor)
     }
   })
 
@@ -75,18 +67,12 @@ export async function getPositionById(id: string) {
   const successors = (position as PositionWithRelations).position_successors || []
   const transformedPosition = {
     ...position,
-    immediate_successors: successors
-      .filter((s: PositionSuccessor) => s.succession_type === 'immediate')
+    successors_0_4_years: successors
+      .filter((s: PositionSuccessor) => s.succession_type === '0-4_years')
       .map((s: PositionSuccessor) => s.successor),
-    successors_1_2_years: successors
-      .filter((s: PositionSuccessor) => s.succession_type === '1-2_years')
+    successors_4_10_years: successors
+      .filter((s: PositionSuccessor) => s.succession_type === '4-10_years')
       .map((s: PositionSuccessor) => s.successor),
-    successors_3_5_years: successors
-      .filter((s: PositionSuccessor) => s.succession_type === '3-5_years')
-      .map((s: PositionSuccessor) => s.successor),
-    more_than_5_years_successors: successors
-      .filter((s: PositionSuccessor) => s.succession_type === 'more_than_5_years')
-      .map((s: PositionSuccessor) => s.successor)
   }
 
   return transformedPosition as PositionWithRelations
@@ -164,7 +150,7 @@ export async function deletePosition(id: string) {
 export async function addSuccessor(
   positionId: string,
   successorId: string,
-  successionType: 'immediate' | '1-2_years' | '3-5_years' | 'more_than_5_years'
+  successionType: '0-4_years' | '4-10_years'
 ) {
   // Idempotent insert — composite PK (position_id, successor_id, succession_type)
   // means a duplicate add silently succeeds via onConflict ignore.
@@ -179,7 +165,7 @@ export async function addSuccessor(
 
 export async function updateSuccessors(
   positionId: string,
-  successionType: 'immediate' | '1-2_years' | '3-5_years' | 'more_than_5_years',
+  successionType: '0-4_years' | '4-10_years',
   successorIds: string[]
 ) {
   try {

@@ -32,7 +32,7 @@ function PositionRow({ p }: { p: AgencyPlanRow }) {
         {p.risk_horizon_months !== null ? `${p.risk_horizon_months}mo` : '—'}
       </td>
       <td className="px-3 py-2 text-right tabular-nums">
-        {p.successor_count.immediate}/{p.successor_count['1-2_years']}/{p.successor_count['3-5_years']}
+        {p.successor_count['0-4_years']}/{p.successor_count['4-10_years']}
       </td>
       <td className="px-3 py-2 whitespace-nowrap">
         <BandPill band={p.overall_band} score={p.overall_score} />
@@ -175,7 +175,7 @@ export default async function AgencyPlanPage({ params }: { params: { agency: str
         </section>
 
         <footer className="mt-10 pt-4 border-t border-gray-200 text-xs text-gray-500">
-          AI-assisted draft. Coverage column shows successor counts in immediate / 1–2yr / 3–5yr bands.
+          AI-assisted draft. Coverage column shows successor counts in 0–4yr / 4–10yr bands.
           Sources cached from latest pipeline assessment per position.
         </footer>
       </main>

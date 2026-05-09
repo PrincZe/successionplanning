@@ -19,10 +19,8 @@ const SUB_INFO: Record<'A' | 'B' | 'C' | 'D' | 'E', { label: string; weight: str
 }
 
 const SUCCESSION_LABEL: Record<string, string> = {
-  immediate: 'Immediate',
-  '1-2_years': '1–2 years',
-  '3-5_years': '3–5 years',
-  more_than_5_years: '5+ years',
+  '0-4_years': '0–4 years',
+  '4-10_years': '4–10 years',
 }
 
 const TRAJECTORY_ICON = {
@@ -195,7 +193,7 @@ export default function PipelineDrillDown({ positionId }: { positionId: string }
           <div className="text-sm text-gray-500 italic">No successors identified.</div>
         ) : (
           <div className="space-y-3">
-            {(['immediate', '1-2_years', '3-5_years', 'more_than_5_years'] as const).map((band) => {
+            {(['0-4_years', '4-10_years'] as const).map((band) => {
               const list = bySuccessionType[band]
               if (!list || list.length === 0) return null
               return (

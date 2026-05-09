@@ -239,7 +239,7 @@ ${successorsBlock}
 - Speak directly to a senior HR audience. Concrete, not generic.
 - If a hard override is in play (urgency-red etc.), name it as the headline driver.
 - Reference officers by name, not by ID.
-- Don't recite the rubric letters or quote raw scores; translate into the underlying issue ("only one immediate successor, and her recent feedback flags concerns about strategic readiness").
+- Don't recite the rubric letters or quote raw scores; translate into the underlying issue ("only one 0-4yr successor, and her recent feedback flags concerns about strategic readiness").
 - Interventions should be specific. "Develop X via Y" beats "develop talent".`
 }
 

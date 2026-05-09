@@ -22,18 +22,12 @@ export async function handlePositionSubmit(data: PositionFormData, id?: string) 
 
     console.log('Position details updated successfully')
 
-    // Update successors one at a time
-    console.log('Updating immediate successors...', data.immediate_successors)
-    await updateSuccessors(id, 'immediate', data.immediate_successors)
-    
-    console.log('Updating 1-2 year successors...', data.successors_1_2_years)
-    await updateSuccessors(id, '1-2_years', data.successors_1_2_years)
-    
-    console.log('Updating 3-5 year successors...', data.successors_3_5_years)
-    await updateSuccessors(id, '3-5_years', data.successors_3_5_years)
+    // Update successors
+    console.log('Updating 0-4 year successors...', data.successors_0_4_years)
+    await updateSuccessors(id, '0-4_years', data.successors_0_4_years)
 
-    console.log('Updating >5 year successors...', data.more_than_5_years_successors)
-    await updateSuccessors(id, 'more_than_5_years', data.more_than_5_years_successors)
+    console.log('Updating 4-10 year successors...', data.successors_4_10_years)
+    await updateSuccessors(id, '4-10_years', data.successors_4_10_years)
 
     console.log('All successors updated successfully')
 

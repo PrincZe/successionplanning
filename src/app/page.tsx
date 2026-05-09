@@ -80,7 +80,7 @@ export default function LandingPage() {
               </CardHeader>
               <CardContent>
                 <CardDescription>
-                  Strategic succession mapping across immediate and long-term horizons
+                  Strategic succession mapping across short-term and long-term horizons
                 </CardDescription>
               </CardContent>
             </Card>
@@ -163,9 +163,9 @@ export default function LandingPage() {
                 <div className="flex items-start space-x-4">
                   <CheckCircle className="h-6 w-6 text-green-500 mt-1 flex-shrink-0" />
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">4-Tier Succession Framework</h3>
+                    <h3 className="font-semibold text-gray-900 mb-2">2-Tier Succession Framework</h3>
                     <p className="text-gray-600">
-                      Plan successors across immediate, 1-2 years, 3-5 years, and 5+ year horizons 
+                      Plan successors across 0–4 year and 4–10 year horizons
                       for comprehensive workforce planning.
                     </p>
                   </div>
