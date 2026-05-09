@@ -1,0 +1,293 @@
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import { ArrowLeft, Plus, Trash2, Clock } from 'lucide-react'
+import type { PlanSubmission, SuccessorChange } from '@/lib/queries/submissions'
+import { addSuccessorWithAudit, removeSuccessorWithAudit } from '@/app/actions/submissions'
+
+type PositionRow = {
+  position_id: string
+  position_title: string
+  jr_grade: string
+  incumbent_id: string | null
+  incumbent: { name: string } | null
+  position_successors: Array<{
+    succession_type: string
+    successor: { officer_id: string; name: string; grade: string | null }
+  }>
+}
+
+type Officer = { officer_id: string; name: string; grade: string | null }
+
+export default function AgencyPlanEditor({
+  agency,
+  submission,
+  positions,
+  allOfficers,
+  changes,
+}: {
+  agency: string
+  submission: PlanSubmission
+  positions: PositionRow[]
+  allOfficers: Officer[]
+  changes: SuccessorChange[]
+}) {
+  return (
+    <div className="max-w-5xl mx-auto space-y-6">
+      <div className="flex items-center gap-4">
+        <Link href="/agency" className="text-gray-500 hover:text-gray-700">
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Edit Succession Plan</h1>
+          <p className="text-sm text-gray-600">{agency}</p>
+        </div>
+      </div>
+
+      {/* Positions list */}
+      <div className="space-y-4">
+        {positions.map((pos) => (
+          <PositionCard key={pos.position_id} position={pos} allOfficers={allOfficers} submissionId={submission.submission_id} />
+        ))}
+      </div>
+
+      {/* Change history */}
+      {changes.length > 0 && (
+        <div className="bg-white border rounded-xl p-5">
+          <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <Clock className="h-4 w-4" /> Change History ({changes.length})
+          </h3>
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {changes.map((c) => (
+              <div key={c.change_id} className="flex items-center gap-2 text-sm py-1.5 border-b border-gray-100 last:border-0">
+                <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${c.action === 'add' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  {c.action === 'add' ? '+' : '-'}
+                </span>
+                <span className="text-gray-700">{c.officer_id}</span>
+                <span className="text-gray-400">&rarr;</span>
+                <span className="text-gray-700">{c.position_id}</span>
+                <span className="text-gray-500">({c.succession_type.replace('_', '-')})</span>
+                {c.reason && <span className="text-gray-500 italic ml-1">"{c.reason}"</span>}
+                <span className="ml-auto text-xs text-gray-400">{new Date(c.changed_at).toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function PositionCard({
+  position,
+  allOfficers,
+  submissionId,
+}: {
+  position: PositionRow
+  allOfficers: Officer[]
+  submissionId: string
+}) {
+  const [adding, setAdding] = useState<'0-4_years' | '4-10_years' | null>(null)
+  const [selectedOfficer, setSelectedOfficer] = useState('')
+  const [reason, setReason] = useState('')
+  const [removeReason, setRemoveReason] = useState('')
+  const [removingKey, setRemovingKey] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const successors04 = position.position_successors.filter((s) => s.succession_type === '0-4_years')
+  const successors410 = position.position_successors.filter((s) => s.succession_type === '4-10_years')
+
+  const existingIds = new Set(position.position_successors.map((s) => s.successor.officer_id))
+  const availableOfficers = allOfficers.filter((o) => !existingIds.has(o.officer_id))
+
+  async function handleAdd(type: '0-4_years' | '4-10_years') {
+    if (!selectedOfficer) return
+    setLoading(true)
+    await addSuccessorWithAudit({
+      submission_id: submissionId,
+      position_id: position.position_id,
+      officer_id: selectedOfficer,
+      succession_type: type,
+      reason: reason || undefined,
+    })
+    setAdding(null)
+    setSelectedOfficer('')
+    setReason('')
+    setLoading(false)
+    window.location.reload()
+  }
+
+  async function handleRemove(officerId: string, type: '0-4_years' | '4-10_years') {
+    if (!removeReason.trim()) {
+      alert('Please provide a reason for removal.')
+      return
+    }
+    setLoading(true)
+    await removeSuccessorWithAudit({
+      submission_id: submissionId,
+      position_id: position.position_id,
+      officer_id: officerId,
+      succession_type: type,
+      reason: removeReason,
+    })
+    setRemovingKey(null)
+    setRemoveReason('')
+    setLoading(false)
+    window.location.reload()
+  }
+
+  return (
+    <div className="bg-white border rounded-xl p-5">
+      <div className="flex items-baseline justify-between mb-3">
+        <div>
+          <h3 className="font-semibold text-gray-900">{position.position_title}</h3>
+          <p className="text-xs text-gray-500">{position.position_id} &middot; {position.jr_grade} &middot; Incumbent: {position.incumbent?.name ?? 'Vacant'}</p>
+        </div>
+      </div>
+
+      {/* 0-4 year band */}
+      <div className="mb-3">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-xs font-semibold text-gray-600 uppercase">0–4 Year Successors</span>
+          <button onClick={() => setAdding('0-4_years')} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
+            <Plus className="h-3 w-3" /> Add
+          </button>
+        </div>
+        <SuccessorList
+          successors={successors04}
+          type="0-4_years"
+          removingKey={removingKey}
+          setRemovingKey={setRemovingKey}
+          removeReason={removeReason}
+          setRemoveReason={setRemoveReason}
+          onRemove={handleRemove}
+          loading={loading}
+        />
+      </div>
+
+      {/* 4-10 year band */}
+      <div className="mb-3">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-xs font-semibold text-gray-600 uppercase">4–10 Year Successors</span>
+          <button onClick={() => setAdding('4-10_years')} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
+            <Plus className="h-3 w-3" /> Add
+          </button>
+        </div>
+        <SuccessorList
+          successors={successors410}
+          type="4-10_years"
+          removingKey={removingKey}
+          setRemovingKey={setRemovingKey}
+          removeReason={removeReason}
+          setRemoveReason={setRemoveReason}
+          onRemove={handleRemove}
+          loading={loading}
+        />
+      </div>
+
+      {/* Add form */}
+      {adding && (
+        <div className="mt-3 border-t pt-3 space-y-2">
+          <div className="text-xs font-medium text-gray-700">Add to {adding.replace('_', '-')} band</div>
+          <select
+            value={selectedOfficer}
+            onChange={(e) => setSelectedOfficer(e.target.value)}
+            className="w-full border rounded-md px-3 py-2 text-sm"
+          >
+            <option value="">Select an officer...</option>
+            {availableOfficers.map((o) => (
+              <option key={o.officer_id} value={o.officer_id}>{o.name} ({o.grade ?? 'no grade'})</option>
+            ))}
+          </select>
+          <input
+            type="text"
+            placeholder="Reason (optional)"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            className="w-full border rounded-md px-3 py-2 text-sm"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleAdd(adding)}
+              disabled={!selectedOfficer || loading}
+              className="px-3 py-1.5 bg-blue-600 text-white rounded-md text-xs font-medium disabled:opacity-50"
+            >
+              {loading ? 'Adding...' : 'Add'}
+            </button>
+            <button onClick={() => { setAdding(null); setSelectedOfficer(''); setReason('') }} className="px-3 py-1.5 border rounded-md text-xs">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SuccessorList({
+  successors,
+  type,
+  removingKey,
+  setRemovingKey,
+  removeReason,
+  setRemoveReason,
+  onRemove,
+  loading,
+}: {
+  successors: Array<{ succession_type: string; successor: { officer_id: string; name: string; grade: string | null } }>
+  type: '0-4_years' | '4-10_years'
+  removingKey: string | null
+  setRemovingKey: (key: string | null) => void
+  removeReason: string
+  setRemoveReason: (r: string) => void
+  onRemove: (officerId: string, type: '0-4_years' | '4-10_years') => void
+  loading: boolean
+}) {
+  if (successors.length === 0) {
+    return <div className="text-xs text-gray-400 italic py-1">No successors assigned</div>
+  }
+
+  return (
+    <div className="space-y-1">
+      {successors.map((s) => {
+        const key = `${s.successor.officer_id}:${type}`
+        const isRemoving = removingKey === key
+        return (
+          <div key={key}>
+            <div className="flex items-center justify-between bg-gray-50 rounded px-3 py-1.5">
+              <div className="text-sm text-gray-800">
+                {s.successor.name} <span className="text-gray-400 text-xs">({s.successor.grade ?? '—'})</span>
+              </div>
+              <button
+                onClick={() => setRemovingKey(isRemoving ? null : key)}
+                className="text-red-400 hover:text-red-600"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            {isRemoving && (
+              <div className="flex items-center gap-2 mt-1 ml-3">
+                <input
+                  type="text"
+                  placeholder="Reason for removal (required)"
+                  value={removeReason}
+                  onChange={(e) => setRemoveReason(e.target.value)}
+                  className="flex-1 border rounded px-2 py-1 text-xs"
+                />
+                <button
+                  onClick={() => onRemove(s.successor.officer_id, type)}
+                  disabled={loading}
+                  className="px-2 py-1 bg-red-600 text-white rounded text-xs disabled:opacity-50"
+                >
+                  Remove
+                </button>
+                <button onClick={() => setRemovingKey(null)} className="px-2 py-1 border rounded text-xs">Cancel</button>
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
