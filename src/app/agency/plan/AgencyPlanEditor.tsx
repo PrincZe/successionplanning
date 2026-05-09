@@ -68,7 +68,7 @@ export default function AgencyPlanEditor({
                 <span className="text-gray-400">&rarr;</span>
                 <span className="text-gray-700">{c.position_id}</span>
                 <span className="text-gray-500">({c.succession_type.replace('_', '-')})</span>
-                {c.reason && <span className="text-gray-500 italic ml-1">"{c.reason}"</span>}
+                {c.reason && <span className="text-gray-500 italic ml-1">&ldquo;{c.reason}&rdquo;</span>}
                 <span className="ml-auto text-xs text-gray-400">{new Date(c.changed_at).toLocaleString()}</span>
               </div>
             ))}
