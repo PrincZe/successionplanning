@@ -8,6 +8,10 @@ type User = {
   email: string;
   authenticated: boolean;
   loginTime: string;
+  role: 'agency_hr' | 'psd' | 'admin';
+  agency: string | null;
+  user_id: string;
+  name: string;
 } | null;
 
 type AuthContextType = {
@@ -29,14 +33,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // Check authentication status
   const checkAuth = async () => {
     try {
       const response = await fetch('/api/auth/session', {
         method: 'GET',
         credentials: 'include'
       });
-      
+
       if (response.ok) {
         const sessionData = await response.json();
         if (sessionData.authenticated) {
@@ -55,19 +58,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Refresh auth state
   const refreshAuth = async () => {
     await checkAuth();
   };
 
-  // Sign out function
   const signOut = async () => {
     try {
       setLoading(true);
       const result = await signOutAction();
       if (result.success) {
         setUser(null);
-        console.log('Sign out successful - redirecting to login');
         router.push('/login');
       }
     } catch (error) {
@@ -77,20 +77,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Check auth on mount
   useEffect(() => {
     checkAuth();
   }, []);
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        signOut,
-        refreshAuth,
-      }}
-    >
+    <AuthContext.Provider value={{ user, loading, signOut, refreshAuth }}>
       {children}
     </AuthContext.Provider>
   );

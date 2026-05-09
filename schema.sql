@@ -233,3 +233,56 @@ create index idx_plans_officer on officer_development_plans(officer_id);
 create index idx_plans_target on officer_development_plans(target_position_id);
 create index idx_plans_status on officer_development_plans(status);
 create index idx_plans_generated_at on officer_development_plans(generated_at desc);
+
+-- ============================================================================
+-- Phase 9: Role-Based Access & Submission Workflow
+-- ============================================================================
+
+create table users (
+  user_id uuid primary key default gen_random_uuid(),
+  email varchar unique not null,
+  name varchar not null,
+  role varchar not null check (role in ('agency_hr', 'psd', 'admin')),
+  agency varchar,
+  officer_id varchar references officers(officer_id),
+  is_active boolean default true,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create table submission_cycles (
+  cycle_id uuid primary key default gen_random_uuid(),
+  title varchar not null,
+  description text,
+  deadline timestamptz not null,
+  status varchar not null default 'open' check (status in ('open', 'closed')),
+  created_by uuid references users(user_id),
+  created_at timestamptz default now()
+);
+
+create table plan_submissions (
+  submission_id uuid primary key default gen_random_uuid(),
+  cycle_id uuid not null references submission_cycles(cycle_id),
+  agency varchar not null,
+  status varchar not null default 'draft' check (status in ('draft', 'submitted', 'in_review', 'endorsed', 'returned')),
+  submitted_by uuid references users(user_id),
+  submitted_at timestamptz,
+  reviewed_by uuid references users(user_id),
+  reviewed_at timestamptz,
+  review_notes text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  unique(cycle_id, agency)
+);
+
+create table successor_changes (
+  change_id uuid primary key default gen_random_uuid(),
+  submission_id uuid not null references plan_submissions(submission_id),
+  position_id varchar not null references positions(position_id),
+  officer_id varchar not null references officers(officer_id),
+  action varchar not null check (action in ('add', 'remove')),
+  succession_type varchar not null check (succession_type in ('0-4_years', '4-10_years')),
+  reason text,
+  changed_by uuid not null references users(user_id),
+  changed_at timestamptz default now()
+);
