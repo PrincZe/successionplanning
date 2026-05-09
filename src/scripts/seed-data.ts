@@ -101,14 +101,14 @@ async function seedDatabase() {
     const { error: successorsError } = await supabase
       .from('position_successors')
       .insert([
-        { 
-          position_id: 'POS001', 
-          successor_id: 'OFF002', 
+        {
+          position_id: 'POS001',
+          successor_id: 'S7008221B',
           succession_type: '0-4_years'
         },
-        { 
-          position_id: 'POS001', 
-          successor_id: 'OFF003', 
+        {
+          position_id: 'POS001',
+          successor_id: 'S7211052C',
           succession_type: '0-4_years'
         }
       ])

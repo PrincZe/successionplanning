@@ -12,6 +12,7 @@ export interface Position {
   agency: string
   jr_grade: string
   incumbent_id: string | null
+  incumbent_start_date?: string | null
   created_at: string
   updated_at: string
 }
@@ -24,6 +25,8 @@ export interface Officer {
   grade: string | null
   ihrp_certification: string | null
   hrlp: string | null
+  date_of_birth?: string | null
+  service_scheme?: 'SPSL' | 'PSL' | null
   created_at: string
   updated_at: string
 }

@@ -127,7 +127,22 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
                 </dt>
                 <dd className="text-lg font-semibold text-gray-900 font-mono">{officer.officer_id}</dd>
               </div>
-              
+
+              <div>
+                <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Age
+                </dt>
+                <dd className="text-lg font-semibold text-gray-900">
+                  {officer.date_of_birth
+                    ? `${Math.floor((Date.now() - new Date(officer.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))} years old`
+                    : 'Not available'}
+                  {officer.service_scheme && (
+                    <span className="ml-2 text-sm font-normal text-gray-500">({officer.service_scheme})</span>
+                  )}
+                </dd>
+              </div>
+
               <div>
                 <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
                   <GraduationCap className="h-4 w-4 mr-2" />
