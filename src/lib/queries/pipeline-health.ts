@@ -1,12 +1,12 @@
 import { supabaseServer as supabase } from '../supabase'
 
-export type Band = 'green' | 'amber' | 'red'
+export type Band = 'green' | 'red'
 
-export type SubScore = {
-  score: number
-  band: Band
-  reasons: string[]
-  detail?: Record<string, unknown>
+export type CriterionResult = {
+  key: 'C1' | 'C2' | 'C3' | 'C4'
+  label: string
+  triggered: boolean
+  reason: string
 }
 
 export type PipelineHealthRow = {
@@ -16,10 +16,8 @@ export type PipelineHealthRow = {
   jr_grade: string
   incumbent_id: string | null
   incumbent_name: string | null
-  risk_horizon_months: number | null
-  overall_score: number
   overall_band: Band
-  sub_scores: { A: SubScore; B: SubScore; C: SubScore; D: SubScore; E: SubScore }
+  criteria: Record<string, { triggered: boolean; reason: string }>
   reasons: string[]
   computed_at: string | null
   successor_count: { '0-4_years': number; '4-10_years': number }
@@ -47,38 +45,25 @@ export type PipelineHealthDetail = PipelineHealthRow & {
   ai_interventions: Intervention[] | null
 }
 
-const EMPTY_SUB: SubScore = { score: 0, band: 'red', reasons: [] }
-
-function emptySubScores() {
-  return { A: EMPTY_SUB, B: EMPTY_SUB, C: EMPTY_SUB, D: EMPTY_SUB, E: EMPTY_SUB }
-}
-
 export async function getPipelineHealthOverview(): Promise<PipelineHealthRow[]> {
-  const [posRes, paRes, irRes, psRes] = await Promise.all([
+  const [posRes, paRes, psRes] = await Promise.all([
     supabase
       .from('positions')
       .select('position_id, position_title, agency, jr_grade, incumbent_id, incumbent:officers!positions_incumbent_id_fkey(name)'),
     supabase.from('pipeline_assessments').select('*'),
-    supabase.from('incumbent_risk').select('position_id, risk_horizon_months'),
     supabase.from('position_successors').select('position_id, succession_type'),
   ])
 
   if (posRes.error) throw posRes.error
   if (paRes.error) throw paRes.error
-  if (irRes.error) throw irRes.error
   if (psRes.error) throw psRes.error
 
   const assessmentByPosition = new Map<string, any>(
     (paRes.data ?? []).map((a: any) => [a.position_id, a])
   )
-  const riskByPosition = new Map<string, number>(
-    (irRes.data ?? []).map((r: any) => [r.position_id, r.risk_horizon_months])
-  )
   const countsByPosition = new Map<string, PipelineHealthRow['successor_count']>()
   for (const r of psRes.data ?? []) {
-    const prev =
-      countsByPosition.get(r.position_id) ??
-      ({ '0-4_years': 0, '4-10_years': 0 } as PipelineHealthRow['successor_count'])
+    const prev = countsByPosition.get(r.position_id) ?? ({ '0-4_years': 0, '4-10_years': 0 } as PipelineHealthRow['successor_count'])
     prev[r.succession_type as keyof typeof prev]++
     countsByPosition.set(r.position_id, prev)
   }
@@ -92,38 +77,31 @@ export async function getPipelineHealthOverview(): Promise<PipelineHealthRow[]> 
       jr_grade: p.jr_grade,
       incumbent_id: p.incumbent_id,
       incumbent_name: p.incumbent?.name ?? null,
-      risk_horizon_months: riskByPosition.get(p.position_id) ?? null,
-      overall_score: a ? Number(a.overall_score) : 0,
       overall_band: (a?.overall_band ?? 'red') as Band,
-      sub_scores: a?.sub_scores ?? emptySubScores(),
+      criteria: a?.sub_scores ?? {},
       reasons: a?.reasons ?? [],
       computed_at: a?.computed_at ?? null,
       successor_count:
-        countsByPosition.get(p.position_id) ??
-        ({ '0-4_years': 0, '4-10_years': 0 } as PipelineHealthRow['successor_count']),
+        countsByPosition.get(p.position_id) ?? ({ '0-4_years': 0, '4-10_years': 0 } as PipelineHealthRow['successor_count']),
     }
   })
 
   rows.sort((a, b) => {
-    const bandOrder: Record<Band, number> = { red: 0, amber: 1, green: 2 }
-    if (bandOrder[a.overall_band] !== bandOrder[b.overall_band]) {
-      return bandOrder[a.overall_band] - bandOrder[b.overall_band]
-    }
-    return a.overall_score - b.overall_score
+    const bandOrder: Record<Band, number> = { red: 0, green: 1 }
+    return bandOrder[a.overall_band] - bandOrder[b.overall_band]
   })
 
   return rows
 }
 
 export async function getPipelineDetail(positionId: string): Promise<PipelineHealthDetail | null> {
-  const [posRes, paRes, irRes, psRes, qsRes] = await Promise.all([
+  const [posRes, paRes, psRes, qsRes] = await Promise.all([
     supabase
       .from('positions')
       .select('position_id, position_title, agency, jr_grade, incumbent_id, incumbent:officers!positions_incumbent_id_fkey(name)')
       .eq('position_id', positionId)
       .maybeSingle(),
     supabase.from('pipeline_assessments').select('*').eq('position_id', positionId).maybeSingle(),
-    supabase.from('incumbent_risk').select('risk_horizon_months').eq('position_id', positionId).maybeSingle(),
     supabase
       .from('position_successors')
       .select('successor_id, succession_type, successor:officers!position_successors_successor_id_fkey(officer_id, name, grade)')
@@ -133,7 +111,6 @@ export async function getPipelineDetail(positionId: string): Promise<PipelineHea
 
   if (posRes.error) throw posRes.error
   if (paRes.error) throw paRes.error
-  if (irRes.error && irRes.error.code !== 'PGRST116') throw irRes.error
   if (psRes.error) throw psRes.error
   if (qsRes.error) throw qsRes.error
 
@@ -159,10 +136,7 @@ export async function getPipelineDetail(positionId: string): Promise<PipelineHea
     }
   })
 
-  const counts: PipelineHealthRow['successor_count'] = {
-    '0-4_years': 0,
-    '4-10_years': 0,
-  }
+  const counts: PipelineHealthRow['successor_count'] = { '0-4_years': 0, '4-10_years': 0 }
   for (const s of successors) counts[s.succession_type]++
 
   return {
@@ -172,10 +146,8 @@ export async function getPipelineDetail(positionId: string): Promise<PipelineHea
     jr_grade: p.jr_grade,
     incumbent_id: p.incumbent_id,
     incumbent_name: p.incumbent?.name ?? null,
-    risk_horizon_months: irRes.data?.risk_horizon_months ?? null,
-    overall_score: a ? Number(a.overall_score) : 0,
     overall_band: (a?.overall_band ?? 'red') as Band,
-    sub_scores: a?.sub_scores ?? emptySubScores(),
+    criteria: a?.sub_scores ?? {},
     reasons: a?.reasons ?? [],
     computed_at: a?.computed_at ?? null,
     successor_count: counts,
@@ -185,10 +157,10 @@ export async function getPipelineDetail(positionId: string): Promise<PipelineHea
   }
 }
 
-export type BandSummary = { green: number; amber: number; red: number; total: number }
+export type BandSummary = { green: number; red: number; total: number }
 
 export function summarizeBands(rows: PipelineHealthRow[]): BandSummary {
-  const summary: BandSummary = { green: 0, amber: 0, red: 0, total: rows.length }
+  const summary: BandSummary = { green: 0, red: 0, total: rows.length }
   for (const r of rows) summary[r.overall_band]++
   return summary
 }

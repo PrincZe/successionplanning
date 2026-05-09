@@ -6,6 +6,8 @@ create table officers (
   grade varchar,
   ihrp_certification varchar,
   hrlp varchar,
+  date_of_birth date,
+  service_scheme varchar check (service_scheme in ('SPSL', 'PSL')),
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -17,6 +19,7 @@ create table positions (
   agency varchar not null,
   jr_grade varchar not null,
   incumbent_id varchar references officers(officer_id),
+  incumbent_start_date date,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );

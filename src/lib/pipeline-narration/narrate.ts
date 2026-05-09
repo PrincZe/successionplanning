@@ -73,9 +73,8 @@ type PipelineContext = {
   position: { position_id: string; position_title: string; agency: string; jr_grade: string; incumbent_name: string | null }
   risk_horizon_months: number | null
   assessment: {
-    overall_score: number
     overall_band: string
-    sub_scores: Record<string, { score: number; band: string; reasons: string[] }>
+    sub_scores: Record<string, { triggered: boolean; reason: string }>
     reasons: string[]
   }
   required_competencies: Array<{ name: string; required_pl_level: number }>
@@ -162,9 +161,8 @@ async function loadPipelineContext(positionId: string): Promise<PipelineContext>
     },
     risk_horizon_months: irRes.data?.risk_horizon_months ?? null,
     assessment: {
-      overall_score: Number(a.overall_score),
       overall_band: a.overall_band,
-      sub_scores: a.sub_scores,
+      sub_scores: a.sub_scores ?? {},
       reasons: a.reasons ?? [],
     },
     required_competencies: required,
@@ -172,12 +170,11 @@ async function loadPipelineContext(positionId: string): Promise<PipelineContext>
   }
 }
 
-const DIMENSION_LABEL: Record<string, string> = {
-  A: 'Senior endorsement (qualitative signal from forum remarks)',
-  B: 'Competency fit',
-  C: 'Bench depth',
-  D: 'Timing match (incumbent risk vs. bench)',
-  E: 'Development pace (recent OOA stints)',
+const CRITERIA_LABEL: Record<string, string> = {
+  C1: 'Successor Depth (need >=2 in 0-4yr band)',
+  C2: 'Retirement Proximity (incumbent <=3 years from retirement)',
+  C3: 'Tenure Duration (incumbent approaching 10-year mark)',
+  C4: 'Position Vacancy',
 }
 
 function buildPrompt(ctx: PipelineContext): string {
@@ -197,13 +194,11 @@ function buildPrompt(ctx: PipelineContext): string {
         .join('\n\n')
     : '(No successors identified.)'
 
-  const subScoresBlock = (['A', 'B', 'C', 'D', 'E'] as const)
+  const criteriaBlock = (['C1', 'C2', 'C3', 'C4'] as const)
     .map((k) => {
-      const s = ctx.assessment.sub_scores[k]
-      if (!s) return null
-      return `${k}. ${DIMENSION_LABEL[k]}: ${s.score.toFixed(0)} / 100 (${s.band})${
-        s.reasons?.length ? ` — ${s.reasons.join('; ')}` : ''
-      }`
+      const c = ctx.assessment.sub_scores[k]
+      if (!c) return null
+      return `${k}. ${CRITERIA_LABEL[k]}: ${c.triggered ? 'TRIGGERED (RED)' : 'PASS'} — ${c.reason ?? ''}`
     })
     .filter(Boolean)
     .join('\n')
@@ -224,22 +219,18 @@ Incumbent: ${ctx.position.incumbent_name ?? 'vacant'}${
 ${requiredBlock || '(none specified)'}
 
 ## Pipeline assessment
-Overall: ${ctx.assessment.overall_score} / 100 — ${ctx.assessment.overall_band.toUpperCase()}
+Overall: ${ctx.assessment.overall_band.toUpperCase()}
 
-${subScoresBlock}
-
-Hard rules / overrides applied: ${
-    ctx.assessment.reasons.filter((r) => r.startsWith('Hard override:')).join(' | ') || 'none'
-  }
+${criteriaBlock}
 
 ## Successors
 ${successorsBlock}
 
 ## Style guide
 - Speak directly to a senior HR audience. Concrete, not generic.
-- If a hard override is in play (urgency-red etc.), name it as the headline driver.
+- If any criterion is triggered, lead with that as the headline concern.
 - Reference officers by name, not by ID.
-- Don't recite the rubric letters or quote raw scores; translate into the underlying issue ("only one 0-4yr successor, and her recent feedback flags concerns about strategic readiness").
+- Translate criteria into the underlying issue (e.g. "only one 0-4yr successor, and the incumbent retires in 2 years").
 - Interventions should be specific. "Develop X via Y" beats "develop talent".`
 }
 

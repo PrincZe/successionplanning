@@ -1,21 +1,19 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { Band, PipelineHealthDetail, SubScore, Intervention } from '@/lib/queries/pipeline-health'
-import { Loader2, TrendingUp, TrendingDown, Minus, Sparkles, RefreshCw, AlertTriangle, ArrowRight, UserPlus, Repeat, Briefcase, Eye, Settings } from 'lucide-react'
+import type { Band, PipelineHealthDetail, Intervention } from '@/lib/queries/pipeline-health'
+import { Loader2, TrendingUp, TrendingDown, Minus, Sparkles, RefreshCw, AlertTriangle, ArrowRight, UserPlus, Repeat, Briefcase, Eye, Settings, Check, X } from 'lucide-react'
 
-const BAND_STYLES: Record<Band, { bg: string; text: string; border: string; bar: string }> = {
-  green: { bg: 'bg-emerald-50', text: 'text-emerald-800', border: 'border-emerald-200', bar: 'bg-emerald-500' },
-  amber: { bg: 'bg-amber-50', text: 'text-amber-800', border: 'border-amber-200', bar: 'bg-amber-500' },
-  red: { bg: 'bg-red-50', text: 'text-red-800', border: 'border-red-200', bar: 'bg-red-500' },
+const BAND_STYLES: Record<string, { bg: string; text: string; border: string }> = {
+  green: { bg: 'bg-emerald-50', text: 'text-emerald-800', border: 'border-emerald-200' },
+  red: { bg: 'bg-red-50', text: 'text-red-800', border: 'border-red-200' },
 }
 
-const SUB_INFO: Record<'A' | 'B' | 'C' | 'D' | 'E', { label: string; weight: string; description: string }> = {
-  A: { label: 'Senior endorsement', weight: '35%', description: 'AI-extracted strength of senior endorsements across successors' },
-  B: { label: 'Competency fit', weight: '25%', description: 'How well successor competencies match required levels' },
-  C: { label: 'Bench depth', weight: '20%', description: 'Number of successors at each readiness band' },
-  D: { label: 'Timing match', weight: '15%', description: 'Match between incumbent risk horizon and bench timing' },
-  E: { label: 'Development pace', weight: '5%', description: 'Share of successors with a recent out-of-agency stint' },
+const CRITERIA_INFO: Record<string, { label: string; description: string }> = {
+  C1: { label: 'Successor Depth', description: 'At least 2 successors in the 0-4 year band' },
+  C2: { label: 'Retirement Proximity', description: 'Incumbent more than 3 years from retirement' },
+  C3: { label: 'Tenure Duration', description: 'Incumbent not approaching 10-year mark' },
+  C4: { label: 'Position Vacancy', description: 'Position has an incumbent' },
 }
 
 const SUCCESSION_LABEL: Record<string, string> = {
@@ -80,7 +78,6 @@ export default function PipelineDrillDown({ positionId }: { positionId: string }
     loadDetail(false)
       .then((d) => {
         if (cancelled) return
-        // Auto-trigger narration on first open if missing
         if (d && !d.ai_narration) {
           generateNarration()
         }
@@ -102,7 +99,7 @@ export default function PipelineDrillDown({ positionId }: { positionId: string }
   if (error) return <div className="p-6 text-red-600">{error}</div>
   if (!detail) return <div className="p-6 text-gray-500">Not found.</div>
 
-  const overallStyle = BAND_STYLES[detail.overall_band]
+  const overallStyle = BAND_STYLES[detail.overall_band] ?? BAND_STYLES.red
 
   const bySuccessionType = detail.successors.reduce<Record<string, typeof detail.successors>>((acc, s) => {
     if (!acc[s.succession_type]) acc[s.succession_type] = []
@@ -112,13 +109,14 @@ export default function PipelineDrillDown({ positionId }: { positionId: string }
 
   return (
     <div className="p-6 space-y-6">
-      {/* Overall score */}
+      {/* Overall status */}
       <div className={`rounded-xl border ${overallStyle.border} ${overallStyle.bg} p-5`}>
-        <div className="flex items-baseline gap-3">
-          <span className={`text-3xl font-bold ${overallStyle.text}`}>{detail.overall_score.toFixed(1)}</span>
-          <span className="text-sm text-gray-600">/ 100</span>
-          <span className={`ml-auto inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${overallStyle.bg} ${overallStyle.text}`}>
+        <div className="flex items-center gap-3">
+          <span className={`inline-block px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wide ${overallStyle.bg} ${overallStyle.text} border ${overallStyle.border}`}>
             {detail.overall_band}
+          </span>
+          <span className="text-sm text-gray-600">
+            {detail.overall_band === 'green' ? 'All criteria pass' : 'One or more criteria triggered'}
           </span>
         </div>
         {detail.computed_at && <div className="text-xs text-gray-500 mt-2">Computed {new Date(detail.computed_at).toLocaleString()}</div>}
@@ -133,58 +131,31 @@ export default function PipelineDrillDown({ positionId }: { positionId: string }
         onRegenerate={generateNarration}
       />
 
-      {/* Sub-scores */}
+      {/* Criteria cards */}
       <div>
-        <div className="text-sm font-semibold text-gray-700 mb-2">Dimension breakdown</div>
-        <div className="space-y-3">
-          {(['A', 'B', 'C', 'D', 'E'] as const).map((k) => {
-            const sub = detail.sub_scores[k] as SubScore
-            const info = SUB_INFO[k]
-            const bs = BAND_STYLES[sub.band]
+        <div className="text-sm font-semibold text-gray-700 mb-2">Criteria Assessment</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {(['C1', 'C2', 'C3', 'C4'] as const).map((k) => {
+            const criterion = detail.criteria[k] as { triggered: boolean; reason: string } | undefined
+            const info = CRITERIA_INFO[k]
+            const triggered = criterion?.triggered ?? false
             return (
-              <div key={k} className="bg-white border border-gray-200 rounded-lg p-3">
+              <div key={k} className="bg-white border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-bold text-gray-700">{k}.</span>
+                  <div className={`flex items-center justify-center w-6 h-6 rounded-full ${triggered ? 'bg-red-100' : 'bg-emerald-100'}`}>
+                    {triggered ? <X className="h-3.5 w-3.5 text-red-600" /> : <Check className="h-3.5 w-3.5 text-emerald-600" />}
+                  </div>
                   <span className="text-sm font-medium text-gray-900">{info.label}</span>
-                  <span className="text-xs text-gray-500">({info.weight})</span>
-                  <span className={`ml-auto text-xs font-bold uppercase ${bs.text}`}>
-                    {sub.band} · {sub.score.toFixed(1)}
+                  <span className={`ml-auto text-xs font-bold uppercase ${triggered ? 'text-red-700' : 'text-emerald-700'}`}>
+                    {triggered ? 'FAIL' : 'PASS'}
                   </span>
                 </div>
-                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-2">
-                  <div className={`h-full ${bs.bar}`} style={{ width: `${Math.min(100, Math.max(0, sub.score))}%` }} />
-                </div>
-                {sub.reasons.length > 0 && (
-                  <ul className="text-xs text-gray-600 space-y-0.5 mt-1.5">
-                    {sub.reasons.map((r, i) => (
-                      <li key={i} className="flex gap-1">
-                        <span className="text-gray-400">·</span>
-                        <span>{r}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <p className="text-xs text-gray-600">{criterion?.reason ?? info.description}</p>
               </div>
             )
           })}
         </div>
       </div>
-
-      {/* Hard overrides + global reasons */}
-      {detail.reasons.some((r) => r.startsWith('Hard override:')) && (
-        <div>
-          <div className="text-sm font-semibold text-gray-700 mb-2">Hard overrides applied</div>
-          <ul className="space-y-1">
-            {detail.reasons
-              .filter((r) => r.startsWith('Hard override:'))
-              .map((r, i) => (
-                <li key={i} className="text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">
-                  {r}
-                </li>
-              ))}
-          </ul>
-        </div>
-      )}
 
       {/* Successors */}
       <div>
@@ -201,19 +172,16 @@ export default function PipelineDrillDown({ positionId }: { positionId: string }
                   <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{SUCCESSION_LABEL[band]}</div>
                   <div className="space-y-1.5">
                     {list.map((s) => {
-                      const qs = s.qualitative_score ?? 0
-                      const qBand: Band = qs >= 75 ? 'green' : qs >= 50 ? 'amber' : 'red'
-                      const qStyle = BAND_STYLES[qBand]
                       return (
                         <div key={s.officer_id} className="flex items-center gap-3 px-3 py-2 bg-gray-50 rounded-lg">
                           <div className="flex-1 min-w-0">
                             <div className="text-sm font-medium text-gray-900 truncate">{s.name}</div>
                             <div className="text-xs text-gray-500">
-                              {s.officer_id} · {s.grade ?? '—'}
+                              {s.officer_id} &middot; {s.grade ?? '—'}
                             </div>
                           </div>
                           {s.qualitative_score !== null && (
-                            <div className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${qStyle.bg} ${qStyle.text}`}>
+                            <div className="flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
                               {s.sentiment_trajectory && TRAJECTORY_ICON[s.sentiment_trajectory]}
                               <span>Q {s.qualitative_score.toFixed(0)}</span>
                             </div>
@@ -272,14 +240,12 @@ function AINarrationSection({
         <div className="flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-indigo-600" />
           <span className="font-semibold text-gray-900 text-sm">AI summary</span>
-          <span className="text-xs text-gray-500">(Claude Haiku)</span>
         </div>
         <button
           type="button"
           onClick={onRegenerate}
           disabled={generating}
           className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-700 hover:text-indigo-900 disabled:opacity-50"
-          title={narration ? 'Regenerate' : 'Generate'}
         >
           <RefreshCw className={`h-3.5 w-3.5 ${generating ? 'animate-spin' : ''}`} />
           {generating ? 'Generating…' : narration ? 'Regenerate' : 'Generate'}
@@ -288,7 +254,7 @@ function AINarrationSection({
 
       {generating && !narration && (
         <div className="flex items-center gap-2 text-sm text-gray-600 py-3">
-          <Loader2 className="h-4 w-4 animate-spin" /> Reading the assessment, successor profiles, and forum remarks…
+          <Loader2 className="h-4 w-4 animate-spin" /> Generating summary…
         </div>
       )}
 

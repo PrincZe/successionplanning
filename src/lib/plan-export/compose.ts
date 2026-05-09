@@ -104,21 +104,17 @@ async function getOverviewWithNarration(): Promise<AgencyPlanRow[]> {
   }))
 }
 
-const BAND_RANK: Record<Band, number> = { red: 0, amber: 1, green: 2 }
+const BAND_RANK: Record<string, number> = { red: 0, green: 1 }
 
 function isAtRisk(row: PipelineHealthRow): boolean {
-  return row.overall_band === 'red' || row.overall_band === 'amber'
+  return row.overall_band === 'red'
 }
 
 function compareUrgency(a: PipelineHealthRow, b: PipelineHealthRow): number {
-  // Red before amber, then by risk horizon ascending (sooner first), then by score ascending.
   if (BAND_RANK[a.overall_band] !== BAND_RANK[b.overall_band]) {
-    return BAND_RANK[a.overall_band] - BAND_RANK[b.overall_band]
+    return (BAND_RANK[a.overall_band] ?? 0) - (BAND_RANK[b.overall_band] ?? 0)
   }
-  const ah = a.risk_horizon_months ?? Number.MAX_SAFE_INTEGER
-  const bh = b.risk_horizon_months ?? Number.MAX_SAFE_INTEGER
-  if (ah !== bh) return ah - bh
-  return a.overall_score - b.overall_score
+  return 0
 }
 
 export async function composeAgencyPlan(agency: string): Promise<AgencyPlan | null> {
@@ -153,14 +149,14 @@ export async function composeOrgPlan(): Promise<OrgPlan> {
   const agencies: OrgAgencyRollup[] = Array.from(byAgency.entries())
     .map(([agency, rows]) => {
       const s = summarizeBands(rows)
-      const worst_band: Band = s.red > 0 ? 'red' : s.amber > 0 ? 'amber' : 'green'
+      const worst_band: Band = s.red > 0 ? 'red' : 'green'
       return { agency, summary: s, worst_band }
     })
     .sort((a, b) => {
       if (BAND_RANK[a.worst_band] !== BAND_RANK[b.worst_band]) {
         return BAND_RANK[a.worst_band] - BAND_RANK[b.worst_band]
       }
-      return b.summary.red + b.summary.amber - (a.summary.red + a.summary.amber)
+      return b.summary.red - a.summary.red
     })
 
   const at_risk = all.filter(isAtRisk).sort(compareUrgency)

@@ -51,13 +51,6 @@ export default async function OrgPlanPage() {
                 {summary.total > 0 ? `${Math.round((100 * summary.red) / summary.total)}%` : '—'}
               </div>
             </div>
-            <div className="border border-amber-200 bg-amber-50 rounded p-4">
-              <div className="text-xs uppercase tracking-wider text-amber-700">Amber</div>
-              <div className="text-3xl font-bold text-amber-900">{summary.amber}</div>
-              <div className="text-xs text-amber-700">
-                {summary.total > 0 ? `${Math.round((100 * summary.amber) / summary.total)}%` : '—'}
-              </div>
-            </div>
             <div className="border border-green-200 bg-green-50 rounded p-4">
               <div className="text-xs uppercase tracking-wider text-green-700">Green</div>
               <div className="text-3xl font-bold text-green-900">{summary.green}</div>
@@ -97,9 +90,6 @@ export default async function OrgPlanPage() {
                     <td className="px-3 py-2 text-right tabular-nums">{a.summary.total}</td>
                     <td className="px-3 py-2 text-right tabular-nums text-red-700">
                       {a.summary.red || ''}
-                    </td>
-                    <td className="px-3 py-2 text-right tabular-nums text-amber-700">
-                      {a.summary.amber || ''}
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums text-green-700">
                       {a.summary.green || ''}
@@ -144,11 +134,8 @@ export default async function OrgPlanPage() {
                         <div className="text-xs text-gray-500">{p.jr_grade} · Incumbent {p.incumbent_name ?? 'Vacant'}</div>
                       </td>
                       <td className="px-3 py-2 text-gray-700">{p.agency}</td>
-                      <td className="px-3 py-2 text-right tabular-nums">
-                        {p.risk_horizon_months !== null ? `${p.risk_horizon_months}mo` : '—'}
-                      </td>
                       <td className="px-3 py-2">
-                        <BandPill band={p.overall_band} score={p.overall_score} />
+                        <BandPill band={p.overall_band} />
                       </td>
                     </tr>
                   ))}

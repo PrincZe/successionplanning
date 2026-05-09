@@ -18,9 +18,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       mode: 'all',
       count: results.length,
-      summary: results
-        .map((r) => ({ position_id: r.position_id, score: r.overall_score, band: r.overall_band }))
-        .sort((a, b) => a.score - b.score),
+      summary: results.map((r) => ({ position_id: r.position_id, band: r.overall_band })),
       results,
     })
   } catch (error: any) {

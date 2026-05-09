@@ -105,14 +105,10 @@ export default async function HomePage() {
               </div>
               <ArrowUpRight className="h-5 w-5 text-gray-400 group-hover:text-indigo-500 transition-colors" />
             </div>
-            <div className="grid grid-cols-3 gap-4 mt-6">
+            <div className="grid grid-cols-2 gap-4 mt-6">
               <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
                 <div className="text-3xl font-bold text-red-700">{pipelineSummary.red}</div>
                 <div className="text-xs text-red-600 uppercase tracking-wide font-semibold mt-1">Red</div>
-              </div>
-              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-                <div className="text-3xl font-bold text-amber-700">{pipelineSummary.amber}</div>
-                <div className="text-xs text-amber-600 uppercase tracking-wide font-semibold mt-1">Amber</div>
               </div>
               <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
                 <div className="text-3xl font-bold text-emerald-700">{pipelineSummary.green}</div>

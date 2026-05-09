@@ -3,18 +3,19 @@
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { RefreshCw, AlertTriangle, CheckCircle2, AlertCircle, X, FileText } from 'lucide-react'
+import { RefreshCw, AlertTriangle, CheckCircle2, X, FileText } from 'lucide-react'
 import type { Band, BandSummary, PipelineHealthRow } from '@/lib/queries/pipeline-health'
+type BandFilterValue = Band | 'all'
 import PipelineCard from './PipelineCard'
 import PipelineDrillDown from './PipelineDrillDown'
 
 type Props = { rows: PipelineHealthRow[]; summary: BandSummary }
 
-const ALL_BANDS: Band[] = ['red', 'amber', 'green']
+const ALL_BANDS: Band[] = ['red', 'green']
 
 export default function PipelineHealthDashboard({ rows, summary }: Props) {
   const router = useRouter()
-  const [bandFilter, setBandFilter] = useState<Band | 'all'>('all')
+  const [bandFilter, setBandFilter] = useState<BandFilterValue>('all')
   const [agencyFilter, setAgencyFilter] = useState<string>('all')
   const [gradeFilter, setGradeFilter] = useState<string>('all')
   const [selectedPositionId, setSelectedPositionId] = useState<string | null>(null)
@@ -60,10 +61,9 @@ export default function PipelineHealthDashboard({ rows, summary }: Props) {
   return (
     <div className="space-y-6">
       {/* Band summary cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <SummaryCard label="Total" count={summary.total} active={bandFilter === 'all'} onClick={() => setBandFilter('all')} icon={<CheckCircle2 className="h-5 w-5 text-gray-500" />} accent="gray" />
         <SummaryCard label="Red" count={summary.red} active={bandFilter === 'red'} onClick={() => setBandFilter('red')} icon={<AlertTriangle className="h-5 w-5 text-red-500" />} accent="red" />
-        <SummaryCard label="Amber" count={summary.amber} active={bandFilter === 'amber'} onClick={() => setBandFilter('amber')} icon={<AlertCircle className="h-5 w-5 text-amber-500" />} accent="amber" />
         <SummaryCard label="Green" count={summary.green} active={bandFilter === 'green'} onClick={() => setBandFilter('green')} icon={<CheckCircle2 className="h-5 w-5 text-emerald-500" />} accent="green" />
       </div>
 
@@ -151,12 +151,11 @@ function SummaryCard({
   active: boolean
   onClick: () => void
   icon: React.ReactNode
-  accent: 'gray' | 'red' | 'amber' | 'green'
+  accent: 'gray' | 'red' | 'green'
 }) {
   const accentClasses: Record<string, string> = {
     gray: active ? 'ring-2 ring-gray-400 bg-gray-50' : 'bg-white hover:bg-gray-50',
     red: active ? 'ring-2 ring-red-400 bg-red-50' : 'bg-white hover:bg-red-50',
-    amber: active ? 'ring-2 ring-amber-400 bg-amber-50' : 'bg-white hover:bg-amber-50',
     green: active ? 'ring-2 ring-emerald-400 bg-emerald-50' : 'bg-white hover:bg-emerald-50',
   }
   return (

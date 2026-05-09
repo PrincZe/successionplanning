@@ -5,12 +5,11 @@ import BandPill from '@/app/plans/components/BandPill'
 
 export const dynamic = 'force-dynamic'
 
-const SUB_LABELS: Record<'A' | 'B' | 'C' | 'D' | 'E', string> = {
-  A: 'Qualitative endorsement (35%)',
-  B: 'Competency fit (25%)',
-  C: 'Coverage (20%)',
-  D: 'Urgency match (15%)',
-  E: 'Development momentum (5%)',
+const CRITERIA_LABELS: Record<string, string> = {
+  C1: 'Successor Depth',
+  C2: 'Retirement Proximity',
+  C3: 'Tenure Duration',
+  C4: 'Position Vacancy',
 }
 
 const BAND_ORDER: Array<'0-4_years' | '4-10_years'> = [
@@ -70,21 +69,13 @@ export default async function PositionPlanPage({ params }: { params: { id: strin
         <section className="mb-8">
           <div className="flex items-baseline justify-between mb-3">
             <h2 className="text-xl font-semibold text-gray-900">Pipeline strength</h2>
-            <BandPill band={detail.overall_band} score={detail.overall_score} />
+            <BandPill band={detail.overall_band} />
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
             <div className="border border-gray-200 rounded p-3">
               <div className="text-gray-500 text-xs">Incumbent</div>
               <div className="font-medium">{detail.incumbent_name ?? 'Vacant'}</div>
-            </div>
-            <div className="border border-gray-200 rounded p-3">
-              <div className="text-gray-500 text-xs">Risk horizon</div>
-              <div className="font-medium">
-                {detail.risk_horizon_months !== null
-                  ? `${detail.risk_horizon_months} months`
-                  : 'Not set'}
-              </div>
             </div>
             <div className="border border-gray-200 rounded p-3 col-span-2">
               <div className="text-gray-500 text-xs">Successor coverage</div>
@@ -97,24 +88,23 @@ export default async function PositionPlanPage({ params }: { params: { id: strin
           {/* Sub-scores */}
           <div className="border border-gray-200 rounded">
             <div className="px-3 py-2 bg-gray-50 text-xs font-semibold uppercase tracking-wider text-gray-600 border-b border-gray-200">
-              Sub-scores
+              Criteria
             </div>
             <div className="divide-y divide-gray-200">
-              {(['A', 'B', 'C', 'D', 'E'] as const).map((k) => {
-                const sub = detail.sub_scores[k]
+              {(['C1', 'C2', 'C3', 'C4'] as const).map((k) => {
+                const c = detail.criteria[k] as { triggered: boolean; reason: string } | undefined
+                const triggered = c?.triggered ?? false
                 return (
                   <div key={k} className="px-3 py-2 flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <div className="text-sm font-medium text-gray-900">{SUB_LABELS[k]}</div>
-                      {sub.reasons.length > 0 && (
-                        <ul className="mt-1 text-xs text-gray-600 list-disc list-inside">
-                          {sub.reasons.slice(0, 3).map((r, i) => (
-                            <li key={i}>{r}</li>
-                          ))}
-                        </ul>
+                      <div className="text-sm font-medium text-gray-900">{CRITERIA_LABELS[k]}</div>
+                      {c?.reason && (
+                        <div className="mt-1 text-xs text-gray-600">{c.reason}</div>
                       )}
                     </div>
-                    <BandPill band={sub.band} score={sub.score} />
+                    <span className={`text-xs font-bold ${triggered ? 'text-red-700' : 'text-emerald-700'}`}>
+                      {triggered ? 'FAIL' : 'PASS'}
+                    </span>
                   </div>
                 )
               })}

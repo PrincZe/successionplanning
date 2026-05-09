@@ -15,9 +15,8 @@ import type { Band } from '@/lib/queries/pipeline-health'
 // into emails / Slack / docs.
 // =============================================================================
 
-const BAND_EMOJI: Record<Band, string> = {
+const BAND_EMOJI: Record<string, string> = {
   red: 'RED',
-  amber: 'AMBER',
   green: 'GREEN',
 }
 
@@ -32,16 +31,14 @@ function bandTag(band: Band, score?: number): string {
 
 function rowLine(p: AgencyPlanRow): string {
   const counts = `${p.successor_count['0-4_years']}/${p.successor_count['4-10_years']}`
-  const risk = p.risk_horizon_months !== null ? `${p.risk_horizon_months}mo` : '—'
-  return `| ${p.position_title} (${p.jr_grade}) | ${p.incumbent_name ?? 'Vacant'} | ${risk} | ${counts} | ${bandTag(p.overall_band, p.overall_score)} |`
+  return `| ${p.position_title} (${p.jr_grade}) | ${p.incumbent_name ?? 'Vacant'} | ${counts} | ${bandTag(p.overall_band)} |`
 }
 
-const SUB_LABELS: Record<'A' | 'B' | 'C' | 'D' | 'E', string> = {
-  A: 'Qualitative endorsement (35%)',
-  B: 'Competency fit (25%)',
-  C: 'Coverage (20%)',
-  D: 'Urgency match (15%)',
-  E: 'Development momentum (5%)',
+const CRITERIA_LABELS: Record<string, string> = {
+  C1: 'Successor Depth',
+  C2: 'Retirement Proximity',
+  C3: 'Tenure Duration',
+  C4: 'Position Vacancy',
 }
 
 export function renderPositionPlanMarkdown(p: PositionPlan): string {
@@ -54,23 +51,20 @@ export function renderPositionPlanMarkdown(p: PositionPlan): string {
     `**Agency:** ${detail.agency} · **Grade:** ${detail.jr_grade} · **Position ID:** ${detail.position_id} · **Generated:** ${fmtDate(generated_at)}`
   )
   out.push('')
-  out.push(`## Pipeline strength — ${bandTag(detail.overall_band, detail.overall_score)}`)
+  out.push(`## Pipeline strength — ${bandTag(detail.overall_band)}`)
   out.push('')
   out.push(`- **Incumbent:** ${detail.incumbent_name ?? 'Vacant'}`)
-  out.push(
-    `- **Risk horizon:** ${detail.risk_horizon_months !== null ? `${detail.risk_horizon_months} months` : 'Not set'}`
-  )
   out.push(
     `- **Coverage:** 0–4yr ${detail.successor_count['0-4_years']} · 4–10yr ${detail.successor_count['4-10_years']}`
   )
   out.push('')
 
-  out.push(`### Sub-scores`)
+  out.push(`### Criteria`)
   out.push('')
-  for (const k of ['A', 'B', 'C', 'D', 'E'] as const) {
-    const sub = detail.sub_scores[k]
-    out.push(`- **${SUB_LABELS[k]}** — ${bandTag(sub.band, sub.score)}`)
-    for (const r of sub.reasons.slice(0, 3)) out.push(`  - ${r}`)
+  for (const k of ['C1', 'C2', 'C3', 'C4'] as const) {
+    const c = detail.criteria[k] as { triggered: boolean; reason: string } | undefined
+    const status = c?.triggered ? '🔴 FAIL' : '🟢 PASS'
+    out.push(`- **${CRITERIA_LABELS[k]}** — ${status}${c?.reason ? `: ${c.reason}` : ''}`)
   }
   out.push('')
 
@@ -154,7 +148,6 @@ export function renderAgencyPlanMarkdown(a: AgencyPlan): string {
   out.push(`## Pipeline mix`)
   out.push('')
   out.push(`- **Red:** ${a.summary.red}`)
-  out.push(`- **Amber:** ${a.summary.amber}`)
   out.push(`- **Green:** ${a.summary.green}`)
   out.push('')
 
@@ -174,7 +167,7 @@ export function renderAgencyPlanMarkdown(a: AgencyPlan): string {
     out.push(`## At-risk narratives`)
     out.push('')
     for (const p of withNarration) {
-      out.push(`### ${p.position_title} — ${bandTag(p.overall_band, p.overall_score)}`)
+      out.push(`### ${p.position_title} — ${bandTag(p.overall_band)}`)
       out.push('')
       out.push(p.ai_narration!)
       out.push('')
@@ -183,8 +176,8 @@ export function renderAgencyPlanMarkdown(a: AgencyPlan): string {
 
   out.push(`## All positions (${a.positions.length})`)
   out.push('')
-  out.push('| Position | Incumbent | Risk | Imm/1–2/3–5 | Band |')
-  out.push('|---|---|---|---|---|')
+  out.push('| Position | Incumbent | Coverage | Band |')
+  out.push('|---|---|---|---|')
   for (const p of a.positions) out.push(rowLine(p))
   out.push('')
 
@@ -204,17 +197,16 @@ export function renderOrgPlanMarkdown(o: OrgPlan): string {
   out.push(`## Pipeline mix`)
   out.push('')
   out.push(`- **Red:** ${o.summary.red}`)
-  out.push(`- **Amber:** ${o.summary.amber}`)
   out.push(`- **Green:** ${o.summary.green}`)
   out.push('')
 
   out.push(`## By agency`)
   out.push('')
-  out.push('| Agency | Positions | Red | Amber | Green | Worst band |')
-  out.push('|---|---:|---:|---:|---:|---|')
+  out.push('| Agency | Positions | Red | Green | Worst band |')
+  out.push('|---|---:|---:|---:|---|')
   for (const a of o.agencies) {
     out.push(
-      `| ${a.agency} | ${a.summary.total} | ${a.summary.red} | ${a.summary.amber} | ${a.summary.green} | ${BAND_EMOJI[a.worst_band]} |`
+      `| ${a.agency} | ${a.summary.total} | ${a.summary.red} | ${a.summary.green} | ${BAND_EMOJI[a.worst_band] ?? ''} |`
     )
   }
   out.push('')
@@ -225,11 +217,10 @@ export function renderOrgPlanMarkdown(o: OrgPlan): string {
   if (top.length === 0) {
     out.push('_None._')
   } else {
-    out.push('| Position | Agency | Risk | Band |')
-    out.push('|---|---|---|---|')
+    out.push('| Position | Agency | Band |')
+    out.push('|---|---|---|')
     for (const p of top) {
-      const risk = p.risk_horizon_months !== null ? `${p.risk_horizon_months}mo` : '—'
-      out.push(`| ${p.position_title} (${p.jr_grade}) | ${p.agency} | ${risk} | ${bandTag(p.overall_band, p.overall_score)} |`)
+      out.push(`| ${p.position_title} (${p.jr_grade}) | ${p.agency} | ${bandTag(p.overall_band)} |`)
     }
   }
   out.push('')

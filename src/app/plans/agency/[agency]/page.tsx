@@ -29,13 +29,10 @@ function PositionRow({ p }: { p: AgencyPlanRow }) {
       </td>
       <td className="px-3 py-2">{p.incumbent_name ?? <span className="text-gray-400 italic">Vacant</span>}</td>
       <td className="px-3 py-2 text-right tabular-nums">
-        {p.risk_horizon_months !== null ? `${p.risk_horizon_months}mo` : '—'}
-      </td>
-      <td className="px-3 py-2 text-right tabular-nums">
         {p.successor_count['0-4_years']}/{p.successor_count['4-10_years']}
       </td>
       <td className="px-3 py-2 whitespace-nowrap">
-        <BandPill band={p.overall_band} score={p.overall_score} />
+        <BandPill band={p.overall_band} />
       </td>
     </tr>
   )
@@ -77,13 +74,6 @@ export default async function AgencyPlanPage({ params }: { params: { agency: str
               <div className="text-3xl font-bold text-red-900">{summary.red}</div>
               <div className="text-xs text-red-700">
                 {summary.total > 0 ? `${Math.round((100 * summary.red) / summary.total)}%` : '—'}
-              </div>
-            </div>
-            <div className="border border-amber-200 bg-amber-50 rounded p-4">
-              <div className="text-xs uppercase tracking-wider text-amber-700">Amber</div>
-              <div className="text-3xl font-bold text-amber-900">{summary.amber}</div>
-              <div className="text-xs text-amber-700">
-                {summary.total > 0 ? `${Math.round((100 * summary.amber) / summary.total)}%` : '—'}
               </div>
             </div>
             <div className="border border-green-200 bg-green-50 rounded p-4">
@@ -136,11 +126,10 @@ export default async function AgencyPlanPage({ params }: { params: { agency: str
                   <div key={p.position_id} className="border border-gray-200 rounded p-3">
                     <div className="flex items-baseline justify-between gap-2 mb-1">
                       <div className="font-semibold text-gray-900">{p.position_title}</div>
-                      <BandPill band={p.overall_band} score={p.overall_score} />
+                      <BandPill band={p.overall_band} />
                     </div>
                     <div className="text-xs text-gray-500 mb-2">
-                      {p.jr_grade} · Incumbent {p.incumbent_name ?? 'Vacant'} · Risk{' '}
-                      {p.risk_horizon_months !== null ? `${p.risk_horizon_months}mo` : '—'}
+                      {p.jr_grade} · Incumbent {p.incumbent_name ?? 'Vacant'}
                     </div>
                     <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
                       {p.ai_narration}
