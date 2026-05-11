@@ -103,6 +103,28 @@ export default function Header() {
                 >
                   Pipeline Health
                 </Link>
+                <Link
+                  href="/successionplanning"
+                  className={`text-sm font-medium transition-colors hover:text-primary ${
+                    pathname.startsWith('/successionplanning')
+                      ? 'text-primary'
+                      : 'text-muted-foreground'
+                  }`}
+                >
+                  Succession Planning
+                </Link>
+                {user && 'role' in user && user.role === 'admin' && (
+                  <Link
+                    href="/admin/users"
+                    className={`text-sm font-medium transition-colors hover:text-primary ${
+                      pathname.startsWith('/admin')
+                        ? 'text-primary'
+                        : 'text-muted-foreground'
+                    }`}
+                  >
+                    Admin
+                  </Link>
+                )}
               </div>
             )}
           </div>
@@ -116,9 +138,11 @@ export default function Header() {
                   <span className="text-sm text-muted-foreground">
                     {user.email}
                   </span>
-                  <Badge variant="secondary" className="text-xs">
-                    Authenticated
-                  </Badge>
+                  {'role' in user && (
+                    <Badge variant="secondary" className="text-xs">
+                      {user.role === 'agency_hr' ? 'Agency HR' : user.role === 'psd' ? 'PSD' : 'Admin'}
+                    </Badge>
+                  )}
                 </div>
                 
                 {/* Sign Out Button */}

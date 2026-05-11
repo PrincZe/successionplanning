@@ -10,7 +10,7 @@ export async function submitPlanAction(submissionId: string) {
     const session = await getCurrentSession()
     if (!session) return { success: false, error: 'Unauthorized' }
     await submitPlan(submissionId, session.user_id)
-    revalidatePath('/agency')
+    revalidatePath('/successionplanning')
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error?.message ?? 'Failed to submit plan' }
@@ -24,8 +24,8 @@ export async function endorseSubmissionAction(submissionId: string) {
       return { success: false, error: 'Unauthorized' }
     }
     await endorseSubmission(submissionId, session.user_id)
-    revalidatePath('/psd')
-    revalidatePath('/psd/submissions')
+    revalidatePath('/successionplanning')
+    revalidatePath('/successionplanning/submissions')
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error?.message ?? 'Failed to endorse' }
@@ -39,8 +39,8 @@ export async function returnSubmissionAction(submissionId: string, notes: string
       return { success: false, error: 'Unauthorized' }
     }
     await returnSubmission(submissionId, session.user_id, notes)
-    revalidatePath('/psd')
-    revalidatePath('/psd/submissions')
+    revalidatePath('/successionplanning')
+    revalidatePath('/successionplanning/submissions')
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error?.message ?? 'Failed to return submission' }
