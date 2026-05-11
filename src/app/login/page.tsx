@@ -34,7 +34,7 @@ export default function LoginPage() {
       const result = await sendOTPAction(email.trim())
       if (result.success) {
         await refreshAuth()
-        router.push('/home')
+        router.push(result.role === 'agency_hr' ? '/successionplanning' : '/home')
       } else {
         setError(result.error || 'Email not authorized')
       }

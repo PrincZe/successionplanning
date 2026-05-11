@@ -67,7 +67,7 @@ export async function sendOTPAction(email: string) {
       name: user.name,
     })
 
-    return { success: true }
+    return { success: true, role: user.role as string }
   } catch (error) {
     console.error('Login error:', error)
     return { success: false, error: 'An unexpected error occurred. Please try again.' }
