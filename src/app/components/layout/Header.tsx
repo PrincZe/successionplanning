@@ -52,22 +52,26 @@ export default function Header() {
                 >
                   Home
                 </Link>
-                <NavDropdown
-                  label="People"
-                  active={pathname.startsWith('/positions') || pathname.startsWith('/officers')}
-                  items={[
-                    { href: '/positions', label: 'Positions' },
-                    { href: '/officers', label: 'Officers' },
-                  ]}
-                />
-                <NavDropdown
-                  label="Development"
-                  active={pathname.startsWith('/competencies') || pathname.startsWith('/stints')}
-                  items={[
-                    { href: '/competencies', label: 'Competencies' },
-                    { href: '/stints', label: 'Stints' },
-                  ]}
-                />
+                {user && 'role' in user && user.role !== 'agency_hr' && (
+                  <>
+                    <NavDropdown
+                      label="People"
+                      active={pathname.startsWith('/positions') || pathname.startsWith('/officers')}
+                      items={[
+                        { href: '/positions', label: 'Positions' },
+                        { href: '/officers', label: 'Officers' },
+                      ]}
+                    />
+                    <NavDropdown
+                      label="Development"
+                      active={pathname.startsWith('/competencies') || pathname.startsWith('/stints')}
+                      items={[
+                        { href: '/competencies', label: 'Competencies' },
+                        { href: '/stints', label: 'Stints' },
+                      ]}
+                    />
+                  </>
+                )}
                 <Link
                   href="/pipeline-health"
                   className={`text-sm font-medium transition-colors hover:text-primary ${

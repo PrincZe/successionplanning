@@ -61,6 +61,10 @@ export async function middleware(request: NextRequest) {
       return response
     }
 
+    if (role === 'agency_hr' && (pathname.startsWith('/positions') || pathname.startsWith('/officers') || pathname.startsWith('/competencies') || pathname.startsWith('/stints'))) {
+      return NextResponse.redirect(new URL('/home', request.url))
+    }
+
     if (pathname.startsWith('/agency')) {
       if (role !== 'agency_hr' && role !== 'admin') {
         return NextResponse.redirect(new URL('/home', request.url))

@@ -1,12 +1,21 @@
 import { Suspense } from 'react'
 import { getPipelineHealthOverview, summarizeBands } from '@/lib/queries/pipeline-health'
+import { getCurrentSession } from '@/app/actions/auth'
 import PipelineHealthDashboard from './components/PipelineHealthDashboard'
 import HowItWorks from './components/HowItWorks'
 
 export const dynamic = 'force-dynamic'
 
 export default async function PipelineHealthPage() {
-  const rows = await getPipelineHealthOverview()
+  const [allRows, session] = await Promise.all([
+    getPipelineHealthOverview(),
+    getCurrentSession(),
+  ])
+
+  const rows = session?.role === 'agency_hr' && session.agency
+    ? allRows.filter((r) => r.agency === session.agency)
+    : allRows
+
   const summary = summarizeBands(rows)
 
   return (
@@ -17,7 +26,8 @@ export default async function PipelineHealthPage() {
             Pipeline Health
           </h1>
           <p className="text-gray-600">
-            Traffic-light view of succession pipeline strength across {summary.total} positions, scored against CHROO criteria.
+            Traffic-light view of succession pipeline strength across {summary.total} positions
+            {session?.role === 'agency_hr' && session.agency ? ` (${session.agency})` : ''}.
           </p>
         </div>
 
