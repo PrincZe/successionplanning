@@ -1,11 +1,12 @@
 'use client'
 
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/contexts/AuthContext'
 import { usePathname } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { User, LogOut } from 'lucide-react'
+import { User, LogOut, ChevronDown } from 'lucide-react'
 
 export default function Header() {
   const { user, loading, signOut } = useAuth()
@@ -46,59 +47,31 @@ export default function Header() {
                 <Link
                   href="/home"
                   className={`text-sm font-medium transition-colors hover:text-primary ${
-                    isActive('/home')
-                      ? 'text-primary'
-                      : 'text-muted-foreground'
+                    isActive('/home') ? 'text-primary' : 'text-muted-foreground'
                   }`}
                 >
                   Home
                 </Link>
-                <Link
-                  href="/positions"
-                  className={`text-sm font-medium transition-colors hover:text-primary ${
-                    isActive('/positions')
-                      ? 'text-primary'
-                      : 'text-muted-foreground'
-                  }`}
-                >
-                  Positions
-                </Link>
-                <Link
-                  href="/officers"
-                  className={`text-sm font-medium transition-colors hover:text-primary ${
-                    isActive('/officers')
-                      ? 'text-primary'
-                      : 'text-muted-foreground'
-                  }`}
-                >
-                  Officers
-                </Link>
-                <Link
-                  href="/competencies"
-                  className={`text-sm font-medium transition-colors hover:text-primary ${
-                    isActive('/competencies')
-                      ? 'text-primary'
-                      : 'text-muted-foreground'
-                  }`}
-                >
-                  Competencies
-                </Link>
-                <Link
-                  href="/stints"
-                  className={`text-sm font-medium transition-colors hover:text-primary ${
-                    isActive('/stints')
-                      ? 'text-primary'
-                      : 'text-muted-foreground'
-                  }`}
-                >
-                  Stints
-                </Link>
+                <NavDropdown
+                  label="People"
+                  active={pathname.startsWith('/positions') || pathname.startsWith('/officers')}
+                  items={[
+                    { href: '/positions', label: 'Positions' },
+                    { href: '/officers', label: 'Officers' },
+                  ]}
+                />
+                <NavDropdown
+                  label="Development"
+                  active={pathname.startsWith('/competencies') || pathname.startsWith('/stints')}
+                  items={[
+                    { href: '/competencies', label: 'Competencies' },
+                    { href: '/stints', label: 'Stints' },
+                  ]}
+                />
                 <Link
                   href="/pipeline-health"
                   className={`text-sm font-medium transition-colors hover:text-primary ${
-                    isActive('/pipeline-health')
-                      ? 'text-primary'
-                      : 'text-muted-foreground'
+                    isActive('/pipeline-health') ? 'text-primary' : 'text-muted-foreground'
                   }`}
                 >
                   Pipeline Health
@@ -106,9 +79,7 @@ export default function Header() {
                 <Link
                   href="/successionplanning"
                   className={`text-sm font-medium transition-colors hover:text-primary ${
-                    pathname.startsWith('/successionplanning')
-                      ? 'text-primary'
-                      : 'text-muted-foreground'
+                    pathname.startsWith('/successionplanning') ? 'text-primary' : 'text-muted-foreground'
                   }`}
                 >
                   Succession Planning
@@ -117,9 +88,7 @@ export default function Header() {
                   <Link
                     href="/admin/users"
                     className={`text-sm font-medium transition-colors hover:text-primary ${
-                      pathname.startsWith('/admin')
-                        ? 'text-primary'
-                        : 'text-muted-foreground'
+                      pathname.startsWith('/admin') ? 'text-primary' : 'text-muted-foreground'
                     }`}
                   >
                     Admin
@@ -174,4 +143,45 @@ export default function Header() {
       </nav>
     </header>
   )
-} 
+}
+
+function NavDropdown({ label, active, items }: { label: string; active: boolean; items: { href: string; label: string }[] }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className={`text-sm font-medium transition-colors hover:text-primary inline-flex items-center gap-1 ${
+          active ? 'text-primary' : 'text-muted-foreground'
+        }`}
+      >
+        {label}
+        <ChevronDown className={`h-3 w-3 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute top-full left-0 mt-2 w-40 bg-white border rounded-lg shadow-lg py-1 z-50">
+          {items.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setOpen(false)}
+              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
