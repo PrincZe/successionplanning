@@ -78,7 +78,7 @@ export async function middleware(request: NextRequest) {
     }
 
     if (pathname.startsWith('/admin')) {
-      if (role !== 'admin') {
+      if (role !== 'admin' && role !== 'psd') {
         return NextResponse.redirect(new URL('/home', request.url))
       }
     }

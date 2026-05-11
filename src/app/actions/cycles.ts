@@ -8,7 +8,7 @@ import { getCurrentSession } from './auth'
 export async function createCycleAction(data: { title: string; description?: string; deadline: string }) {
   try {
     const session = await getCurrentSession()
-    if (!session || session.role !== 'admin') {
+    if (!session || (session.role !== 'admin' && session.role !== 'psd')) {
       return { success: false, error: 'Unauthorized' }
     }
     const cycle = await createCycle({ ...data, created_by: session.user_id })
@@ -40,7 +40,7 @@ export async function createCycleAction(data: { title: string; description?: str
 export async function closeCycleAction(cycleId: string) {
   try {
     const session = await getCurrentSession()
-    if (!session || session.role !== 'admin') {
+    if (!session || (session.role !== 'admin' && session.role !== 'psd')) {
       return { success: false, error: 'Unauthorized' }
     }
     await closeCycle(cycleId)

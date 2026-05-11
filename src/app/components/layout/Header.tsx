@@ -88,7 +88,7 @@ export default function Header() {
                 >
                   Succession Planning
                 </Link>
-                {user && 'role' in user && user.role === 'admin' && (
+                {user && 'role' in user && (user.role === 'admin' || user.role === 'psd') && (
                   <Link
                     href="/admin/users"
                     className={`text-sm font-medium transition-colors hover:text-primary ${
