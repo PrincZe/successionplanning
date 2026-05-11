@@ -93,29 +93,26 @@ function evaluateC1(shortTermCount: number): CriterionResult {
 function evaluateC2(
   incumbentId: string | null,
   incumbentOfficers: Map<string, OfficerData>,
-  retirementAges: Record<string, number>
 ): CriterionResult {
   if (!incumbentId) {
     return { key: 'C2', label: 'Retirement Proximity', triggered: false, reason: 'No incumbent' }
   }
   const officer = incumbentOfficers.get(incumbentId)
-  if (!officer?.date_of_birth || !officer?.service_scheme) {
-    return { key: 'C2', label: 'Retirement Proximity', triggered: false, reason: 'Retirement data not available' }
+  if (!officer?.date_of_birth) {
+    return { key: 'C2', label: 'Retirement Proximity', triggered: false, reason: 'Date of birth not available' }
   }
-  const retireAge = retirementAges[officer.service_scheme] ?? 65
   const dob = new Date(officer.date_of_birth)
   const today = new Date()
   const currentAge = (today.getTime() - dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000)
-  const yearsToRetirement = retireAge - currentAge
 
-  const triggered = yearsToRetirement <= 3
+  const triggered = currentAge >= 60
   return {
     key: 'C2',
     label: 'Retirement Proximity',
     triggered,
     reason: triggered
-      ? `Incumbent is ${yearsToRetirement.toFixed(1)} years from retirement (${officer.service_scheme}, age ${retireAge})`
-      : `Incumbent is ${yearsToRetirement.toFixed(1)} years from retirement`,
+      ? `Incumbent is ${Math.floor(currentAge)} years old (cut-off: 60)`
+      : `Incumbent is ${Math.floor(currentAge)} years old`,
   }
 }
 
@@ -156,7 +153,7 @@ export function scorePipelineFromData(positionId: string, data: LoadedData): Pip
 
   const criteria: CriterionResult[] = [
     evaluateC1(shortTermCount),
-    evaluateC2(position.incumbent_id, data.incumbentOfficers, data.retirementAges),
+    evaluateC2(position.incumbent_id, data.incumbentOfficers),
     evaluateC3(position.incumbent_start_date),
     evaluateC4(position.incumbent_id),
   ]

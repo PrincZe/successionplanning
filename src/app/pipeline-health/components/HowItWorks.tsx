@@ -13,7 +13,7 @@ const CRITERIA = [
   {
     key: 'C2',
     label: 'Retirement Proximity',
-    explanation: 'Incumbent is 3 years or less away from retirement (SPSL) or statutory requirement age (PSL).',
+    explanation: 'Incumbent is 60 years old or above.',
     color: 'bg-slate-50 border-slate-200 text-slate-900',
   },
   {
