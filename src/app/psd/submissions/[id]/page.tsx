@@ -17,27 +17,42 @@ export default async function SubmissionReviewPage({ params }: { params: { id: s
 
   const changes = await getChangesForSubmission(submission.submission_id)
 
-  // Fetch officer and position names for the change log
-  const officerIds = Array.from(new Set(changes.map((c) => c.officer_id)))
-  const positionIds = Array.from(new Set(changes.map((c) => c.position_id)))
+  // Fetch the full plan: positions with incumbents and successors for this agency
+  const { data: positions } = await supabaseServer
+    .from('positions')
+    .select(`
+      position_id, position_title, jr_grade, incumbent_id, incumbent_start_date,
+      incumbent:officers!positions_incumbent_id_fkey(officer_id, name, grade, date_of_birth, service_scheme),
+      position_successors(
+        succession_type,
+        successor:officers!position_successors_successor_id_fkey(officer_id, name, grade)
+      )
+    `)
+    .eq('agency', submission.agency)
+    .order('position_title') as { data: any[] | null }
 
-  let officerNames: Record<string, string> = {}
-  let positionNames: Record<string, string> = {}
+  // Build name lookup maps for the change log
+  const officerNames: Record<string, string> = {}
+  const positionNames: Record<string, string> = {}
 
-  if (officerIds.length > 0) {
+  for (const p of positions ?? []) {
+    positionNames[p.position_id] = p.position_title
+    if (p.incumbent) officerNames[p.incumbent.officer_id] = p.incumbent.name
+    for (const s of p.position_successors ?? []) {
+      officerNames[s.successor.officer_id] = s.successor.name
+    }
+  }
+
+  // Also look up any officers in changes not already in the map
+  const missingOfficerIds = changes
+    .map((c) => c.officer_id)
+    .filter((id) => !officerNames[id])
+  if (missingOfficerIds.length > 0) {
     const { data } = await supabaseServer
       .from('officers')
       .select('officer_id, name')
-      .in('officer_id', officerIds)
-    officerNames = Object.fromEntries((data ?? []).map((o: any) => [o.officer_id, o.name]))
-  }
-
-  if (positionIds.length > 0) {
-    const { data } = await supabaseServer
-      .from('positions')
-      .select('position_id, position_title')
-      .in('position_id', positionIds)
-    positionNames = Object.fromEntries((data ?? []).map((p: any) => [p.position_id, p.position_title]))
+      .in('officer_id', missingOfficerIds)
+    for (const o of data ?? []) officerNames[o.officer_id] = (o as any).name
   }
 
   return (
@@ -45,6 +60,7 @@ export default async function SubmissionReviewPage({ params }: { params: { id: s
       <main className="container mx-auto px-4 py-8">
         <SubmissionReview
           submission={submission}
+          positions={positions ?? []}
           changes={changes}
           officerNames={officerNames}
           positionNames={positionNames}
