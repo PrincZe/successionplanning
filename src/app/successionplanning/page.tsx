@@ -8,18 +8,44 @@ export default async function SuccessionPlanningPage() {
   if (!session) redirect('/login')
 
   if (session.role === 'agency_hr') {
-    // Reuse agency task page logic
-    const { getActiveCycle, getOrCreateSubmission } = await import('@/lib/queries/submissions')
+    const { getActiveCycle, getOrCreateSubmission, getSubmissions } = await import('@/lib/queries/submissions')
     const cycle = await getActiveCycle()
     let submission = null
     if (cycle && session.agency) {
       submission = await getOrCreateSubmission(cycle.cycle_id, session.agency)
     }
+    // Fetch past submissions for this agency (closed/endorsed cycles)
+    const allSubmissions = session.agency ? await getSubmissions({ agency: session.agency }) : []
+    const pastSubmissions = allSubmissions.filter(
+      (s) => s.submission_id !== submission?.submission_id && s.status === 'endorsed'
+    )
+
     const { default: AgencyTaskPage } = await import('@/app/agency/AgencyTaskPage')
     return (
       <div className="min-h-screen bg-gray-50">
         <main className="container mx-auto px-4 py-8">
           <AgencyTaskPage agency={session.agency!} cycle={cycle} submission={submission} />
+          {pastSubmissions.length > 0 && (
+            <div className="max-w-3xl mx-auto mt-8">
+              <h2 className="text-lg font-semibold text-gray-900 mb-3">Past Submissions</h2>
+              <div className="space-y-2">
+                {pastSubmissions.map((s) => (
+                  <div key={s.submission_id} className="bg-white border rounded-lg p-4 flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-gray-900">{(s.cycle as any)?.title ?? 'Unknown cycle'}</div>
+                      <div className="text-xs text-gray-500">
+                        Submitted {s.submitted_at ? new Date(s.submitted_at).toLocaleDateString() : '—'}
+                        {s.reviewed_at && <> &middot; Endorsed {new Date(s.reviewed_at).toLocaleDateString()}</>}
+                      </div>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                      Endorsed
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </main>
       </div>
     )

@@ -11,6 +11,13 @@ export async function createCycleAction(data: { title: string; description?: str
     if (!session || (session.role !== 'admin' && session.role !== 'psd')) {
       return { success: false, error: 'Unauthorized' }
     }
+    // Block if there's already an open cycle
+    const { getActiveCycle } = await import('@/lib/queries/submissions')
+    const existing = await getActiveCycle()
+    if (existing) {
+      return { success: false, error: `There is already an open cycle: "${existing.title}". Close it before creating a new one.` }
+    }
+
     const cycle = await createCycle({ ...data, created_by: session.user_id })
 
     // Auto-create draft submissions for every agency that has positions
