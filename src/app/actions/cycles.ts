@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createCycle, closeCycle } from '@/lib/queries/submissions'
+import { supabaseServer } from '@/lib/supabase'
 import { getCurrentSession } from './auth'
 
 export async function createCycleAction(data: { title: string; description?: string; deadline: string }) {
@@ -11,8 +12,26 @@ export async function createCycleAction(data: { title: string; description?: str
       return { success: false, error: 'Unauthorized' }
     }
     const cycle = await createCycle({ ...data, created_by: session.user_id })
+
+    // Auto-create draft submissions for every agency that has positions
+    const { data: agencies } = await supabaseServer
+      .from('positions')
+      .select('agency')
+    if (agencies) {
+      const uniqueAgencies = Array.from(new Set(agencies.map((a: any) => a.agency)))
+      const submissions = uniqueAgencies.map((agency) => ({
+        cycle_id: cycle.cycle_id,
+        agency,
+        status: 'draft',
+      }))
+      if (submissions.length > 0) {
+        await supabaseServer.from('plan_submissions').insert(submissions)
+      }
+    }
+
     revalidatePath('/admin/cycles')
-    return { success: true, data: cycle }
+    revalidatePath('/successionplanning')
+    return { success: true, data: cycle, agencies_created: true }
   } catch (error: any) {
     return { success: false, error: error?.message ?? 'Failed to create cycle' }
   }
