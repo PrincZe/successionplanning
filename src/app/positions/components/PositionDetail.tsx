@@ -1,12 +1,16 @@
 'use client'
 
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Crown, User, Clock, CalendarDays,
-  ArrowLeft, Edit, Hash, Building2, Award, FileText
+  ArrowLeft, Edit, Hash, Building2, Award, FileText, Plus, Trash2, Search
 } from 'lucide-react'
 import type { PositionWithRelations } from '@/lib/queries/positions'
+import { addSuccessorWithAudit, removeSuccessorWithAudit } from '@/app/actions/submissions'
+
+type OfficerOption = { officer_id: string; name: string; grade: string | null }
 
 interface SuccessionNodeProps {
   title: string
@@ -42,7 +46,7 @@ function SuccessionNode({ title, name, officerId, className = '', variant = '0-4
   )
 }
 
-function SuccessionTree({ position }: { position: PositionWithRelations }) {
+function SuccessionTree({ position, canEdit, submissionId, allOfficers }: { position: PositionWithRelations; canEdit: boolean; submissionId: string | null; allOfficers: OfficerOption[] }) {
   const shortTermSuccessors = position.successors_0_4_years || []
   const longTermSuccessors = position.successors_4_10_years || []
 
@@ -75,77 +79,110 @@ function SuccessionTree({ position }: { position: PositionWithRelations }) {
           />
         </div>
 
-        {shortTermSuccessors.length > 0 && (
-          <>
-            <div className="w-1 h-12 bg-gradient-to-b from-emerald-400 to-blue-400 rounded-full"></div>
-
-            <div className="relative w-full flex flex-col items-center">
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">
-                  <Clock className="h-4 w-4 mr-2" />
-                  0–4 Year Successors
-                </div>
-              </div>
-
-              <div className="relative flex items-center w-full max-w-4xl">
-                <div className="absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-blue-300 via-blue-400 to-blue-300 rounded-full transform -translate-y-1/2"></div>
-                <div className="flex justify-between w-full relative z-10">
-                  {shortTermSuccessors.map((successor, index) => (
-                    <div key={successor.officer_id} className="relative">
-                      <div className="absolute top-1/2 left-1/2 w-1 h-8 bg-blue-400 rounded-full transform -translate-x-1/2 -translate-y-full"></div>
-                      <SuccessionNode
-                        title={`0-4yr Successor ${index + 1}`}
-                        name={successor.name}
-                        officerId={successor.officer_id}
-                        variant="0-4years"
-                        icon={<Clock className="h-4 w-4" />}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
+        {/* 0-4yr band */}
+        <div className="w-1 h-12 bg-gradient-to-b from-emerald-400 to-blue-400 rounded-full"></div>
+        <div className="relative w-full flex flex-col items-center">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">
+              <Clock className="h-4 w-4 mr-2" />
+              0–4 Year Successors ({shortTermSuccessors.length})
             </div>
-          </>
-        )}
+          </div>
 
-        {longTermSuccessors.length > 0 && (
-          <>
-            <div className="w-1 h-12 bg-gradient-to-b from-blue-400 to-purple-400 rounded-full"></div>
-
-            <div className="relative w-full flex flex-col items-center">
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-semibold">
-                  <CalendarDays className="h-4 w-4 mr-2" />
-                  4–10 Year Successors
-                </div>
-              </div>
-
-              <div className="flex flex-wrap justify-center gap-8 w-full max-w-5xl">
-                {longTermSuccessors.map((successor, index) => (
+          {shortTermSuccessors.length > 0 && (
+            <div className="relative flex items-center w-full max-w-4xl">
+              <div className="absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-blue-300 via-blue-400 to-blue-300 rounded-full transform -translate-y-1/2"></div>
+              <div className="flex justify-between w-full relative z-10">
+                {shortTermSuccessors.map((successor, index) => (
                   <div key={successor.officer_id} className="relative">
+                    <div className="absolute top-1/2 left-1/2 w-1 h-8 bg-blue-400 rounded-full transform -translate-x-1/2 -translate-y-full"></div>
                     <SuccessionNode
-                      title={`4-10yr Successor ${index + 1}`}
+                      title={`0-4yr Successor ${index + 1}`}
                       name={successor.name}
                       officerId={successor.officer_id}
-                      variant="4-10years"
-                      icon={<CalendarDays className="h-4 w-4" />}
+                      variant="0-4years"
+                      icon={<Clock className="h-4 w-4" />}
                     />
                   </div>
                 ))}
               </div>
             </div>
-          </>
-        )}
+          )}
+          {shortTermSuccessors.length === 0 && (
+            <div className="text-sm text-gray-400 italic">No successors assigned</div>
+          )}
+          {canEdit && submissionId && (
+            <InlineSuccessorEditor
+              positionId={position.position_id}
+              submissionId={submissionId}
+              successionType="0-4_years"
+              existingOfficerIds={shortTermSuccessors.map((s) => s.officer_id)}
+              allOfficers={allOfficers}
+            />
+          )}
+        </div>
+
+        {/* 4-10yr band */}
+        <div className="w-1 h-12 bg-gradient-to-b from-blue-400 to-purple-400 rounded-full"></div>
+        <div className="relative w-full flex flex-col items-center">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-semibold">
+              <CalendarDays className="h-4 w-4 mr-2" />
+              4–10 Year Successors ({longTermSuccessors.length})
+            </div>
+          </div>
+
+          {longTermSuccessors.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-8 w-full max-w-5xl">
+              {longTermSuccessors.map((successor, index) => (
+                <div key={successor.officer_id} className="relative">
+                  <SuccessionNode
+                    title={`4-10yr Successor ${index + 1}`}
+                    name={successor.name}
+                    officerId={successor.officer_id}
+                    variant="4-10years"
+                    icon={<CalendarDays className="h-4 w-4" />}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+          {longTermSuccessors.length === 0 && (
+            <div className="text-sm text-gray-400 italic">No successors assigned</div>
+          )}
+          {canEdit && submissionId && (
+            <InlineSuccessorEditor
+              positionId={position.position_id}
+              submissionId={submissionId}
+              successionType="4-10_years"
+              existingOfficerIds={longTermSuccessors.map((s) => s.officer_id)}
+              allOfficers={allOfficers}
+            />
+          )}
+        </div>
       </div>
     </div>
   )
 }
 
-interface PositionDetailProps {
-  position: PositionWithRelations
+const STATUS_BADGE: Record<string, { label: string; className: string }> = {
+  draft: { label: 'Pending Submission', className: 'bg-gray-100 text-gray-700' },
+  submitted: { label: 'Submitted', className: 'bg-blue-100 text-blue-700' },
+  in_review: { label: 'In Review', className: 'bg-amber-100 text-amber-700' },
+  endorsed: { label: 'Endorsed', className: 'bg-green-100 text-green-700' },
+  returned: { label: 'Returned', className: 'bg-red-100 text-red-700' },
 }
 
-export default function PositionDetail({ position }: PositionDetailProps) {
+interface PositionDetailProps {
+  position: PositionWithRelations
+  submissionStatus?: string | null
+  submissionId?: string | null
+  userRole?: string | null
+  allOfficers?: OfficerOption[]
+}
+
+export default function PositionDetail({ position, submissionStatus, submissionId, userRole, allOfficers = [] }: PositionDetailProps) {
+  const canPsdEdit = (userRole === 'psd' || userRole === 'admin') && (submissionStatus === 'submitted' || submissionStatus === 'in_review')
   const router = useRouter()
 
   return (
@@ -184,7 +221,14 @@ export default function PositionDetail({ position }: PositionDetailProps) {
               <Crown className="h-10 w-10 text-blue-600" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{position.position_title}</h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-bold text-gray-900">{position.position_title}</h1>
+                {submissionStatus && STATUS_BADGE[submissionStatus] && (
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_BADGE[submissionStatus].className}`}>
+                    {STATUS_BADGE[submissionStatus].label}
+                  </span>
+                )}
+              </div>
               <p className="text-gray-600 mt-1">{position.agency} · Position Details &amp; Succession</p>
             </div>
           </div>
@@ -275,7 +319,123 @@ export default function PositionDetail({ position }: PositionDetailProps) {
       </div>
 
       {/* Succession Tree */}
-      <SuccessionTree position={position} />
+      <SuccessionTree
+        position={position}
+        canEdit={canPsdEdit}
+        submissionId={submissionId ?? null}
+        allOfficers={allOfficers}
+      />
+    </div>
+  )
+}
+
+function InlineSuccessorEditor({
+  positionId,
+  submissionId,
+  successionType,
+  existingOfficerIds,
+  allOfficers,
+}: {
+  positionId: string
+  submissionId: string
+  successionType: '0-4_years' | '4-10_years'
+  existingOfficerIds: string[]
+  allOfficers: OfficerOption[]
+}) {
+  const [showAdd, setShowAdd] = useState(false)
+  const [query, setQuery] = useState('')
+  const [selectedOfficer, setSelectedOfficer] = useState<string | null>(null)
+  const [reason, setReason] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+
+  const existingSet = new Set(existingOfficerIds)
+  const available = allOfficers.filter((o) => !existingSet.has(o.officer_id))
+
+  const filtered = useMemo(() => {
+    if (!query.trim()) return available.slice(0, 8)
+    const q = query.toLowerCase()
+    return available.filter((o) => o.name.toLowerCase().includes(q) || o.officer_id.toLowerCase().includes(q)).slice(0, 8)
+  }, [available, query])
+
+  const selectedName = allOfficers.find((o) => o.officer_id === selectedOfficer)?.name
+
+  async function handleAdd() {
+    if (!selectedOfficer) return
+    setLoading(true)
+    await addSuccessorWithAudit({
+      submission_id: submissionId,
+      position_id: positionId,
+      officer_id: selectedOfficer,
+      succession_type: successionType,
+      reason: reason || undefined,
+    })
+    setLoading(false)
+    window.location.reload()
+  }
+
+  return (
+    <div className="mt-4 w-full max-w-md">
+      {!showAdd ? (
+        <button
+          onClick={() => setShowAdd(true)}
+          className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
+        >
+          <Plus className="h-3 w-3" /> Add Successor
+        </button>
+      ) : (
+        <div className="bg-white border rounded-lg p-3 space-y-2 shadow-sm">
+          <div className="relative">
+            <div className="flex items-center border rounded-md px-3 py-1.5 bg-white">
+              <Search className="h-3.5 w-3.5 text-gray-400 mr-2" />
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => { setQuery(e.target.value); setDropdownOpen(true) }}
+                onFocus={() => setDropdownOpen(true)}
+                placeholder="Search officer..."
+                className="w-full text-sm outline-none"
+              />
+            </div>
+            {dropdownOpen && filtered.length > 0 && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} />
+                <div className="absolute z-20 mt-1 w-full bg-white border rounded-md shadow-lg max-h-40 overflow-y-auto">
+                  {filtered.map((o) => (
+                    <button
+                      key={o.officer_id}
+                      type="button"
+                      onClick={() => { setSelectedOfficer(o.officer_id); setQuery(''); setDropdownOpen(false) }}
+                      className="w-full text-left px-3 py-1.5 text-sm hover:bg-blue-50 flex justify-between"
+                    >
+                      <span>{o.name}</span>
+                      <span className="text-gray-400 text-xs">{o.grade ?? ''}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+          {selectedName && (
+            <div className="text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded">Selected: {selectedName}</div>
+          )}
+          <input
+            type="text"
+            placeholder="Reason (optional)"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            className="w-full border rounded-md px-3 py-1.5 text-sm"
+          />
+          <div className="flex gap-2">
+            <button onClick={handleAdd} disabled={!selectedOfficer || loading} className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium disabled:opacity-50">
+              {loading ? 'Adding...' : 'Add'}
+            </button>
+            <button onClick={() => { setShowAdd(false); setSelectedOfficer(null); setQuery(''); setReason('') }} className="px-3 py-1 border rounded text-xs">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

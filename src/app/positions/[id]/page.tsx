@@ -1,5 +1,8 @@
 import { notFound } from 'next/navigation'
 import { getPositionById } from '@/lib/queries/positions'
+import { getCurrentSession } from '@/app/actions/auth'
+import { getActiveCycle, getOrCreateSubmission } from '@/lib/queries/submissions'
+import { supabaseServer } from '@/lib/supabase'
 import PositionDetail from '../components/PositionDetail'
 import SuccessorRecommender from '../components/SuccessorRecommender'
 
@@ -12,15 +15,47 @@ interface PositionDetailPageProps {
 }
 
 export default async function PositionDetailPage({ params }: PositionDetailPageProps) {
-  const position = await getPositionById(params.id).catch(() => null)
+  const [position, session, cycle] = await Promise.all([
+    getPositionById(params.id).catch(() => null),
+    getCurrentSession(),
+    getActiveCycle(),
+  ])
 
-  if (!position) {
-    notFound()
+  if (!position) notFound()
+
+  let submissionStatus: string | null = null
+  let submissionId: string | null = null
+
+  if (cycle) {
+    const { data } = await supabaseServer
+      .from('plan_submissions')
+      .select('submission_id, status')
+      .eq('cycle_id', cycle.cycle_id)
+      .eq('agency', position.agency)
+      .maybeSingle()
+    if (data) {
+      submissionStatus = data.status
+      submissionId = data.submission_id
+    } else {
+      submissionStatus = 'draft'
+    }
   }
+
+  // Fetch all officers for PSD editing
+  const { data: allOfficers } = await supabaseServer
+    .from('officers')
+    .select('officer_id, name, grade')
+    .order('name')
 
   return (
     <main className="container mx-auto px-4 py-8 space-y-8">
-      <PositionDetail position={position} />
+      <PositionDetail
+        position={position}
+        submissionStatus={submissionStatus}
+        submissionId={submissionId}
+        userRole={session?.role ?? null}
+        allOfficers={allOfficers ?? []}
+      />
       <SuccessorRecommender positionId={params.id} />
     </main>
   )
