@@ -2,9 +2,9 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Plus, Trash2, Clock, Search } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Clock, Search, CheckCircle2, X } from 'lucide-react'
 import type { PlanSubmission, SuccessorChange } from '@/lib/queries/submissions'
-import { addSuccessorWithAudit, removeSuccessorWithAudit } from '@/app/actions/submissions'
+import { addSuccessorWithAudit, removeSuccessorWithAudit, submitPlanAction } from '@/app/actions/submissions'
 
 type PositionRow = {
   position_id: string
@@ -33,6 +33,17 @@ export default function AgencyPlanEditor({
   allOfficers: Officer[]
   changes: SuccessorChange[]
 }) {
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+
+  async function handleSubmit() {
+    setSubmitting(true)
+    await submitPlanAction(submission.submission_id)
+    setSubmitting(false)
+    setShowConfirm(false)
+    window.location.href = '/agency'
+  }
+
   const officerNameMap = useMemo(() => {
     const map: Record<string, string> = {}
     for (const o of allOfficers) map[o.officer_id] = o.name
@@ -51,10 +62,16 @@ export default function AgencyPlanEditor({
         <Link href="/agency" className="text-gray-500 hover:text-gray-700">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold text-gray-900">Edit Succession Plan</h1>
           <p className="text-sm text-gray-600">{agency}</p>
         </div>
+        <button
+          onClick={() => setShowConfirm(true)}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"
+        >
+          <CheckCircle2 className="h-4 w-4" /> Submit Plan
+        </button>
       </div>
 
       <div className="space-y-4">
@@ -82,6 +99,41 @@ export default function AgencyPlanEditor({
                 <span className="ml-auto text-xs text-gray-400 whitespace-nowrap">{new Date(c.changed_at).toLocaleString()}</span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Submit confirmation modal */}
+      {showConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowConfirm(false)}>
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Submit Succession Plan</h3>
+              <button onClick={() => setShowConfirm(false)} className="p-1 hover:bg-gray-100 rounded">
+                <X className="h-4 w-4 text-gray-500" />
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 mb-2">
+              Are you sure you want to submit this succession plan to PSD for review?
+            </p>
+            <p className="text-sm text-gray-500 mb-6">
+              You will not be able to make further changes until PSD completes their review.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="px-4 py-2 border rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={submitting}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50"
+              >
+                {submitting ? 'Submitting...' : 'Yes, Submit to PSD'}
+              </button>
+            </div>
           </div>
         </div>
       )}
