@@ -38,24 +38,33 @@ export default async function SuccessionPlanningPage() {
       returned: submissions.filter((s) => s.status === 'returned').length,
     }
 
-    // Import components inline to avoid circular deps
     const Link = (await import('next/link')).default
     const { FileText, Clock, CheckCircle2, AlertTriangle, ArrowRight } = await import('lucide-react')
+    const { default: CreateCycleInline } = await import('./CreateCycleInline')
 
     return (
       <div className="min-h-screen bg-gray-50">
         <main className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">Succession Planning — PSD Review</h1>
-            {cycle && (
-              <p className="text-gray-600 mt-1">
-                {cycle.title} &middot; Deadline: {new Date(cycle.deadline).toLocaleDateString('en-SG', { day: 'numeric', month: 'long', year: 'numeric' })}
-              </p>
-            )}
+          <div className="flex items-start justify-between mb-8">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Succession Planning — PSD Review</h1>
+              {cycle && (
+                <p className="text-gray-600 mt-1">
+                  {cycle.title} &middot; Deadline: {new Date(cycle.deadline).toLocaleDateString('en-SG', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </p>
+              )}
+            </div>
+            {cycle && <CreateCycleInline />}
           </div>
 
           {!cycle ? (
-            <div className="text-center py-16 text-gray-500">No active submission cycle.</div>
+            <div className="space-y-6">
+              <div className="text-center py-12 text-gray-500">
+                <p className="text-lg mb-4">No active submission cycle.</p>
+                <p className="text-sm mb-6">Create a new cycle to start the succession planning exercise.</p>
+              </div>
+              <CreateCycleInline />
+            </div>
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
