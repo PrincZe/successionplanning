@@ -44,14 +44,16 @@ export default function Header() {
             
             {user && (
               <div className="hidden md:flex md:items-center md:gap-6">
-                <Link
-                  href="/home"
-                  className={`text-sm font-medium transition-colors hover:text-primary ${
-                    isActive('/home') ? 'text-primary' : 'text-muted-foreground'
-                  }`}
-                >
-                  Home
-                </Link>
+                {user && 'role' in user && user.role !== 'agency_hr' && (
+                  <Link
+                    href="/home"
+                    className={`text-sm font-medium transition-colors hover:text-primary ${
+                      isActive('/home') ? 'text-primary' : 'text-muted-foreground'
+                    }`}
+                  >
+                    Home
+                  </Link>
+                )}
                 {user && 'role' in user && user.role !== 'agency_hr' && (
                   <>
                     <NavDropdown
