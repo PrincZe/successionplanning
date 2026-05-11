@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Plus, Trash2, Clock } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Clock, Search } from 'lucide-react'
 import type { PlanSubmission, SuccessorChange } from '@/lib/queries/submissions'
 import { addSuccessorWithAudit, removeSuccessorWithAudit } from '@/app/actions/submissions'
 
@@ -33,6 +33,18 @@ export default function AgencyPlanEditor({
   allOfficers: Officer[]
   changes: SuccessorChange[]
 }) {
+  const officerNameMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const o of allOfficers) map[o.officer_id] = o.name
+    return map
+  }, [allOfficers])
+
+  const positionNameMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const p of positions) map[p.position_id] = p.position_title
+    return map
+  }, [positions])
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
@@ -45,14 +57,12 @@ export default function AgencyPlanEditor({
         </div>
       </div>
 
-      {/* Positions list */}
       <div className="space-y-4">
         {positions.map((pos) => (
           <PositionCard key={pos.position_id} position={pos} allOfficers={allOfficers} submissionId={submission.submission_id} />
         ))}
       </div>
 
-      {/* Change history */}
       {changes.length > 0 && (
         <div className="bg-white border rounded-xl p-5">
           <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
@@ -64,16 +74,75 @@ export default function AgencyPlanEditor({
                 <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${c.action === 'add' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                   {c.action === 'add' ? '+' : '-'}
                 </span>
-                <span className="text-gray-700">{c.officer_id}</span>
+                <span className="font-medium text-gray-800">{officerNameMap[c.officer_id] ?? c.officer_id}</span>
                 <span className="text-gray-400">&rarr;</span>
-                <span className="text-gray-700">{c.position_id}</span>
+                <span className="text-gray-700">{positionNameMap[c.position_id] ?? c.position_id}</span>
                 <span className="text-gray-500">({c.succession_type.replace('_', '-')})</span>
                 {c.reason && <span className="text-gray-500 italic ml-1">&ldquo;{c.reason}&rdquo;</span>}
-                <span className="ml-auto text-xs text-gray-400">{new Date(c.changed_at).toLocaleString()}</span>
+                <span className="ml-auto text-xs text-gray-400 whitespace-nowrap">{new Date(c.changed_at).toLocaleString()}</span>
               </div>
             ))}
           </div>
         </div>
+      )}
+    </div>
+  )
+}
+
+function OfficerSearch({
+  officers,
+  onSelect,
+  placeholder,
+}: {
+  officers: Officer[]
+  onSelect: (officerId: string) => void
+  placeholder?: string
+}) {
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+
+  const filtered = useMemo(() => {
+    if (!query.trim()) return officers.slice(0, 10)
+    const q = query.toLowerCase()
+    return officers.filter((o) => o.name.toLowerCase().includes(q) || o.officer_id.toLowerCase().includes(q)).slice(0, 10)
+  }, [officers, query])
+
+  function handleSelect(officerId: string) {
+    onSelect(officerId)
+    setQuery('')
+    setOpen(false)
+  }
+
+  return (
+    <div className="relative">
+      <div className="flex items-center border rounded-md px-3 py-2 bg-white">
+        <Search className="h-3.5 w-3.5 text-gray-400 mr-2 flex-shrink-0" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true) }}
+          onFocus={() => setOpen(true)}
+          placeholder={placeholder ?? 'Search officer by name...'}
+          className="w-full text-sm outline-none"
+        />
+      </div>
+      {open && filtered.length > 0 && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute z-20 mt-1 w-full bg-white border rounded-md shadow-lg max-h-48 overflow-y-auto">
+            {filtered.map((o) => (
+              <button
+                key={o.officer_id}
+                type="button"
+                onClick={() => handleSelect(o.officer_id)}
+                className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 flex justify-between"
+              >
+                <span className="font-medium text-gray-900">{o.name}</span>
+                <span className="text-gray-400 text-xs">{o.grade ?? '—'}</span>
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   )
@@ -137,6 +206,8 @@ function PositionCard({
     window.location.reload()
   }
 
+  const selectedOfficerName = allOfficers.find((o) => o.officer_id === selectedOfficer)?.name
+
   return (
     <div className="bg-white border rounded-xl p-5">
       <div className="flex items-baseline justify-between mb-3">
@@ -150,7 +221,7 @@ function PositionCard({
       <div className="mb-3">
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs font-semibold text-gray-600 uppercase">0–4 Year Successors</span>
-          <button onClick={() => setAdding('0-4_years')} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
+          <button onClick={() => { setAdding('0-4_years'); setSelectedOfficer('') }} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
             <Plus className="h-3 w-3" /> Add
           </button>
         </div>
@@ -170,7 +241,7 @@ function PositionCard({
       <div className="mb-3">
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs font-semibold text-gray-600 uppercase">4–10 Year Successors</span>
-          <button onClick={() => setAdding('4-10_years')} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
+          <button onClick={() => { setAdding('4-10_years'); setSelectedOfficer('') }} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
             <Plus className="h-3 w-3" /> Add
           </button>
         </div>
@@ -190,16 +261,16 @@ function PositionCard({
       {adding && (
         <div className="mt-3 border-t pt-3 space-y-2">
           <div className="text-xs font-medium text-gray-700">Add to {adding.replace('_', '-')} band</div>
-          <select
-            value={selectedOfficer}
-            onChange={(e) => setSelectedOfficer(e.target.value)}
-            className="w-full border rounded-md px-3 py-2 text-sm"
-          >
-            <option value="">Select an officer...</option>
-            {availableOfficers.map((o) => (
-              <option key={o.officer_id} value={o.officer_id}>{o.name} ({o.grade ?? 'no grade'})</option>
-            ))}
-          </select>
+          <OfficerSearch
+            officers={availableOfficers}
+            onSelect={setSelectedOfficer}
+            placeholder="Search officer by name..."
+          />
+          {selectedOfficerName && (
+            <div className="text-sm text-blue-700 bg-blue-50 px-3 py-1.5 rounded">
+              Selected: <span className="font-medium">{selectedOfficerName}</span>
+            </div>
+          )}
           <input
             type="text"
             placeholder="Reason (optional)"
