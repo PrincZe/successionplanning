@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  Crown, User, Clock, CalendarDays, Sparkles,
+  Crown, User, Sparkles,
   ArrowLeft, Edit, Hash, Building2, Award, FileText, Plus, Trash2, Search
 } from 'lucide-react'
 import type { PositionWithRelations } from '@/lib/queries/positions'
@@ -13,105 +13,41 @@ import RecommendationPanel from './RecommendationPanel'
 
 type OfficerOption = { officer_id: string; name: string; grade: string | null }
 
-interface SuccessionNodeProps {
-  title: string
-  name?: string
-  officerId?: string
-  className?: string
-  variant?: 'position' | 'incumbent' | '0-4years' | '4-10years'
-  icon?: React.ReactNode
-}
-
-function SuccessionNode({ title, name, officerId, className = '', variant = '0-4years', icon }: SuccessionNodeProps) {
-  const variantStyles = {
-    position: 'bg-gradient-to-br from-slate-500 to-slate-600 text-white border-slate-300 shadow-lg',
-    incumbent: 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-emerald-300 shadow-lg',
-    '0-4years': 'bg-gradient-to-br from-blue-50 to-blue-100 text-blue-900 border-blue-200 shadow-md hover:shadow-lg transition-all duration-200',
-    '4-10years': 'bg-gradient-to-br from-purple-50 to-violet-100 text-purple-900 border-purple-200 shadow-md hover:shadow-lg transition-all duration-200',
-  }
-
-  return (
-    <div className={`${variantStyles[variant]} border-2 rounded-xl p-4 w-72 text-center transform hover:scale-105 transition-all duration-200 ${className}`}>
-      <div className="flex items-center justify-center mb-2">
-        {icon && <span className="mr-2">{icon}</span>}
-        <div className="text-sm font-semibold">{title}</div>
-      </div>
-      {name ? (
-        <Link href={`/officers/${officerId}`} className="font-bold text-lg hover:underline block">
-          {name}
-        </Link>
-      ) : (
-        <span className="text-gray-400 italic">Vacant</span>
-      )}
-    </div>
-  )
-}
-
 function SuccessionTree({ position, canEdit, submissionId, allOfficers }: { position: PositionWithRelations; canEdit: boolean; submissionId: string | null; allOfficers: OfficerOption[] }) {
   const shortTermSuccessors = position.successors_0_4_years || []
   const longTermSuccessors = position.successors_4_10_years || []
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl shadow-xl p-8 border border-gray-200">
-      <div className="flex items-center justify-center mb-8">
-        <Crown className="h-6 w-6 text-purple-600 mr-3" />
-        <h3 className="text-2xl font-bold text-gray-800">Succession Hierarchy</h3>
-      </div>
-
-      <div className="flex flex-col items-center space-y-16 relative">
-        <div className="relative">
-          <SuccessionNode
-            title="Position"
-            name={`${position.position_title} • ${position.agency}`}
-            variant="position"
-            icon={<Crown className="h-5 w-5" />}
-          />
-        </div>
-
-        <div className="w-1 h-12 bg-gradient-to-b from-slate-400 to-emerald-400 rounded-full"></div>
-
-        <div className="relative">
-          <SuccessionNode
-            title="Current Incumbent"
-            name={position.incumbent?.name}
-            officerId={position.incumbent?.officer_id}
-            variant="incumbent"
-            icon={<User className="h-5 w-5" />}
-          />
-        </div>
-
-        {/* 0-4yr band */}
-        <div className="w-1 h-12 bg-gradient-to-b from-emerald-400 to-blue-400 rounded-full"></div>
-        <div className="relative w-full flex flex-col items-center">
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">
-              <Clock className="h-4 w-4 mr-2" />
-              0–4 Year Successors ({shortTermSuccessors.length})
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+      {/* Incumbent */}
+      <div className="px-6 py-4 border-b border-gray-100">
+        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Incumbent</div>
+        {position.incumbent ? (
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center">
+              <User className="h-4 w-4 text-emerald-600" />
+            </div>
+            <div>
+              <Link href={`/officers/${position.incumbent.officer_id}`} className="text-base font-semibold text-gray-900 hover:text-blue-600 hover:underline">
+                {position.incumbent.name}
+              </Link>
+              <div className="text-xs text-gray-500">{position.incumbent.grade ?? '—'}</div>
             </div>
           </div>
+        ) : (
+          <div className="text-sm text-red-600 font-medium">Vacant</div>
+        )}
+      </div>
 
-          {shortTermSuccessors.length > 0 && (
-            <div className="relative flex items-center w-full max-w-4xl">
-              <div className="absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-blue-300 via-blue-400 to-blue-300 rounded-full transform -translate-y-1/2"></div>
-              <div className="flex justify-between w-full relative z-10">
-                {shortTermSuccessors.map((successor, index) => (
-                  <div key={successor.officer_id} className="relative">
-                    <div className="absolute top-1/2 left-1/2 w-1 h-8 bg-blue-400 rounded-full transform -translate-x-1/2 -translate-y-full"></div>
-                    <SuccessionNode
-                      title={`0-4yr Successor ${index + 1}`}
-                      name={successor.name}
-                      officerId={successor.officer_id}
-                      variant="0-4years"
-                      icon={<Clock className="h-4 w-4" />}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          {shortTermSuccessors.length === 0 && (
-            <div className="text-sm text-gray-400 italic">No successors assigned</div>
-          )}
+      {/* 0-4 Year Successors */}
+      <div className="px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            0–4 Year Successors
+            <span className={`ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold ${shortTermSuccessors.length >= 2 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+              {shortTermSuccessors.length}
+            </span>
+          </div>
           {canEdit && submissionId && (
             <InlineSuccessorEditor
               positionId={position.position_id}
@@ -122,35 +58,32 @@ function SuccessionTree({ position, canEdit, submissionId, allOfficers }: { posi
             />
           )}
         </div>
-
-        {/* 4-10yr band */}
-        <div className="w-1 h-12 bg-gradient-to-b from-blue-400 to-purple-400 rounded-full"></div>
-        <div className="relative w-full flex flex-col items-center">
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-semibold">
-              <CalendarDays className="h-4 w-4 mr-2" />
-              4–10 Year Successors ({longTermSuccessors.length})
-            </div>
+        {shortTermSuccessors.length > 0 ? (
+          <div className="space-y-1">
+            {shortTermSuccessors.map((s, i) => (
+              <div key={s.officer_id} className="flex items-center gap-3 py-1.5">
+                <span className="text-xs text-gray-400 w-4">{i + 1}.</span>
+                <Link href={`/officers/${s.officer_id}`} className="text-sm font-medium text-gray-900 hover:text-blue-600 hover:underline">
+                  {s.name}
+                </Link>
+                <span className="text-xs text-gray-400">{s.grade ?? '—'}</span>
+              </div>
+            ))}
           </div>
+        ) : (
+          <div className="text-sm text-gray-400 italic py-1">No successors assigned</div>
+        )}
+      </div>
 
-          {longTermSuccessors.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-8 w-full max-w-5xl">
-              {longTermSuccessors.map((successor, index) => (
-                <div key={successor.officer_id} className="relative">
-                  <SuccessionNode
-                    title={`4-10yr Successor ${index + 1}`}
-                    name={successor.name}
-                    officerId={successor.officer_id}
-                    variant="4-10years"
-                    icon={<CalendarDays className="h-4 w-4" />}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-          {longTermSuccessors.length === 0 && (
-            <div className="text-sm text-gray-400 italic">No successors assigned</div>
-          )}
+      {/* 4-10 Year Successors */}
+      <div className="px-6 py-4">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            4–10 Year Successors
+            <span className="ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold bg-gray-100 text-gray-600">
+              {longTermSuccessors.length}
+            </span>
+          </div>
           {canEdit && submissionId && (
             <InlineSuccessorEditor
               positionId={position.position_id}
@@ -161,6 +94,21 @@ function SuccessionTree({ position, canEdit, submissionId, allOfficers }: { posi
             />
           )}
         </div>
+        {longTermSuccessors.length > 0 ? (
+          <div className="space-y-1">
+            {longTermSuccessors.map((s, i) => (
+              <div key={s.officer_id} className="flex items-center gap-3 py-1.5">
+                <span className="text-xs text-gray-400 w-4">{i + 1}.</span>
+                <Link href={`/officers/${s.officer_id}`} className="text-sm font-medium text-gray-900 hover:text-blue-600 hover:underline">
+                  {s.name}
+                </Link>
+                <span className="text-xs text-gray-400">{s.grade ?? '—'}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-sm text-gray-400 italic py-1">No successors assigned</div>
+        )}
       </div>
     </div>
   )
