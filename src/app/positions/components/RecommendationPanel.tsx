@@ -149,9 +149,9 @@ export default function RecommendationPanel({ positionId, onClose }: { positionI
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
-          {loading && (
+          {(loading || (generating && !result)) && (
             <div className="flex items-center justify-center py-12 text-gray-500 text-sm">
-              <Loader2 className="h-4 w-4 animate-spin mr-2" /> Loading...
+              <Loader2 className="h-4 w-4 animate-spin mr-2" /> {generating ? 'Generating recommendations...' : 'Loading...'}
             </div>
           )}
 
@@ -281,8 +281,8 @@ export default function RecommendationPanel({ positionId, onClose }: { positionI
           )}
 
           {!loading && !result && !error && (
-            <div className="px-4 py-8 text-sm text-gray-500 text-center">
-              <button onClick={generate} className="text-violet-600 hover:underline">Generate recommendations</button>
+            <div className="flex items-center justify-center py-12 text-gray-500 text-sm">
+              <Loader2 className="h-4 w-4 animate-spin mr-2" /> Generating...
             </div>
           )}
         </div>
