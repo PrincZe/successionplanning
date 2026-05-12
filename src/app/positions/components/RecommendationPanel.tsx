@@ -94,7 +94,11 @@ export default function RecommendationPanel({ positionId, onClose }: { positionI
   }
 
   useEffect(() => {
-    loadCached().then((data) => { if (!data) generate() })
+    loadCached().then((data) => {
+      if (!data) { generate(); return }
+      const hasBands = data.candidates?.some((c: any) => c.recommended_band)
+      if (!hasBands) generate()
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [positionId])
 
