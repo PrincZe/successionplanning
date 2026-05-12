@@ -31,7 +31,11 @@ export default async function SubmissionReviewPage({ params }: { params: { id: s
     .eq('agency', submission.agency)
     .order('position_title') as { data: any[] | null }
 
-  // Build name lookup maps for the change log
+  const { data: allOfficers } = await supabaseServer
+    .from('officers')
+    .select('officer_id, name, grade')
+    .order('name')
+
   const officerNames: Record<string, string> = {}
   const positionNames: Record<string, string> = {}
 
@@ -64,6 +68,7 @@ export default async function SubmissionReviewPage({ params }: { params: { id: s
           changes={changes}
           officerNames={officerNames}
           positionNames={positionNames}
+          allOfficers={allOfficers ?? []}
         />
       </main>
     </div>
