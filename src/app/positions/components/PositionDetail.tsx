@@ -4,11 +4,12 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  Crown, User, Clock, CalendarDays,
+  Crown, User, Clock, CalendarDays, Sparkles,
   ArrowLeft, Edit, Hash, Building2, Award, FileText, Plus, Trash2, Search
 } from 'lucide-react'
 import type { PositionWithRelations } from '@/lib/queries/positions'
 import { addSuccessorWithAudit, removeSuccessorWithAudit } from '@/app/actions/submissions'
+import RecommendationPanel from './RecommendationPanel'
 
 type OfficerOption = { officer_id: string; name: string; grade: string | null }
 
@@ -184,9 +185,11 @@ interface PositionDetailProps {
 export default function PositionDetail({ position, submissionStatus, submissionId, userRole, allOfficers = [] }: PositionDetailProps) {
   const canPsdEdit = (userRole === 'psd' || userRole === 'admin') && (submissionStatus === 'submitted' || submissionStatus === 'in_review')
   const router = useRouter()
+  const [showRecs, setShowRecs] = useState(false)
 
   return (
-    <div className="space-y-8">
+    <div className={`flex gap-6 ${showRecs ? '' : ''}`}>
+    <div className={`space-y-8 ${showRecs ? 'flex-1 min-w-0' : 'w-full'} transition-all`}>
       {/* Header Section */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
         <div className="p-8">
@@ -199,6 +202,13 @@ export default function PositionDetail({ position, submissionStatus, submissionI
               Back to List
             </Link>
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowRecs(!showRecs)}
+                className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors shadow-sm ${showRecs ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-white border border-violet-300 text-violet-700 hover:bg-violet-50'}`}
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                AI Recommendations
+              </button>
               <Link
                 href={`/plans/position/${position.position_id}`}
                 className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
@@ -325,6 +335,14 @@ export default function PositionDetail({ position, submissionStatus, submissionI
         submissionId={submissionId ?? null}
         allOfficers={allOfficers}
       />
+    </div>
+
+    {/* AI Recommendation side panel */}
+    {showRecs && (
+      <div className="w-[380px] flex-shrink-0 sticky top-20 h-[calc(100vh-6rem)] overflow-hidden rounded-xl border border-gray-200 shadow-lg">
+        <RecommendationPanel positionId={position.position_id} onClose={() => setShowRecs(false)} />
+      </div>
+    )}
     </div>
   )
 }

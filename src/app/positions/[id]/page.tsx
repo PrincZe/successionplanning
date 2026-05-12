@@ -1,10 +1,9 @@
 import { notFound } from 'next/navigation'
 import { getPositionById } from '@/lib/queries/positions'
 import { getCurrentSession } from '@/app/actions/auth'
-import { getActiveCycle, getOrCreateSubmission } from '@/lib/queries/submissions'
+import { getActiveCycle } from '@/lib/queries/submissions'
 import { supabaseServer } from '@/lib/supabase'
 import PositionDetail from '../components/PositionDetail'
-import SuccessorRecommender from '../components/SuccessorRecommender'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,14 +40,13 @@ export default async function PositionDetailPage({ params }: PositionDetailPageP
     }
   }
 
-  // Fetch all officers for PSD editing
   const { data: allOfficers } = await supabaseServer
     .from('officers')
     .select('officer_id, name, grade')
     .order('name')
 
   return (
-    <main className="container mx-auto px-4 py-8 space-y-8">
+    <main className="container mx-auto px-4 py-8">
       <PositionDetail
         position={position}
         submissionStatus={submissionStatus}
@@ -56,7 +54,6 @@ export default async function PositionDetailPage({ params }: PositionDetailPageP
         userRole={session?.role ?? null}
         allOfficers={allOfficers ?? []}
       />
-      <SuccessorRecommender positionId={params.id} />
     </main>
   )
 }
