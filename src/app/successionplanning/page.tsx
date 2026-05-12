@@ -8,14 +8,15 @@ export default async function SuccessionPlanningPage() {
   if (!session) redirect('/login')
 
   if (session.role === 'agency_hr') {
+    if (!session.agency) redirect('/login')
     const { getActiveCycle, getOrCreateSubmission, getSubmissions } = await import('@/lib/queries/submissions')
     const cycle = await getActiveCycle()
     let submission = null
-    if (cycle && session.agency) {
+    if (cycle) {
       submission = await getOrCreateSubmission(cycle.cycle_id, session.agency)
     }
     // Fetch past submissions for this agency (closed/endorsed cycles)
-    const allSubmissions = session.agency ? await getSubmissions({ agency: session.agency }) : []
+    const allSubmissions = await getSubmissions({ agency: session.agency })
     const pastSubmissions = allSubmissions.filter(
       (s) => s.submission_id !== submission?.submission_id && s.status === 'endorsed'
     )
@@ -24,7 +25,7 @@ export default async function SuccessionPlanningPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <main className="container mx-auto px-4 py-8">
-          <AgencyTaskPage agency={session.agency!} cycle={cycle} submission={submission} />
+          <AgencyTaskPage agency={session.agency} cycle={cycle} submission={submission} />
           {pastSubmissions.length > 0 && (
             <div className="max-w-3xl mx-auto mt-8">
               <h2 className="text-lg font-semibold text-gray-900 mb-3">Past Submissions</h2>

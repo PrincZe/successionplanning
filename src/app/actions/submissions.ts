@@ -73,7 +73,7 @@ export async function addSuccessorWithAudit(data: {
     const { addSuccessor } = await import('@/lib/queries/positions')
     await addSuccessor(data.position_id, data.officer_id, data.succession_type)
 
-    revalidatePath('/agency/plan')
+    revalidatePath('/successionplanning/plan')
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error?.message ?? 'Failed to add successor' }
@@ -111,7 +111,7 @@ export async function removeSuccessorWithAudit(data: {
       .eq('successor_id', data.officer_id)
       .eq('succession_type', data.succession_type)
 
-    revalidatePath('/agency/plan')
+    revalidatePath('/successionplanning/plan')
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error?.message ?? 'Failed to remove successor' }

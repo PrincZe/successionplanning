@@ -80,7 +80,7 @@ export default function CompareModal({
               <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{label}</div>
               <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${candidates.length}, 1fr)` }}>
                 {candidates.map((c) => {
-                  const val = c.sub_scores[key]
+                  const val = c.sub_scores?.[key] ?? 0
                   const band = bandFromScore(val)
                   return (
                     <div key={c.officer_id}>

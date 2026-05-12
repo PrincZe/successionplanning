@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  X, Sparkles, RefreshCw, Loader2, Trophy, TrendingUp, TrendingDown, Minus,
+  X, Sparkles, Loader2, Trophy, TrendingUp, TrendingDown, Minus,
   ChevronDown, ChevronRight, Check, ExternalLink, GitCompare,
 } from 'lucide-react'
 import { addSuccessorAction } from '@/app/actions/positions'

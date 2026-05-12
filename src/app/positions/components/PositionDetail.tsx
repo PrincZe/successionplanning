@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Crown, User, Sparkles,
-  ArrowLeft, Edit, Hash, Building2, Award, FileText, Plus, Trash2, Search
+  ArrowLeft, Edit, Hash, Building2, Award, FileText, Plus, Search
 } from 'lucide-react'
 import type { PositionWithRelations } from '@/lib/queries/positions'
 import { addSuccessorWithAudit, removeSuccessorWithAudit } from '@/app/actions/submissions'
