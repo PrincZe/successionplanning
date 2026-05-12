@@ -13,12 +13,24 @@ import RecommendationPanel from './RecommendationPanel'
 
 type OfficerOption = { officer_id: string; name: string; grade: string | null }
 
-function SuccessionTree({ position, canEdit, submissionId, allOfficers }: { position: PositionWithRelations; canEdit: boolean; submissionId: string | null; allOfficers: OfficerOption[] }) {
+function SuccessionTree({ position, canEdit, submissionId, allOfficers, showRecs, setShowRecs }: { position: PositionWithRelations; canEdit: boolean; submissionId: string | null; allOfficers: OfficerOption[]; showRecs: boolean; setShowRecs: (v: boolean) => void }) {
   const shortTermSuccessors = position.successors_0_4_years || []
   const longTermSuccessors = position.successors_4_10_years || []
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+      {/* Header */}
+      <div className="px-6 py-3 border-b border-gray-100 flex items-center justify-between">
+        <span className="text-sm font-semibold text-gray-900">Succession Plan</span>
+        <button
+          onClick={() => setShowRecs(!showRecs)}
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${showRecs ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-violet-50 border border-violet-200 text-violet-700 hover:bg-violet-100'}`}
+        >
+          <Sparkles className="h-3.5 w-3.5" />
+          AI Recommendations
+        </button>
+      </div>
+
       {/* Incumbent */}
       <div className="px-6 py-4 border-b border-gray-100">
         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Incumbent</div>
@@ -150,13 +162,6 @@ export default function PositionDetail({ position, submissionStatus, submissionI
               Back to List
             </Link>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowRecs(!showRecs)}
-                className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors shadow-sm ${showRecs ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-white border border-violet-300 text-violet-700 hover:bg-violet-50'}`}
-              >
-                <Sparkles className="h-4 w-4 mr-2" />
-                AI Recommendations
-              </button>
               <Link
                 href={`/plans/position/${position.position_id}`}
                 className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
@@ -282,6 +287,8 @@ export default function PositionDetail({ position, submissionStatus, submissionI
         canEdit={canPsdEdit}
         submissionId={submissionId ?? null}
         allOfficers={allOfficers}
+        showRecs={showRecs}
+        setShowRecs={setShowRecs}
       />
     </div>
 
