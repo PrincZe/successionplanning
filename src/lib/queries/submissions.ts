@@ -35,6 +35,8 @@ export type SuccessorChange = {
   reason: string | null
   changed_by: string
   changed_at: string
+  changed_by_name?: string
+  changed_by_role?: string
 }
 
 export async function getCycles(): Promise<SubmissionCycle[]> {
@@ -151,7 +153,21 @@ export async function getChangesForSubmission(submissionId: string): Promise<Suc
     .eq('submission_id', submissionId)
     .order('changed_at', { ascending: false })
   if (error) throw error
-  return data as SuccessorChange[]
+
+  const changes = data as SuccessorChange[]
+  const userIds = Array.from(new Set(changes.map((c) => c.changed_by)))
+  if (userIds.length > 0) {
+    const { data: users } = await supabase.from('users').select('user_id, name, role').in('user_id', userIds)
+    const userMap = new Map((users ?? []).map((u: any) => [u.user_id, u]))
+    for (const c of changes) {
+      const u = userMap.get(c.changed_by)
+      if (u) {
+        c.changed_by_name = u.name
+        c.changed_by_role = u.role
+      }
+    }
+  }
+  return changes
 }
 
 export async function recordChange(change: {

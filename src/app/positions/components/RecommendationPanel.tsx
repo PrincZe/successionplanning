@@ -8,6 +8,7 @@ import {
   ChevronDown, ChevronRight, Check, ExternalLink, GitCompare,
 } from 'lucide-react'
 import { addSuccessorAction } from '@/app/actions/positions'
+import { addSuccessorWithAudit } from '@/app/actions/submissions'
 import CompareModal from './CompareModal'
 
 type SubScores = {
@@ -56,7 +57,7 @@ const TRAJECTORY_ICON: Record<string, React.ReactNode> = {
   unknown: null,
 }
 
-export default function RecommendationPanel({ positionId, onClose }: { positionId: string; onClose: () => void }) {
+export default function RecommendationPanel({ positionId, submissionId, onClose }: { positionId: string; submissionId: string | null; onClose: () => void }) {
   const router = useRouter()
   const [result, setResult] = useState<RecommendationResult | null>(null)
   const [loading, setLoading] = useState(true)
@@ -113,7 +114,17 @@ export default function RecommendationPanel({ positionId, onClose }: { positionI
 
   async function addToPipeline(officerId: string, type: '0-4_years' | '4-10_years') {
     setAddedKey(`${officerId}:${type}`)
-    await addSuccessorAction(positionId, officerId, type)
+    if (submissionId) {
+      await addSuccessorWithAudit({
+        submission_id: submissionId,
+        position_id: positionId,
+        officer_id: officerId,
+        succession_type: type,
+        reason: 'Added via AI recommendation (PSD)',
+      })
+    } else {
+      await addSuccessorAction(positionId, officerId, type)
+    }
     router.refresh()
     setTimeout(() => setAddedKey(null), 2000)
   }
@@ -277,7 +288,10 @@ export default function RecommendationPanel({ positionId, onClose }: { positionI
           })()}
 
           {!loading && result && result.candidates.length === 0 && (
-            <div className="px-4 py-8 text-sm text-gray-500 text-center">No candidates found.</div>
+            <div className="px-4 py-8 text-center">
+              <div className="text-sm text-gray-500 mb-1">No candidates found.</div>
+              <div className="text-xs text-gray-400">All eligible officers may already be assigned as successors.</div>
+            </div>
           )}
 
           {!loading && !result && !error && (

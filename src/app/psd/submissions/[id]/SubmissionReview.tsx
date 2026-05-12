@@ -160,7 +160,12 @@ export default function SubmissionReview({
                   </div>
                   {c.reason && <div className="text-xs text-gray-500 mt-0.5 italic">Reason: {c.reason}</div>}
                 </div>
-                <div className="text-xs text-gray-400 whitespace-nowrap">{new Date(c.changed_at).toLocaleString()}</div>
+                <div className="text-right">
+                  {c.changed_by_role && c.changed_by_role !== 'agency_hr' && (
+                    <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-violet-100 text-violet-700 mb-0.5">PSD</span>
+                  )}
+                  <div className="text-xs text-gray-400 whitespace-nowrap">{new Date(c.changed_at).toLocaleString()}</div>
+                </div>
               </div>
             ))}
           </div>

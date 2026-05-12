@@ -96,7 +96,12 @@ export default function AgencyPlanEditor({
                 <span className="text-gray-700">{positionNameMap[c.position_id] ?? c.position_id}</span>
                 <span className="text-gray-500">({c.succession_type.replace('_', '-')})</span>
                 {c.reason && <span className="text-gray-500 italic ml-1">&ldquo;{c.reason}&rdquo;</span>}
-                <span className="ml-auto text-xs text-gray-400 whitespace-nowrap">{new Date(c.changed_at).toLocaleString()}</span>
+                <span className="ml-auto flex items-center gap-2">
+                  {c.changed_by_role && c.changed_by_role !== 'agency_hr' && (
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-violet-100 text-violet-700">PSD</span>
+                  )}
+                  <span className="text-xs text-gray-400 whitespace-nowrap">{new Date(c.changed_at).toLocaleString()}</span>
+                </span>
               </div>
             ))}
           </div>

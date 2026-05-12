@@ -295,7 +295,7 @@ export default function PositionDetail({ position, submissionStatus, submissionI
     {/* AI Recommendation side panel */}
     {showRecs && (
       <div className="w-[380px] flex-shrink-0 sticky top-20 h-[calc(100vh-6rem)] overflow-hidden rounded-xl border border-gray-200 shadow-lg">
-        <RecommendationPanel positionId={position.position_id} onClose={() => setShowRecs(false)} />
+        <RecommendationPanel positionId={position.position_id} submissionId={submissionId ?? null} onClose={() => setShowRecs(false)} />
       </div>
     )}
     </div>
