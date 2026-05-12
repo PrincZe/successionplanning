@@ -92,7 +92,7 @@ export default async function AgencyPlanPage({ params }: { params: { agency: str
             At-risk positions ({at_risk.length})
           </h2>
           {at_risk.length === 0 ? (
-            <p className="text-sm text-gray-500 italic">No red or amber positions.</p>
+            <p className="text-sm text-gray-500 italic">No red positions.</p>
           ) : (
             <div className="border border-gray-200 rounded">
               <table className="w-full text-sm">
@@ -100,8 +100,7 @@ export default async function AgencyPlanPage({ params }: { params: { agency: str
                   <tr>
                     <th className="text-left px-3 py-2 border-b border-gray-200">Position</th>
                     <th className="text-left px-3 py-2 border-b border-gray-200">Incumbent</th>
-                    <th className="text-right px-3 py-2 border-b border-gray-200">Risk</th>
-                    <th className="text-right px-3 py-2 border-b border-gray-200">Imm/1–2/3–5</th>
+                    <th className="text-right px-3 py-2 border-b border-gray-200">Coverage</th>
                     <th className="text-left px-3 py-2 border-b border-gray-200">Band</th>
                   </tr>
                 </thead>
@@ -151,8 +150,7 @@ export default async function AgencyPlanPage({ params }: { params: { agency: str
                 <tr>
                   <th className="text-left px-3 py-2 border-b border-gray-200">Position</th>
                   <th className="text-left px-3 py-2 border-b border-gray-200">Incumbent</th>
-                  <th className="text-right px-3 py-2 border-b border-gray-200">Risk</th>
-                  <th className="text-right px-3 py-2 border-b border-gray-200">Imm/1–2/3–5</th>
+                  <th className="text-right px-3 py-2 border-b border-gray-200">Coverage</th>
                   <th className="text-left px-3 py-2 border-b border-gray-200">Band</th>
                 </tr>
               </thead>
