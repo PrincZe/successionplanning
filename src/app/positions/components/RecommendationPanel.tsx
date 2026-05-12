@@ -32,6 +32,7 @@ export type RankedCandidate = {
   stint_count: number
   ai_rank: number | null
   ai_reasoning: string | null
+  recommended_band: '0-4_years' | '4-10_years' | null
 }
 
 type RecommendationResult = {
@@ -159,9 +160,23 @@ export default function RecommendationPanel({ positionId, onClose }: { positionI
             <div className="m-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">{error}</div>
           )}
 
-          {!loading && result && (
-            <div className="divide-y">
-              {result.candidates.map((c) => {
+          {!loading && result && (() => {
+            const band04 = result.candidates.filter((c) => c.recommended_band === '0-4_years')
+            const band410 = result.candidates.filter((c) => c.recommended_band === '4-10_years')
+            const unassigned = result.candidates.filter((c) => !c.recommended_band)
+            const sections: Array<{ label: string; candidates: RankedCandidate[] }> = []
+            if (band04.length > 0) sections.push({ label: '0–4 Year Candidates', candidates: band04 })
+            if (band410.length > 0) sections.push({ label: '4–10 Year Candidates', candidates: band410 })
+            if (unassigned.length > 0) sections.push({ label: 'Other Candidates', candidates: unassigned })
+            if (sections.length === 0) sections.push({ label: 'All Candidates', candidates: result.candidates })
+
+            return sections.map((section) => (
+            <div key={section.label}>
+              <div className="px-4 py-2 bg-gray-50 border-y border-gray-100">
+                <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{section.label} ({section.candidates.length})</span>
+              </div>
+              <div className="divide-y">
+              {section.candidates.map((c) => {
                 const isExpanded = expandedId === c.officer_id
                 const isSelected = selected.has(c.officer_id)
                 const band = bandFromScore(c.composite_score)
@@ -217,21 +232,36 @@ export default function RecommendationPanel({ positionId, onClose }: { positionI
 
                         {/* Actions */}
                         <div className="flex items-center gap-2 pt-1">
-                          {(['0-4_years', '4-10_years'] as const).map((type) => {
-                            const key = `${c.officer_id}:${type}`
-                            const added = addedKey === key
-                            return (
-                              <button
-                                key={type}
-                                onClick={() => addToPipeline(c.officer_id, type)}
-                                disabled={!!addedKey}
-                                className={`px-2 py-1 rounded text-xs font-medium ${added ? 'bg-green-100 text-green-700' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
-                              >
-                                {added ? <Check className="h-3 w-3 inline mr-1" /> : null}
-                                {added ? 'Added' : `+ ${type.replace('_', '-')}`}
-                              </button>
-                            )
-                          })}
+                          {c.recommended_band ? (
+                            (() => {
+                              const key = `${c.officer_id}:${c.recommended_band}`
+                              const added = addedKey === key
+                              return (
+                                <button
+                                  onClick={() => addToPipeline(c.officer_id, c.recommended_band!)}
+                                  disabled={!!addedKey}
+                                  className={`px-2 py-1 rounded text-xs font-medium ${added ? 'bg-green-100 text-green-700' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
+                                >
+                                  {added ? <><Check className="h-3 w-3 inline mr-1" />Added</> : `+ Add to ${c.recommended_band.replace('_', '-')}`}
+                                </button>
+                              )
+                            })()
+                          ) : (
+                            (['0-4_years', '4-10_years'] as const).map((type) => {
+                              const key = `${c.officer_id}:${type}`
+                              const added = addedKey === key
+                              return (
+                                <button
+                                  key={type}
+                                  onClick={() => addToPipeline(c.officer_id, type)}
+                                  disabled={!!addedKey}
+                                  className={`px-2 py-1 rounded text-xs font-medium ${added ? 'bg-green-100 text-green-700' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
+                                >
+                                  {added ? <><Check className="h-3 w-3 inline mr-1" />Added</> : `+ ${type.replace('_', '-')}`}
+                                </button>
+                              )
+                            })
+                          )}
                           <Link href={`/officers/${c.officer_id}`} className="ml-auto text-xs text-gray-500 hover:text-blue-600 flex items-center gap-1">
                             Profile <ExternalLink className="h-3 w-3" />
                           </Link>
@@ -242,10 +272,13 @@ export default function RecommendationPanel({ positionId, onClose }: { positionI
                 )
               })}
 
-              {result.candidates.length === 0 && (
-                <div className="px-4 py-8 text-sm text-gray-500 text-center">No candidates found.</div>
-              )}
+              </div>
             </div>
+            ))
+          })()}
+
+          {!loading && result && result.candidates.length === 0 && (
+            <div className="px-4 py-8 text-sm text-gray-500 text-center">No candidates found.</div>
           )}
 
           {!loading && !result && !error && (
