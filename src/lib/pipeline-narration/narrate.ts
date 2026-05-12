@@ -227,11 +227,12 @@ ${criteriaBlock}
 ${successorsBlock}
 
 ## Style guide
-- Speak directly to a senior HR audience. Concrete, not generic.
-- If any criterion is triggered, lead with that as the headline concern.
-- Reference officers by name, not by ID.
-- Translate criteria into the underlying issue (e.g. "only one 0-4yr successor, and the incumbent retires in 2 years").
-- Interventions should be specific. "Develop X via Y" beats "develop talent".`
+- Be concise. 3-5 sentences for the narration. No filler, no preamble.
+- Write for a senior HR audience who already understands succession planning.
+- Lead with the most critical issue. If a criterion is triggered, state the risk plainly.
+- Name officers directly (not IDs). State facts, not hedged observations.
+- For interventions: 2-4 actions max. Each must be specific and actionable (who should do what).
+- Do NOT repeat information already visible in the criteria or successor list.`
 }
 
 async function callClaudeNarrate(ctx: PipelineContext): Promise<NarrationResult> {
