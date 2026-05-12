@@ -132,14 +132,9 @@ export default function RecommendationPanel({ positionId, onClose }: { positionI
             <Sparkles className="h-4 w-4 text-violet-600" />
             <span className="font-semibold text-sm text-gray-900">AI Recommendations</span>
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={generate} disabled={generating} className="text-xs text-violet-600 hover:text-violet-800 disabled:opacity-50" title="Regenerate">
-              <RefreshCw className={`h-3.5 w-3.5 ${generating ? 'animate-spin' : ''}`} />
-            </button>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
         {/* Compare bar */}
