@@ -110,17 +110,35 @@ export default function LoginPage() {
                     Signing in...
                   </>
                 ) : (
-                  'Sign In'
+                  'Sign In with Email'
                 )}
               </Button>
             </form>
+
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-500">or</span>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => window.location.href = '/api/auth/wogad'}
+            >
+              Sign in with WOGAD
+            </Button>
           </CardContent>
         </Card>
 
         <div className="mt-8 text-center">
           <Badge variant="outline" className="text-xs">Authorized Personnel Only</Badge>
           <p className="text-xs text-gray-500 mt-2">
-            Access is restricted to whitelisted government email addresses
+            Access is restricted to authorized government accounts
           </p>
         </div>
       </motion.div>
