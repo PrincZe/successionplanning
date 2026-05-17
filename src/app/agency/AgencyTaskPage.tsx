@@ -7,8 +7,8 @@ import { submitPlanAction } from '@/app/actions/submissions'
 import { useState } from 'react'
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  draft: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Draft' },
-  submitted: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Submitted' },
+  draft: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Pending Submission' },
+  submitted: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Pending Review' },
   in_review: { bg: 'bg-amber-100', text: 'text-amber-700', label: 'In Review' },
   endorsed: { bg: 'bg-green-100', text: 'text-green-700', label: 'Endorsed' },
   returned: { bg: 'bg-red-100', text: 'text-red-700', label: 'Returned' },

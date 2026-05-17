@@ -7,7 +7,7 @@ import type { PositionWithRelations } from '@/lib/queries/positions'
 
 const SUBMISSION_STATUS: Record<string, { label: string; className: string }> = {
   draft: { label: 'Pending Submission', className: 'bg-gray-100 text-gray-700' },
-  submitted: { label: 'Submitted', className: 'bg-blue-100 text-blue-700' },
+  submitted: { label: 'Pending Review', className: 'bg-blue-100 text-blue-700' },
   in_review: { label: 'In Review', className: 'bg-amber-100 text-amber-700' },
   endorsed: { label: 'Endorsed', className: 'bg-green-100 text-green-700' },
   returned: { label: 'Returned', className: 'bg-red-100 text-red-700' },

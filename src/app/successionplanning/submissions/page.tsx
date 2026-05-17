@@ -13,12 +13,12 @@ export default async function SubmissionsListPage() {
 
   const submissions = await getSubmissions()
 
-  const statusStyles: Record<string, string> = {
-    draft: 'bg-gray-100 text-gray-700',
-    submitted: 'bg-blue-100 text-blue-700',
-    in_review: 'bg-amber-100 text-amber-700',
-    endorsed: 'bg-green-100 text-green-700',
-    returned: 'bg-red-100 text-red-700',
+  const statusConfig: Record<string, { className: string; label: string }> = {
+    draft: { className: 'bg-gray-100 text-gray-700', label: 'Pending Submission' },
+    submitted: { className: 'bg-blue-100 text-blue-700', label: 'Pending Review' },
+    in_review: { className: 'bg-amber-100 text-amber-700', label: 'In Review' },
+    endorsed: { className: 'bg-green-100 text-green-700', label: 'Endorsed' },
+    returned: { className: 'bg-red-100 text-red-700', label: 'Returned' },
   }
 
   return (
@@ -47,8 +47,8 @@ export default async function SubmissionsListPage() {
                   </td>
                   <td className="px-4 py-3 text-gray-600">{(s.cycle as any)?.title ?? '—'}</td>
                   <td className="px-4 py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusStyles[s.status]}`}>
-                      {s.status.replace('_', ' ')}
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusConfig[s.status]?.className}`}>
+                      {statusConfig[s.status]?.label ?? s.status}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-gray-600">
