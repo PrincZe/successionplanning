@@ -130,13 +130,14 @@ export default async function SuccessionPlanningPage() {
                 ) : (
                   <div className="space-y-2">
                     {submissions.map((s) => {
-                      const styles: Record<string, string> = {
-                        draft: 'bg-gray-100 text-gray-700',
-                        submitted: 'bg-blue-100 text-blue-700',
-                        in_review: 'bg-amber-100 text-amber-700',
-                        endorsed: 'bg-green-100 text-green-700',
-                        returned: 'bg-red-100 text-red-700',
+                      const statusConfig: Record<string, { className: string; label: string }> = {
+                        draft: { className: 'bg-gray-100 text-gray-700', label: 'Pending Submission' },
+                        submitted: { className: 'bg-blue-100 text-blue-700', label: 'Pending Review' },
+                        in_review: { className: 'bg-amber-100 text-amber-700', label: 'In Review' },
+                        endorsed: { className: 'bg-green-100 text-green-700', label: 'Endorsed' },
+                        returned: { className: 'bg-red-100 text-red-700', label: 'Returned' },
                       }
+                      const sc = statusConfig[s.status] ?? statusConfig.draft
                       return (
                         <Link
                           key={s.submission_id}
@@ -149,8 +150,8 @@ export default async function SuccessionPlanningPage() {
                               {s.submitted_at ? `Submitted ${new Date(s.submitted_at).toLocaleDateString()}` : 'Not yet submitted'}
                             </div>
                           </div>
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${styles[s.status] ?? styles.draft}`}>
-                            {s.status.replace('_', ' ')}
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${sc.className}`}>
+                            {sc.label}
                           </span>
                         </Link>
                       )

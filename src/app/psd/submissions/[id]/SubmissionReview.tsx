@@ -61,12 +61,12 @@ export default function SubmissionReview({
     window.location.reload()
   }
 
-  const statusStyles: Record<string, string> = {
-    draft: 'bg-gray-100 text-gray-700',
-    submitted: 'bg-blue-100 text-blue-700',
-    in_review: 'bg-amber-100 text-amber-700',
-    endorsed: 'bg-green-100 text-green-700',
-    returned: 'bg-red-100 text-red-700',
+  const statusConfig: Record<string, { className: string; label: string }> = {
+    draft: { className: 'bg-gray-100 text-gray-700', label: 'Pending Submission' },
+    submitted: { className: 'bg-blue-100 text-blue-700', label: 'Pending Review' },
+    in_review: { className: 'bg-amber-100 text-amber-700', label: 'In Review' },
+    endorsed: { className: 'bg-green-100 text-green-700', label: 'Endorsed' },
+    returned: { className: 'bg-red-100 text-red-700', label: 'Returned' },
   }
 
   return (
@@ -83,8 +83,8 @@ export default function SubmissionReview({
             {' '}&middot; {positions.length} positions
           </p>
         </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusStyles[submission.status]}`}>
-          {submission.status.replace('_', ' ')}
+        <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusConfig[submission.status]?.className}`}>
+          {statusConfig[submission.status]?.label ?? submission.status}
         </span>
       </div>
 
