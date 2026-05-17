@@ -28,7 +28,6 @@ const CRITERIA = [
     explanation: 'The position is currently vacant with no incumbent.',
     color: 'bg-slate-50 border-slate-200 text-slate-900',
   },
-  },
 ]
 
 export default function HowItWorks() {
