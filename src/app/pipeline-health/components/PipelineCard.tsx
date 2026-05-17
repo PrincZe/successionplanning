@@ -1,7 +1,7 @@
 'use client'
 
 import type { PipelineHealthRow } from '@/lib/queries/pipeline-health'
-import { ChevronRight, Check, X } from 'lucide-react'
+import { ChevronRight, Minus, X } from 'lucide-react'
 
 const BAND_STYLES = {
   green: { ring: 'ring-emerald-300', dot: 'bg-emerald-500', text: 'text-emerald-700' },
@@ -9,10 +9,10 @@ const BAND_STYLES = {
 }
 
 const CRITERIA_LABELS: Record<string, string> = {
-  C1: 'Depth',
-  C2: 'Retirement',
-  C3: 'Tenure',
-  C4: 'Vacancy',
+  C1: '(C1) Depth',
+  C2: '(C2) Retirement',
+  C3: '(C3) Tenure',
+  C4: '(C4) Vacancy',
 }
 
 export default function PipelineCard({ row, onSelect }: { row: PipelineHealthRow; onSelect: () => void }) {
@@ -54,12 +54,12 @@ export default function PipelineCard({ row, onSelect }: { row: PipelineHealthRow
           return (
             <div
               key={k}
-              className={`px-2 py-1.5 rounded-md text-center ${triggered ? 'bg-red-50 text-red-700' : 'bg-gray-50 text-gray-600'}`}
+              className={`px-2 py-1.5 rounded-md text-center ${triggered ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}
               title={criterion?.reason ?? CRITERIA_LABELS[k]}
             >
               <div className="text-[10px] font-semibold uppercase tracking-wide opacity-75">{CRITERIA_LABELS[k]}</div>
               <div className="flex justify-center mt-0.5">
-                {triggered ? <X className="h-3.5 w-3.5 text-red-600" /> : <Check className="h-3.5 w-3.5 text-emerald-600" />}
+                {triggered ? <X className="h-3.5 w-3.5 text-red-600" /> : <Minus className="h-3.5 w-3.5 text-emerald-600" />}
               </div>
             </div>
           )

@@ -28,6 +28,7 @@ const CRITERIA = [
     explanation: 'The position is currently vacant with no incumbent.',
     color: 'bg-slate-50 border-slate-200 text-slate-900',
   },
+  },
 ]
 
 export default function HowItWorks() {
@@ -67,7 +68,7 @@ export default function HowItWorks() {
             {CRITERIA.map((c) => (
               <div key={c.key} className={`rounded-lg border p-3 ${c.color}`}>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-bold text-sm">{c.key}.</span>
+                  <span className="font-bold text-sm">({c.key})</span>
                   <span className="font-semibold text-sm">{c.label}</span>
                 </div>
                 <p className="text-xs leading-relaxed opacity-90">{c.explanation}</p>

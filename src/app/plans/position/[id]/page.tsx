@@ -6,10 +6,10 @@ import BandPill from '@/app/plans/components/BandPill'
 export const dynamic = 'force-dynamic'
 
 const CRITERIA_LABELS: Record<string, string> = {
-  C1: 'Successor Depth',
-  C2: 'Retirement Proximity',
-  C3: 'Tenure Duration',
-  C4: 'Position Vacancy',
+  C1: '(C1) Successor Depth',
+  C2: '(C2) Retirement Proximity',
+  C3: '(C3) Tenure Duration',
+  C4: '(C4) Position Vacancy',
 }
 
 const BAND_ORDER: Array<'0-4_years' | '4-10_years'> = [

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import type { Band, PipelineHealthDetail, Intervention } from '@/lib/queries/pipeline-health'
-import { Loader2, TrendingUp, TrendingDown, Minus, Sparkles, RefreshCw, AlertTriangle, ArrowRight, UserPlus, Repeat, Briefcase, Eye, Settings, Check, X } from 'lucide-react'
+import { Loader2, TrendingUp, TrendingDown, Minus, Sparkles, RefreshCw, AlertTriangle, ArrowRight, UserPlus, Repeat, Briefcase, Eye, Settings, X } from 'lucide-react'
 
 const BAND_STYLES: Record<string, { bg: string; text: string; border: string }> = {
   green: { bg: 'bg-emerald-50', text: 'text-emerald-800', border: 'border-emerald-200' },
@@ -10,10 +10,10 @@ const BAND_STYLES: Record<string, { bg: string; text: string; border: string }> 
 }
 
 const CRITERIA_INFO: Record<string, { label: string; description: string }> = {
-  C1: { label: 'Successor Depth', description: 'At least 2 successors in the 0-4 year band' },
-  C2: { label: 'Retirement Proximity', description: 'Incumbent more than 3 years from retirement' },
-  C3: { label: 'Tenure Duration', description: 'Incumbent not approaching 10-year mark' },
-  C4: { label: 'Position Vacancy', description: 'Position has an incumbent' },
+  C1: { label: '(C1) Successor Depth', description: 'At least 2 successors in the 0-4 year band' },
+  C2: { label: '(C2) Retirement Proximity', description: 'Incumbent more than 3 years from retirement' },
+  C3: { label: '(C3) Tenure Duration', description: 'Incumbent not approaching 10-year mark' },
+  C4: { label: '(C4) Position Vacancy', description: 'Position has an incumbent' },
 }
 
 const SUCCESSION_LABEL: Record<string, string> = {
@@ -143,7 +143,7 @@ export default function PipelineDrillDown({ positionId }: { positionId: string }
               <div key={k} className="bg-white border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <div className={`flex items-center justify-center w-6 h-6 rounded-full ${triggered ? 'bg-red-100' : 'bg-emerald-100'}`}>
-                    {triggered ? <X className="h-3.5 w-3.5 text-red-600" /> : <Check className="h-3.5 w-3.5 text-emerald-600" />}
+                    {triggered ? <X className="h-3.5 w-3.5 text-red-600" /> : <Minus className="h-3.5 w-3.5 text-emerald-600" />}
                   </div>
                   <span className="text-sm font-medium text-gray-900">{info.label}</span>
                   <span className={`ml-auto text-xs font-bold uppercase ${triggered ? 'text-red-700' : 'text-emerald-700'}`}>
