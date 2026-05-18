@@ -3,11 +3,10 @@
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { RefreshCw, AlertTriangle, CheckCircle2, X, FileText } from 'lucide-react'
+import { RefreshCw, AlertTriangle, CheckCircle2, FileText } from 'lucide-react'
 import type { Band, BandSummary, PipelineHealthRow } from '@/lib/queries/pipeline-health'
 type BandFilterValue = Band | 'all'
 import PipelineCard from './PipelineCard'
-import PipelineDrillDown from './PipelineDrillDown'
 
 type Props = { rows: PipelineHealthRow[]; summary: BandSummary }
 
@@ -18,7 +17,6 @@ export default function PipelineHealthDashboard({ rows, summary }: Props) {
   const [bandFilter, setBandFilter] = useState<BandFilterValue>('all')
   const [agencyFilter, setAgencyFilter] = useState<string>('all')
   const [gradeFilter, setGradeFilter] = useState<string>('all')
-  const [selectedPositionId, setSelectedPositionId] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const [recomputing, setRecomputing] = useState(false)
   const [recomputeError, setRecomputeError] = useState<string | null>(null)
@@ -55,8 +53,6 @@ export default function PipelineHealthDashboard({ rows, summary }: Props) {
       setRecomputing(false)
     }
   }
-
-  const selected = selectedPositionId ? rows.find((r) => r.position_id === selectedPositionId) ?? null : null
 
   return (
     <div className="space-y-6">
@@ -111,29 +107,11 @@ export default function PipelineHealthDashboard({ rows, summary }: Props) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map((row) => (
-            <PipelineCard key={row.position_id} row={row} onSelect={() => setSelectedPositionId(row.position_id)} />
+            <PipelineCard key={row.position_id} row={row} onSelect={() => router.push(`/positions/${row.position_id}`)} />
           ))}
         </div>
       )}
 
-      {/* Drilldown side panel */}
-      {selected && (
-        <div className="fixed inset-0 z-40 flex" onClick={() => setSelectedPositionId(null)}>
-          <div className="flex-1 bg-black/40" />
-          <div className="w-full max-w-2xl bg-white shadow-2xl overflow-y-auto h-screen" onClick={(e) => e.stopPropagation()}>
-            <div className="sticky top-0 bg-white border-b z-10 flex items-center justify-between px-6 py-4">
-              <div>
-                <div className="text-xs text-gray-500">{selected.position_id} · {selected.agency} · {selected.jr_grade}</div>
-                <div className="text-lg font-semibold text-gray-900">{selected.position_title}</div>
-              </div>
-              <button onClick={() => setSelectedPositionId(null)} className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Close">
-                <X className="h-5 w-5 text-gray-600" />
-              </button>
-            </div>
-            <PipelineDrillDown positionId={selected.position_id} />
-          </div>
-        </div>
-      )}
     </div>
   )
 }

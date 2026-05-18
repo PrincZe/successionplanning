@@ -4,12 +4,13 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  Crown, User, Sparkles,
+  Crown, User, Sparkles, Activity,
   ArrowLeft, Edit, Hash, Building2, Award, FileText, Plus, Search
 } from 'lucide-react'
 import type { PositionWithRelations } from '@/lib/queries/positions'
 import { addSuccessorWithAudit, removeSuccessorWithAudit } from '@/app/actions/submissions'
 import RecommendationPanel from './RecommendationPanel'
+import PipelineDrillDown from '@/app/pipeline-health/components/PipelineDrillDown'
 
 type OfficerOption = { officer_id: string; name: string; grade: string | null }
 
@@ -146,6 +147,7 @@ export default function PositionDetail({ position, submissionStatus, submissionI
   const canPsdEdit = (userRole === 'psd' || userRole === 'admin') && (submissionStatus === 'submitted' || submissionStatus === 'in_review')
   const router = useRouter()
   const [showRecs, setShowRecs] = useState(false)
+  const [showPipelineHealth, setShowPipelineHealth] = useState(false)
 
   return (
     <div className={`flex gap-6 ${showRecs ? '' : ''}`}>
@@ -162,6 +164,13 @@ export default function PositionDetail({ position, submissionStatus, submissionI
               Back to List
             </Link>
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowPipelineHealth(!showPipelineHealth)}
+                className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors shadow-sm ${showPipelineHealth ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+              >
+                <Activity className="h-4 w-4 mr-2" />
+                Pipeline Health
+              </button>
               <Link
                 href={`/plans/position/${position.position_id}`}
                 className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
@@ -296,6 +305,25 @@ export default function PositionDetail({ position, submissionStatus, submissionI
     {showRecs && (
       <div className="w-[380px] flex-shrink-0 sticky top-20 h-[calc(100vh-6rem)] overflow-hidden rounded-xl border border-gray-200 shadow-lg">
         <RecommendationPanel positionId={position.position_id} submissionId={submissionId ?? null} onClose={() => setShowRecs(false)} />
+      </div>
+    )}
+
+    {/* Pipeline Health side panel */}
+    {showPipelineHealth && (
+      <div className="fixed inset-0 z-40 flex" onClick={() => setShowPipelineHealth(false)}>
+        <div className="flex-1 bg-black/40" />
+        <div className="w-full max-w-2xl bg-white shadow-2xl overflow-y-auto h-screen" onClick={(e) => e.stopPropagation()}>
+          <div className="sticky top-0 bg-white border-b z-10 flex items-center justify-between px-6 py-4">
+            <div>
+              <div className="text-xs text-gray-500">{position.position_id} · {position.agency}</div>
+              <div className="text-lg font-semibold text-gray-900">Pipeline Health</div>
+            </div>
+            <button onClick={() => setShowPipelineHealth(false)} className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Close">
+              <span className="text-gray-600 text-xl">&times;</span>
+            </button>
+          </div>
+          <PipelineDrillDown positionId={position.position_id} />
+        </div>
       </div>
     )}
     </div>
