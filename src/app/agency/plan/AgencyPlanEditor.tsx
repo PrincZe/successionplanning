@@ -214,7 +214,7 @@ function PositionCard({
   allOfficers: Officer[]
   submissionId: string
 }) {
-  const [adding, setAdding] = useState<'0-4_years' | '4-10_years' | null>(null)
+  const [adding, setAdding] = useState<'0-4_years' | '5-10_years' | null>(null)
   const [selectedOfficer, setSelectedOfficer] = useState('')
   const [reason, setReason] = useState('')
   const [removeReason, setRemoveReason] = useState('')
@@ -222,12 +222,12 @@ function PositionCard({
   const [loading, setLoading] = useState(false)
 
   const successors04 = position.position_successors.filter((s) => s.succession_type === '0-4_years')
-  const successors410 = position.position_successors.filter((s) => s.succession_type === '4-10_years')
+  const successors410 = position.position_successors.filter((s) => s.succession_type === '5-10_years')
 
   const existingIds = new Set(position.position_successors.map((s) => s.successor.officer_id))
   const availableOfficers = allOfficers.filter((o) => !existingIds.has(o.officer_id))
 
-  async function handleAdd(type: '0-4_years' | '4-10_years') {
+  async function handleAdd(type: '0-4_years' | '5-10_years') {
     if (!selectedOfficer) return
     setLoading(true)
     await addSuccessorWithAudit({
@@ -244,7 +244,7 @@ function PositionCard({
     window.location.reload()
   }
 
-  async function handleRemove(officerId: string, type: '0-4_years' | '4-10_years') {
+  async function handleRemove(officerId: string, type: '0-4_years' | '5-10_years') {
     if (!removeReason.trim()) {
       alert('Please provide a reason for removal.')
       return
@@ -277,7 +277,7 @@ function PositionCard({
       {/* 0-4 year band */}
       <div className="mb-3">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-semibold text-gray-600 uppercase">0–4 Year Successors</span>
+          <span className="text-xs font-semibold text-gray-600 uppercase">Near Term (0–4 years) Successors</span>
           <button onClick={() => { setAdding('0-4_years'); setSelectedOfficer('') }} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
             <Plus className="h-3 w-3" /> Add
           </button>
@@ -294,17 +294,17 @@ function PositionCard({
         />
       </div>
 
-      {/* 4-10 year band */}
+      {/* 5-10 year band */}
       <div className="mb-3">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-semibold text-gray-600 uppercase">4–10 Year Successors</span>
-          <button onClick={() => { setAdding('4-10_years'); setSelectedOfficer('') }} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
+          <span className="text-xs font-semibold text-gray-600 uppercase">Longer Term (5–10 years) Successors</span>
+          <button onClick={() => { setAdding('5-10_years'); setSelectedOfficer('') }} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
             <Plus className="h-3 w-3" /> Add
           </button>
         </div>
         <SuccessorList
           successors={successors410}
-          type="4-10_years"
+          type="5-10_years"
           removingKey={removingKey}
           setRemovingKey={setRemovingKey}
           removeReason={removeReason}
@@ -364,12 +364,12 @@ function SuccessorList({
   loading,
 }: {
   successors: Array<{ succession_type: string; successor: { officer_id: string; name: string; grade: string | null } }>
-  type: '0-4_years' | '4-10_years'
+  type: '0-4_years' | '5-10_years'
   removingKey: string | null
   setRemovingKey: (key: string | null) => void
   removeReason: string
   setRemoveReason: (r: string) => void
-  onRemove: (officerId: string, type: '0-4_years' | '4-10_years') => void
+  onRemove: (officerId: string, type: '0-4_years' | '5-10_years') => void
   loading: boolean
 }) {
   if (successors.length === 0) {

@@ -11,7 +11,7 @@ import { recommendSuccessors, type Candidate } from './recommend'
 export type RankedCandidate = Candidate & {
   ai_rank: number | null
   ai_reasoning: string | null
-  recommended_band: '0-4_years' | '4-10_years' | null
+  recommended_band: '0-4_years' | '5-10_years' | null
 }
 
 export type RecommendationResult = {
@@ -56,9 +56,9 @@ const RANKING_TOOL = {
             },
             recommended_band: {
               type: 'string',
-              enum: ['0-4_years', '4-10_years'],
+              enum: ['0-4_years', '5-10_years'],
               description:
-                'Which succession band this officer should be placed in. 0-4_years = ready or nearly ready (strong competency fit, same or one grade below with high potential). 4-10_years = needs more development time (significant competency gaps, lower grade, or limited experience but good long-term potential).',
+                'Which succession band this officer should be placed in. 0-4_years = ready or nearly ready (strong competency fit, same or one grade below with high potential). 5-10_years = needs more development time (significant competency gaps, lower grade, or limited experience but good long-term potential).',
             },
           },
           required: ['officer_id', 'ai_rank', 'reasoning', 'recommended_band'],
@@ -122,9 +122,9 @@ ${candidatesBlock}
 - Don't penalise officers with no qualitative signal — flag it instead and recommend extracting first.
 
 ## Band recommendation
-For each candidate, recommend whether they should be placed in the 0-4 year or 4-10 year succession band:
+For each candidate, recommend whether they should be placed in the 0-4 year or 5-10 year succession band:
 - **0-4_years**: Officer is ready or nearly ready. Strong competency fit, same grade or one grade below with demonstrated potential to perform at the next level. Could step in within 4 years.
-- **4-10_years**: Officer has good long-term potential but needs more development. May have competency gaps, be 2+ grades below, or need broader experience before being ready.
+- **5-10_years**: Officer has good long-term potential but needs more development. May have competency gaps, be 2+ grades below, or need broader experience before being ready.
 
 ## Style
 - Reference candidates by name, not ID.
@@ -135,7 +135,7 @@ For each candidate, recommend whether they should be placed in the 0-4 year or 4
 async function callClaudeRerank(
   position: { position_id: string; position_title: string },
   candidates: Candidate[]
-): Promise<{ summary: string; ranked: Array<{ officer_id: string; ai_rank: number; reasoning: string; recommended_band: '0-4_years' | '4-10_years' }> }> {
+): Promise<{ summary: string; ranked: Array<{ officer_id: string; ai_rank: number; reasoning: string; recommended_band: '0-4_years' | '5-10_years' }> }> {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) throw new Error('ANTHROPIC_API_KEY missing')
 
@@ -167,7 +167,7 @@ async function callClaudeRerank(
 
 function mergeRanking(
   candidates: Candidate[],
-  ranking: { ranked: Array<{ officer_id: string; ai_rank: number; reasoning: string; recommended_band?: '0-4_years' | '4-10_years' }> }
+  ranking: { ranked: Array<{ officer_id: string; ai_rank: number; reasoning: string; recommended_band?: '0-4_years' | '5-10_years' }> }
 ): RankedCandidate[] {
   const rankMap = new Map(ranking.ranked.map((r) => [r.officer_id, r]))
   const merged: RankedCandidate[] = candidates.map((c) => {

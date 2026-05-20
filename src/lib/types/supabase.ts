@@ -26,7 +26,10 @@ export interface Officer {
   ihrp_certification: string | null
   hrlp: string | null
   date_of_birth?: string | null
-  service_scheme?: 'SPSL' | 'PSL' | null
+  service_scheme?: 'SPSL' | 'PSL' | 'AO' | null
+  parent_agency?: string | null
+  current_agency?: string | null
+  leadership_potential?: string | null
   created_at: string
   updated_at: string
 }
@@ -41,7 +44,8 @@ export interface HRCompetency {
 export interface PositionSuccessor {
   position_id: string
   successor_id: string
-  succession_type: '0-4_years' | '4-10_years'
+  succession_type: '0-4_years' | '5-10_years'
+  rank: number
   created_at: string
 }
 
@@ -202,6 +206,19 @@ export interface OfficerDevelopmentPlan {
   updated_at: string
 }
 
+export interface OfficerPostingHistory {
+  posting_id: number
+  officer_id: string
+  position_title: string
+  agency: string
+  start_date: string
+  end_date: string | null
+  grade_at_time: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -304,6 +321,11 @@ export interface Database {
         Row: OfficerDevelopmentPlan
         Insert: Omit<OfficerDevelopmentPlan, 'plan_id' | 'generated_at' | 'updated_at'> & { plan_id?: number; generated_at?: string; updated_at?: string }
         Update: Partial<Omit<OfficerDevelopmentPlan, 'plan_id'>>
+      }
+      officer_posting_history: {
+        Row: OfficerPostingHistory
+        Insert: Omit<OfficerPostingHistory, 'posting_id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<OfficerPostingHistory, 'posting_id' | 'officer_id' | 'created_at' | 'updated_at'>>
       }
     }
   }

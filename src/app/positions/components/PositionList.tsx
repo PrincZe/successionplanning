@@ -126,13 +126,13 @@ export default function PositionList({ positions, statusByAgency = {}, hasActive
       )
     },
     {
-      header: '4-10 Years',
-      accessorKey: 'successors_4_10_years' as const,
+      header: '5-10 Years',
+      accessorKey: 'successors_5_10_years' as const,
       cell: (row: PositionWithRelations) => (
         <SuccessorDisplay
-          successors={row.successors_4_10_years || []}
+          successors={row.successors_5_10_years || []}
           max={5}
-          type="4-10Y"
+          type="5-10Y"
         />
       )
     },

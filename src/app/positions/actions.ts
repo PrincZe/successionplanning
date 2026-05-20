@@ -18,7 +18,7 @@ export async function handlePositionSubmit(data: PositionFormData, id?: string) 
     })
 
     await updateSuccessors(id, '0-4_years', data.successors_0_4_years)
-    await updateSuccessors(id, '4-10_years', data.successors_4_10_years)
+    await updateSuccessors(id, '5-10_years', data.successors_5_10_years)
 
     revalidatePath('/positions', 'layout')
     revalidatePath(`/positions/${id}`, 'layout')

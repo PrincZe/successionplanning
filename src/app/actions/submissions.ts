@@ -51,7 +51,7 @@ export async function addSuccessorWithAudit(data: {
   submission_id: string
   position_id: string
   officer_id: string
-  succession_type: '0-4_years' | '4-10_years'
+  succession_type: '0-4_years' | '5-10_years'
   reason?: string
 }) {
   try {
@@ -84,7 +84,7 @@ export async function removeSuccessorWithAudit(data: {
   submission_id: string
   position_id: string
   officer_id: string
-  succession_type: '0-4_years' | '4-10_years'
+  succession_type: '0-4_years' | '5-10_years'
   reason: string
 }) {
   try {

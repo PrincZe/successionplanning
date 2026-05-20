@@ -218,7 +218,7 @@ export interface PositionFormData {
   jr_grade: string
   incumbent_id: string | null
   successors_0_4_years: string[]
-  successors_4_10_years: string[]
+  successors_5_10_years: string[]
 }
 
 interface PositionFormProps {
@@ -240,7 +240,7 @@ export default function PositionForm({ position, officers, onSubmit }: PositionF
     jr_grade: position?.jr_grade ?? '',
     incumbent_id: position?.incumbent_id ?? null,
     successors_0_4_years: position?.successors_0_4_years?.map(s => s.officer_id) ?? [],
-    successors_4_10_years: position?.successors_4_10_years?.map(s => s.officer_id) ?? []
+    successors_5_10_years: position?.successors_5_10_years?.map(s => s.officer_id) ?? []
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -383,18 +383,18 @@ export default function PositionForm({ position, officers, onSubmit }: PositionF
                 <p className="mt-2 text-sm text-gray-500">Select up to 5 successors</p>
               </div>
 
-              {/* 4-10 Year Successors */}
+              {/* 5-10 Year Successors */}
               <div>
                 <label className="flex items-center text-sm font-medium text-gray-700 mb-3">
                   <Calendar className="h-4 w-4 mr-2" />
-                  4–10 Year Successors
+                  5–10 Year Successors
                 </label>
                 <MultiSelect
                   options={officers}
-                  value={formData.successors_4_10_years}
-                  onChange={(value) => setFormData(prev => ({ ...prev, successors_4_10_years: value }))}
+                  value={formData.successors_5_10_years}
+                  onChange={(value) => setFormData(prev => ({ ...prev, successors_5_10_years: value }))}
                   maxSelections={5}
-                  placeholder="Search 4-10 year successors..."
+                  placeholder="Search 5-10 year successors..."
                 />
                 <p className="mt-2 text-sm text-gray-500">Select up to 5 successors</p>
               </div>

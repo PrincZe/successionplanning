@@ -30,7 +30,7 @@ function bandTag(band: Band, score?: number): string {
 }
 
 function rowLine(p: AgencyPlanRow): string {
-  const counts = `${p.successor_count['0-4_years']}/${p.successor_count['4-10_years']}`
+  const counts = `${p.successor_count['0-4_years']}/${p.successor_count['5-10_years']}`
   return `| ${p.position_title} (${p.jr_grade}) | ${p.incumbent_name ?? 'Vacant'} | ${counts} | ${bandTag(p.overall_band)} |`
 }
 
@@ -55,7 +55,7 @@ export function renderPositionPlanMarkdown(p: PositionPlan): string {
   out.push('')
   out.push(`- **Incumbent:** ${detail.incumbent_name ?? 'Vacant'}`)
   out.push(
-    `- **Coverage:** 0–4yr ${detail.successor_count['0-4_years']} · 4–10yr ${detail.successor_count['4-10_years']}`
+    `- **Coverage:** 0–4yr ${detail.successor_count['0-4_years']} · 5–10yr ${detail.successor_count['5-10_years']}`
   )
   out.push('')
 
@@ -182,7 +182,7 @@ export function renderAgencyPlanMarkdown(a: AgencyPlan): string {
   out.push('')
 
   out.push('---')
-  out.push('_AI-assisted draft. Coverage shown as 0–4yr / 4–10yr counts._')
+  out.push('_AI-assisted draft. Coverage shown as 0–4yr / 5–10yr counts._')
   return out.join('\n')
 }
 

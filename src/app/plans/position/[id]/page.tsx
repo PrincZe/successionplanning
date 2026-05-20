@@ -12,14 +12,14 @@ const CRITERIA_LABELS: Record<string, string> = {
   C4: '(C4) Position Vacancy',
 }
 
-const BAND_ORDER: Array<'0-4_years' | '4-10_years'> = [
+const BAND_ORDER: Array<'0-4_years' | '5-10_years'> = [
   '0-4_years',
-  '4-10_years',
+  '5-10_years',
 ]
 
 const BAND_LABEL: Record<string, string> = {
   '0-4_years': '0–4 years',
-  '4-10_years': '4–10 years',
+  '5-10_years': '5–10 years',
 }
 
 const PRIORITY_STYLES: Record<'high' | 'medium' | 'low', string> = {

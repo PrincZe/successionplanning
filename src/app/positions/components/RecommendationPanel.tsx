@@ -33,7 +33,7 @@ export type RankedCandidate = {
   stint_count: number
   ai_rank: number | null
   ai_reasoning: string | null
-  recommended_band: '0-4_years' | '4-10_years' | null
+  recommended_band: '0-4_years' | '5-10_years' | null
 }
 
 type RecommendationResult = {
@@ -112,7 +112,7 @@ export default function RecommendationPanel({ positionId, submissionId, onClose 
     })
   }
 
-  async function addToPipeline(officerId: string, type: '0-4_years' | '4-10_years') {
+  async function addToPipeline(officerId: string, type: '0-4_years' | '5-10_years') {
     setAddedKey(`${officerId}:${type}`)
     if (submissionId) {
       await addSuccessorWithAudit({
@@ -172,11 +172,11 @@ export default function RecommendationPanel({ positionId, submissionId, onClose 
 
           {!loading && result && (() => {
             const band04 = result.candidates.filter((c) => c.recommended_band === '0-4_years')
-            const band410 = result.candidates.filter((c) => c.recommended_band === '4-10_years')
+            const band410 = result.candidates.filter((c) => c.recommended_band === '5-10_years')
             const unassigned = result.candidates.filter((c) => !c.recommended_band)
             const sections: Array<{ label: string; candidates: RankedCandidate[] }> = []
             if (band04.length > 0) sections.push({ label: '0–4 Year Candidates', candidates: band04 })
-            if (band410.length > 0) sections.push({ label: '4–10 Year Candidates', candidates: band410 })
+            if (band410.length > 0) sections.push({ label: '5–10 Year Candidates', candidates: band410 })
             if (unassigned.length > 0) sections.push({ label: 'Other Candidates', candidates: unassigned })
             if (sections.length === 0) sections.push({ label: 'All Candidates', candidates: result.candidates })
 
@@ -257,7 +257,7 @@ export default function RecommendationPanel({ positionId, submissionId, onClose 
                               )
                             })()
                           ) : (
-                            (['0-4_years', '4-10_years'] as const).map((type) => {
+                            (['0-4_years', '5-10_years'] as const).map((type) => {
                               const key = `${c.officer_id}:${type}`
                               const added = addedKey === key
                               return (

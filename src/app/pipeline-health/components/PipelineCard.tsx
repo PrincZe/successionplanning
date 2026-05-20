@@ -69,7 +69,7 @@ export default function PipelineCard({ row, onSelect }: { row: PipelineHealthRow
       {/* Successor counts */}
       <div className="flex items-center gap-3 text-xs text-gray-600">
         <span><span className="font-semibold">{row.successor_count['0-4_years']}</span> 0-4y</span>
-        <span><span className="font-semibold">{row.successor_count['4-10_years']}</span> 4-10y</span>
+        <span><span className="font-semibold">{row.successor_count['5-10_years']}</span> 5-10y</span>
         <ChevronRight className="ml-auto h-4 w-4 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-0.5 transition-all" />
       </div>
     </button>

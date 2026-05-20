@@ -187,7 +187,7 @@ function PositionCard({
   allOfficers: OfficerOption[]
 }) {
   const s04 = position.position_successors.filter((s) => s.succession_type === '0-4_years')
-  const s410 = position.position_successors.filter((s) => s.succession_type === '4-10_years')
+  const s410 = position.position_successors.filter((s) => s.succession_type === '5-10_years')
   const tenure = position.incumbent_start_date
     ? Math.floor((Date.now() - new Date(position.incumbent_start_date).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
     : null
@@ -226,7 +226,7 @@ function PositionCard({
       {/* Successors */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <SuccessorBand
-          label="0–4 Year"
+          label="Near Term (0–4 years)"
           type="0-4_years"
           successors={s04}
           canEdit={canEdit}
@@ -236,8 +236,8 @@ function PositionCard({
           allOfficers={allOfficers}
         />
         <SuccessorBand
-          label="4–10 Year"
-          type="4-10_years"
+          label="Longer Term (5–10 years)"
+          type="5-10_years"
           successors={s410}
           canEdit={canEdit}
           submissionId={submissionId}
@@ -261,7 +261,7 @@ function SuccessorBand({
   allOfficers,
 }: {
   label: string
-  type: '0-4_years' | '4-10_years'
+  type: '0-4_years' | '5-10_years'
   successors: Array<{ succession_type: string; successor: { officer_id: string; name: string; grade: string | null } }>
   canEdit: boolean
   submissionId: string

@@ -3,14 +3,15 @@ import type { Database, Position } from '../types/supabase'
 
 type Officer = Database['public']['Tables']['officers']['Row']
 type PositionSuccessor = {
-  succession_type: '0-4_years' | '4-10_years'
+  succession_type: '0-4_years' | '5-10_years'
+  rank: number
   successor: Officer
 }
 
 export type PositionWithRelations = Position & {
   incumbent?: Officer | null
   successors_0_4_years?: Officer[]
-  successors_4_10_years?: Officer[]
+  successors_5_10_years?: Officer[]
   position_successors?: PositionSuccessor[]
 }
 
@@ -22,6 +23,7 @@ export async function getPositions() {
       incumbent:officers!positions_incumbent_id_fkey(*),
       position_successors(
         succession_type,
+        rank,
         successor:officers!position_successors_successor_id_fkey(*)
       )
     `)
@@ -35,9 +37,11 @@ export async function getPositions() {
       ...position,
       successors_0_4_years: successors
         .filter((s: PositionSuccessor) => s.succession_type === '0-4_years')
+        .sort((a: PositionSuccessor, b: PositionSuccessor) => a.rank - b.rank)
         .map((s: PositionSuccessor) => s.successor),
-      successors_4_10_years: successors
-        .filter((s: PositionSuccessor) => s.succession_type === '4-10_years')
+      successors_5_10_years: successors
+        .filter((s: PositionSuccessor) => s.succession_type === '5-10_years')
+        .sort((a: PositionSuccessor, b: PositionSuccessor) => a.rank - b.rank)
         .map((s: PositionSuccessor) => s.successor),
     }
   })
@@ -53,6 +57,7 @@ export async function getPositionById(id: string) {
       incumbent:officers!positions_incumbent_id_fkey(*),
       position_successors(
         succession_type,
+        rank,
         successor:officers!position_successors_successor_id_fkey(*)
       )
     `)
@@ -69,9 +74,11 @@ export async function getPositionById(id: string) {
     ...position,
     successors_0_4_years: successors
       .filter((s: PositionSuccessor) => s.succession_type === '0-4_years')
+      .sort((a: PositionSuccessor, b: PositionSuccessor) => a.rank - b.rank)
       .map((s: PositionSuccessor) => s.successor),
-    successors_4_10_years: successors
-      .filter((s: PositionSuccessor) => s.succession_type === '4-10_years')
+    successors_5_10_years: successors
+      .filter((s: PositionSuccessor) => s.succession_type === '5-10_years')
+      .sort((a: PositionSuccessor, b: PositionSuccessor) => a.rank - b.rank)
       .map((s: PositionSuccessor) => s.successor),
   }
 
@@ -122,7 +129,7 @@ export async function deletePosition(id: string) {
 export async function addSuccessor(
   positionId: string,
   successorId: string,
-  successionType: '0-4_years' | '4-10_years'
+  successionType: '0-4_years' | '5-10_years'
 ) {
   // Idempotent insert — composite PK (position_id, successor_id, succession_type)
   // means a duplicate add silently succeeds via onConflict ignore.
@@ -137,7 +144,7 @@ export async function addSuccessor(
 
 export async function updateSuccessors(
   positionId: string,
-  successionType: '0-4_years' | '4-10_years',
+  successionType: '0-4_years' | '5-10_years',
   successorIds: string[]
 ) {
   const validSuccessorIds = successorIds.filter(id => id && id.trim().length > 0)
@@ -152,10 +159,11 @@ export async function updateSuccessors(
 
   if (validSuccessorIds.length === 0) return
 
-  const records = validSuccessorIds.map(id => ({
+  const records = validSuccessorIds.map((id, index) => ({
     position_id: positionId,
     successor_id: id,
-    succession_type: successionType
+    succession_type: successionType,
+    rank: index + 1
   }))
 
   const { error: insertError } = await supabase

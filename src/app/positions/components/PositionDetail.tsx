@@ -16,7 +16,7 @@ type OfficerOption = { officer_id: string; name: string; grade: string | null }
 
 function SuccessionTree({ position, canEdit, submissionId, allOfficers, showRecs, setShowRecs }: { position: PositionWithRelations; canEdit: boolean; submissionId: string | null; allOfficers: OfficerOption[]; showRecs: boolean; setShowRecs: (v: boolean) => void }) {
   const shortTermSuccessors = position.successors_0_4_years || []
-  const longTermSuccessors = position.successors_4_10_years || []
+  const longTermSuccessors = position.successors_5_10_years || []
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
@@ -52,11 +52,11 @@ function SuccessionTree({ position, canEdit, submissionId, allOfficers, showRecs
         )}
       </div>
 
-      {/* 0-4 Year Successors */}
+      {/* Near Term (0-4 years) Successors */}
       <div className="px-6 py-4 border-b border-gray-100">
         <div className="flex items-center justify-between mb-2">
           <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-            0–4 Year Successors
+            Near Term (0–4 years) Successors
             <span className={`ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold ${shortTermSuccessors.length >= 2 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
               {shortTermSuccessors.length}
             </span>
@@ -79,7 +79,7 @@ function SuccessionTree({ position, canEdit, submissionId, allOfficers, showRecs
                 <Link href={`/officers/${s.officer_id}`} className="text-sm font-medium text-gray-900 hover:text-blue-600 hover:underline">
                   {s.name}
                 </Link>
-                <span className="text-xs text-gray-400">{s.grade ?? '—'}</span>
+                <span className="text-xs text-gray-400">{s.service_scheme ?? '—'}</span>
               </div>
             ))}
           </div>
@@ -88,11 +88,11 @@ function SuccessionTree({ position, canEdit, submissionId, allOfficers, showRecs
         )}
       </div>
 
-      {/* 4-10 Year Successors */}
+      {/* Longer Term (5-10 years) Successors */}
       <div className="px-6 py-4">
         <div className="flex items-center justify-between mb-2">
           <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-            4–10 Year Successors
+            Longer Term (5–10 years) Successors
             <span className="ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold bg-gray-100 text-gray-600">
               {longTermSuccessors.length}
             </span>
@@ -101,7 +101,7 @@ function SuccessionTree({ position, canEdit, submissionId, allOfficers, showRecs
             <InlineSuccessorEditor
               positionId={position.position_id}
               submissionId={submissionId}
-              successionType="4-10_years"
+              successionType="5-10_years"
               existingOfficerIds={longTermSuccessors.map((s) => s.officer_id)}
               allOfficers={allOfficers}
             />
@@ -115,7 +115,7 @@ function SuccessionTree({ position, canEdit, submissionId, allOfficers, showRecs
                 <Link href={`/officers/${s.officer_id}`} className="text-sm font-medium text-gray-900 hover:text-blue-600 hover:underline">
                   {s.name}
                 </Link>
-                <span className="text-xs text-gray-400">{s.grade ?? '—'}</span>
+                <span className="text-xs text-gray-400">{s.service_scheme ?? '—'}</span>
               </div>
             ))}
           </div>
@@ -339,7 +339,7 @@ function InlineSuccessorEditor({
 }: {
   positionId: string
   submissionId: string
-  successionType: '0-4_years' | '4-10_years'
+  successionType: '0-4_years' | '5-10_years'
   existingOfficerIds: string[]
   allOfficers: OfficerOption[]
 }) {

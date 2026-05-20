@@ -30,11 +30,11 @@ export default function CompareModal({
   candidates: RankedCandidate[]
   positionId: string
   onClose: () => void
-  onAdd: (officerId: string, type: '0-4_years' | '4-10_years') => void
+  onAdd: (officerId: string, type: '0-4_years' | '5-10_years') => void
 }) {
   const [addedKey, setAddedKey] = useState<string | null>(null)
 
-  function handleAdd(officerId: string, type: '0-4_years' | '4-10_years') {
+  function handleAdd(officerId: string, type: '0-4_years' | '5-10_years') {
     setAddedKey(`${officerId}:${type}`)
     onAdd(officerId, type)
     setTimeout(() => setAddedKey(null), 2000)
@@ -115,7 +115,7 @@ export default function CompareModal({
               {candidates.map((c) => (
                 <div key={c.officer_id} className="space-y-2">
                   <div className="flex gap-1">
-                    {(['0-4_years', '4-10_years'] as const).map((type) => {
+                    {(['0-4_years', '5-10_years'] as const).map((type) => {
                       const key = `${c.officer_id}:${type}`
                       const added = addedKey === key
                       return (

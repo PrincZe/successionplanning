@@ -31,7 +31,7 @@ export type SuccessorChange = {
   position_id: string
   officer_id: string
   action: 'add' | 'remove'
-  succession_type: '0-4_years' | '4-10_years'
+  succession_type: '0-4_years' | '5-10_years'
   reason: string | null
   changed_by: string
   changed_at: string
@@ -175,7 +175,7 @@ export async function recordChange(change: {
   position_id: string
   officer_id: string
   action: 'add' | 'remove'
-  succession_type: '0-4_years' | '4-10_years'
+  succession_type: '0-4_years' | '5-10_years'
   reason?: string
   changed_by: string
 }) {

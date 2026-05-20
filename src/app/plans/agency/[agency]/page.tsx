@@ -29,7 +29,7 @@ function PositionRow({ p }: { p: AgencyPlanRow }) {
       </td>
       <td className="px-3 py-2">{p.incumbent_name ?? <span className="text-gray-400 italic">Vacant</span>}</td>
       <td className="px-3 py-2 text-right tabular-nums">
-        {p.successor_count['0-4_years']}/{p.successor_count['4-10_years']}
+        {p.successor_count['0-4_years']}/{p.successor_count['5-10_years']}
       </td>
       <td className="px-3 py-2 whitespace-nowrap">
         <BandPill band={p.overall_band} />
@@ -162,7 +162,7 @@ export default async function AgencyPlanPage({ params }: { params: { agency: str
         </section>
 
         <footer className="mt-10 pt-4 border-t border-gray-200 text-xs text-gray-500">
-          AI-assisted draft. Coverage column shows successor counts in 0–4yr / 4–10yr bands.
+          AI-assisted draft. Coverage column shows successor counts in 0–4yr / 5–10yr bands.
           Sources cached from latest pipeline assessment per position.
         </footer>
       </main>

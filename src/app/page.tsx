@@ -165,7 +165,7 @@ export default function LandingPage() {
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-2">2-Tier Succession Framework</h3>
                     <p className="text-gray-600">
-                      Plan successors across 0–4 year and 4–10 year horizons
+                      Plan successors across 0–4 year and 5–10 year horizons
                       for comprehensive workforce planning.
                     </p>
                   </div>

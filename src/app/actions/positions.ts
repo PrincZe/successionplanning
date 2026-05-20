@@ -12,7 +12,7 @@ export async function createPositionAction(data: {
   jr_grade: string
   incumbent_id: string | null
   successors_0_4_years: string[]
-  successors_4_10_years: string[]
+  successors_5_10_years: string[]
 }) {
   try {
     console.log('Starting createPositionAction with data:', data)
@@ -52,7 +52,7 @@ export async function createPositionAction(data: {
     try {
       await Promise.all([
         updateSuccessors(position.position_id, '0-4_years', data.successors_0_4_years),
-        updateSuccessors(position.position_id, '4-10_years', data.successors_4_10_years),
+        updateSuccessors(position.position_id, '5-10_years', data.successors_5_10_years),
       ])
       console.log('All successors added successfully')
     } catch (successorError) {
@@ -78,7 +78,7 @@ export async function updatePositionAction(
     jr_grade: string
     incumbent_id: string | null
     successors_0_4_years: string[]
-    successors_4_10_years: string[]
+    successors_5_10_years: string[]
   }
 ) {
   try {
@@ -93,7 +93,7 @@ export async function updatePositionAction(
     // Update successors
     await Promise.all([
       updateSuccessors(id, '0-4_years', data.successors_0_4_years),
-      updateSuccessors(id, '4-10_years', data.successors_4_10_years),
+      updateSuccessors(id, '5-10_years', data.successors_5_10_years),
     ])
 
     revalidatePath('/positions')
@@ -120,7 +120,7 @@ export async function deletePositionAction(id: string) {
 export async function addSuccessorAction(
   positionId: string,
   successorId: string,
-  successionType: '0-4_years' | '4-10_years'
+  successionType: '0-4_years' | '5-10_years'
 ) {
   try {
     await addSuccessor(positionId, successorId, successionType)

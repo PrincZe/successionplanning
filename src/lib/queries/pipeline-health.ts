@@ -20,14 +20,14 @@ export type PipelineHealthRow = {
   criteria: Record<string, { triggered: boolean; reason: string }>
   reasons: string[]
   computed_at: string | null
-  successor_count: { '0-4_years': number; '4-10_years': number }
+  successor_count: { '0-4_years': number; '5-10_years': number }
 }
 
 export type PipelineSuccessor = {
   officer_id: string
   name: string
   grade: string | null
-  succession_type: '0-4_years' | '4-10_years'
+  succession_type: '0-4_years' | '5-10_years'
   qualitative_score: number | null
   sentiment_trajectory: 'improving' | 'stable' | 'declining' | 'unknown' | null
 }
@@ -63,7 +63,7 @@ export async function getPipelineHealthOverview(): Promise<PipelineHealthRow[]> 
   )
   const countsByPosition = new Map<string, PipelineHealthRow['successor_count']>()
   for (const r of psRes.data ?? []) {
-    const prev = countsByPosition.get(r.position_id) ?? ({ '0-4_years': 0, '4-10_years': 0 } as PipelineHealthRow['successor_count'])
+    const prev = countsByPosition.get(r.position_id) ?? ({ '0-4_years': 0, '5-10_years': 0 } as PipelineHealthRow['successor_count'])
     prev[r.succession_type as keyof typeof prev]++
     countsByPosition.set(r.position_id, prev)
   }
@@ -82,7 +82,7 @@ export async function getPipelineHealthOverview(): Promise<PipelineHealthRow[]> 
       reasons: a?.reasons ?? [],
       computed_at: a?.computed_at ?? null,
       successor_count:
-        countsByPosition.get(p.position_id) ?? ({ '0-4_years': 0, '4-10_years': 0 } as PipelineHealthRow['successor_count']),
+        countsByPosition.get(p.position_id) ?? ({ '0-4_years': 0, '5-10_years': 0 } as PipelineHealthRow['successor_count']),
     }
   })
 
@@ -136,7 +136,7 @@ export async function getPipelineDetail(positionId: string): Promise<PipelineHea
     }
   })
 
-  const counts: PipelineHealthRow['successor_count'] = { '0-4_years': 0, '4-10_years': 0 }
+  const counts: PipelineHealthRow['successor_count'] = { '0-4_years': 0, '5-10_years': 0 }
   for (const s of successors) counts[s.succession_type]++
 
   return {
