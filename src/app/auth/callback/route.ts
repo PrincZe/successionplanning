@@ -124,6 +124,8 @@ async function createSessionAndRedirect(email: string, reqURL: URL): Promise<Nex
         return NextResponse.redirect(new URL('/auth/auth-code-error', reqURL.origin))
     }
 
+    await supabaseServer.from('users').update({ last_login_at: new Date().toISOString() }).eq('user_id', user.user_id)
+
     const sessionData = {
         email: user.email,
         authenticated: true,
