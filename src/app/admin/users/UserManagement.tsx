@@ -167,7 +167,7 @@ export default function UserManagement({ users }: { users: AppUser[] }) {
                   )}
                 </td>
                 <td className="px-4 py-3 text-gray-500 text-xs">
-                  {u.last_login_at ? new Date(u.last_login_at).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                  {u.last_login_at ? new Date(u.last_login_at).toLocaleString('en-SG', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
                 </td>
                 <td className="px-4 py-3">
                   <button
