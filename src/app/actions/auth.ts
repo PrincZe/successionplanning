@@ -57,6 +57,8 @@ export async function sendOTPAction(email: string) {
       }
     }
 
+    await supabase.from('users').update({ last_login_at: new Date().toISOString() }).eq('user_id', user.user_id)
+
     createSessionCookie({
       email: normalizedEmail,
       authenticated: true,

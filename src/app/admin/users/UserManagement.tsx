@@ -122,6 +122,7 @@ export default function UserManagement({ users }: { users: AppUser[] }) {
               <th className="px-4 py-3 text-left font-medium text-gray-600">Email</th>
               <th className="px-4 py-3 text-left font-medium text-gray-600">Role</th>
               <th className="px-4 py-3 text-left font-medium text-gray-600">Agency</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-600">Last Login</th>
               <th className="px-4 py-3 text-left font-medium text-gray-600">Status</th>
               <th className="px-4 py-3 text-right font-medium text-gray-600">Actions</th>
             </tr>
@@ -164,6 +165,9 @@ export default function UserManagement({ users }: { users: AppUser[] }) {
                   ) : (
                     u.agency ?? '—'
                   )}
+                </td>
+                <td className="px-4 py-3 text-gray-500 text-xs">
+                  {u.last_login_at ? new Date(u.last_login_at).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
                 </td>
                 <td className="px-4 py-3">
                   <button

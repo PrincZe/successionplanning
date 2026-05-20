@@ -9,6 +9,7 @@ export type AppUser = {
   officer_id: string | null
   is_active: boolean
   created_at: string
+  last_login_at: string | null
 }
 
 export async function getUsers(): Promise<AppUser[]> {
