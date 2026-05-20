@@ -249,7 +249,6 @@ function PositionCard({
             <span><span className="text-gray-500">Incumbent:</span> <span className="font-medium text-gray-900">{position.incumbent.name}</span></span>
             {position.incumbent.service_scheme && <span className="text-gray-500">{position.incumbent.service_scheme}</span>}
             {age !== null && <span className="text-gray-500">Age {age}</span>}
-            {position.incumbent.service_scheme && <span className="text-gray-500">{position.incumbent.service_scheme}</span>}
             {tenure !== null && <span className="text-gray-500">{tenure}yr in role</span>}
           </div>
         ) : (
