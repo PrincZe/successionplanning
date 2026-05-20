@@ -131,12 +131,20 @@ export async function addSuccessor(
   successorId: string,
   successionType: '0-4_years' | '5-10_years'
 ) {
-  // Idempotent insert — composite PK (position_id, successor_id, succession_type)
-  // means a duplicate add silently succeeds via onConflict ignore.
+  const { data: existing } = await supabase
+    .from('position_successors')
+    .select('rank')
+    .eq('position_id', positionId)
+    .eq('succession_type', successionType)
+    .order('rank', { ascending: false })
+    .limit(1)
+
+  const nextRank = (existing?.[0]?.rank ?? 0) + 1
+
   const { error } = await supabase
     .from('position_successors')
     .upsert(
-      { position_id: positionId, successor_id: successorId, succession_type: successionType },
+      { position_id: positionId, successor_id: successorId, succession_type: successionType, rank: nextRank },
       { onConflict: 'position_id,successor_id,succession_type', ignoreDuplicates: true }
     )
   if (error) throw error

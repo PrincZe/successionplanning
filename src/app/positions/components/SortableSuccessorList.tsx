@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { GripVertical } from 'lucide-react'
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
@@ -87,6 +87,10 @@ export default function SortableSuccessorList({
   canEdit,
 }: SortableSuccessorListProps) {
   const [successors, setSuccessors] = useState<Successor[]>(initialSuccessors)
+
+  useEffect(() => {
+    setSuccessors(initialSuccessors)
+  }, [initialSuccessors.map(s => s.officer_id).join(',')])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
