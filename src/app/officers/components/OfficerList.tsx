@@ -40,7 +40,12 @@ export default function OfficerList({ officers }: OfficerListProps) {
             </div>
           </div>
           <div>
-            <div className="text-sm font-medium text-gray-900">{row.name}</div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-900">{row.name}</span>
+              {row.service_scheme && (
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600">{row.service_scheme}</span>
+              )}
+            </div>
             <div className="text-sm text-gray-500">{row.officer_id}</div>
           </div>
         </div>
@@ -48,21 +53,14 @@ export default function OfficerList({ officers }: OfficerListProps) {
       width: 'w-1/4'
     },
     {
-      header: 'Grades',
-      accessorKey: 'grade' as const,
+      header: 'Leadership Potential',
+      accessorKey: 'leadership_potential' as const,
       cell: (row: OfficerWithRelations) => (
-        <div className="space-y-1">
-          <div className="flex items-center space-x-2">
-            <GraduationCap className="h-4 w-4 text-blue-500" />
-            <span className="text-sm font-medium text-gray-900">
-              {row.grade || 'Not assigned'}
-            </span>
-          </div>
-          {row.mx_equivalent_grade && (
-            <div className="text-xs text-gray-500">
-              MX: {row.mx_equivalent_grade}
-            </div>
-          )}
+        <div className="flex items-center space-x-2">
+          <GraduationCap className="h-4 w-4 text-blue-500" />
+          <span className="text-sm font-medium text-gray-900">
+            {row.leadership_potential || '—'}
+          </span>
         </div>
       )
     },
