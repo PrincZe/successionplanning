@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Pencil, Check, X } from 'lucide-react'
 import type { AppUser } from '@/lib/queries/users'
 import { createUserAction, updateUserAction, deleteUserAction } from '@/app/actions/users'
 
@@ -13,6 +13,9 @@ export default function UserManagement({ users }: { users: AppUser[] }) {
   const [agency, setAgency] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editRole, setEditRole] = useState('')
+  const [editAgency, setEditAgency] = useState('')
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
@@ -36,6 +39,20 @@ export default function UserManagement({ users }: { users: AppUser[] }) {
   async function handleDelete(userId: string) {
     if (!confirm('Delete this user permanently?')) return
     await deleteUserAction(userId)
+  }
+
+  function startEdit(user: AppUser) {
+    setEditingId(user.user_id)
+    setEditRole(user.role)
+    setEditAgency(user.agency ?? '')
+  }
+
+  async function saveEdit(userId: string) {
+    await updateUserAction(userId, {
+      role: editRole,
+      agency: editRole === 'agency_hr' ? editAgency : null,
+    })
+    setEditingId(null)
   }
 
   return (
@@ -115,15 +132,39 @@ export default function UserManagement({ users }: { users: AppUser[] }) {
                 <td className="px-4 py-3 font-medium text-gray-900">{u.name}</td>
                 <td className="px-4 py-3 text-gray-600">{u.email}</td>
                 <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                    u.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                    u.role === 'psd' ? 'bg-blue-100 text-blue-800' :
-                    'bg-green-100 text-green-800'
-                  }`}>
-                    {u.role}
-                  </span>
+                  {editingId === u.user_id ? (
+                    <select
+                      value={editRole}
+                      onChange={(e) => setEditRole(e.target.value)}
+                      className="border rounded-md px-2 py-1 text-xs"
+                    >
+                      <option value="agency_hr">Agency HR</option>
+                      <option value="psd">PSD Officer</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  ) : (
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      u.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                      u.role === 'psd' ? 'bg-blue-100 text-blue-800' :
+                      'bg-green-100 text-green-800'
+                    }`}>
+                      {u.role}
+                    </span>
+                  )}
                 </td>
-                <td className="px-4 py-3 text-gray-600">{u.agency ?? '—'}</td>
+                <td className="px-4 py-3 text-gray-600">
+                  {editingId === u.user_id && editRole === 'agency_hr' ? (
+                    <input
+                      type="text"
+                      value={editAgency}
+                      onChange={(e) => setEditAgency(e.target.value)}
+                      className="border rounded-md px-2 py-1 text-xs w-24"
+                      placeholder="Agency"
+                    />
+                  ) : (
+                    u.agency ?? '—'
+                  )}
+                </td>
                 <td className="px-4 py-3">
                   <button
                     onClick={() => handleToggleActive(u)}
@@ -132,10 +173,26 @@ export default function UserManagement({ users }: { users: AppUser[] }) {
                     {u.is_active ? 'Active' : 'Inactive'}
                   </button>
                 </td>
-                <td className="px-4 py-3 text-right">
-                  <button onClick={() => handleDelete(u.user_id)} className="text-red-500 hover:text-red-700">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
+                  {editingId === u.user_id ? (
+                    <>
+                      <button onClick={() => saveEdit(u.user_id)} className="text-green-600 hover:text-green-800 p-1">
+                        <Check className="h-4 w-4" />
+                      </button>
+                      <button onClick={() => setEditingId(null)} className="text-gray-400 hover:text-gray-600 p-1">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button onClick={() => startEdit(u)} className="text-gray-400 hover:text-blue-600 p-1">
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button onClick={() => handleDelete(u.user_id)} className="text-gray-400 hover:text-red-600 p-1">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </>
+                  )}
                 </td>
               </tr>
             ))}
