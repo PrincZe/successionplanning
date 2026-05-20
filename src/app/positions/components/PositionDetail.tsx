@@ -44,7 +44,7 @@ function SuccessionTree({ position, canEdit, submissionId, allOfficers, showRecs
               <Link href={`/officers/${position.incumbent.officer_id}`} className="text-base font-semibold text-gray-900 hover:text-blue-600 hover:underline">
                 {position.incumbent.name}
               </Link>
-              <div className="text-xs text-gray-500">{position.incumbent.grade ?? '—'}</div>
+              <div className="text-xs text-gray-500">{position.incumbent.service_scheme ?? '—'}</div>
             </div>
           </div>
         ) : (

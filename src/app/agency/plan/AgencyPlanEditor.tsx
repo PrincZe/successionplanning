@@ -385,7 +385,7 @@ function SuccessorList({
           <div key={key}>
             <div className="flex items-center justify-between bg-gray-50 rounded px-3 py-1.5">
               <div className="text-sm text-gray-800">
-                {s.successor.name} <span className="text-gray-400 text-xs">({s.successor.grade ?? '—'})</span>
+                {s.successor.name} <span className="text-gray-400 text-xs">({s.successor.service_scheme ?? '—'})</span>
               </div>
               <button
                 onClick={() => setRemovingKey(isRemoving ? null : key)}
