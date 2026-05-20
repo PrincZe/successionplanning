@@ -2,10 +2,12 @@ import { notFound } from 'next/navigation'
 import { getOfficerById, getOfficerQualitativeSignals } from '@/lib/queries/officers'
 import { getPositions } from '@/lib/queries/positions'
 import { getOfficerRemarks } from '@/lib/queries/remarks'
+import { getPostingHistory } from '@/lib/queries/posting-history'
 import OfficerDetail from '../components/OfficerDetail'
 import OfficerRemarks from '../components/OfficerRemarks'
 import QualitativeProfile from '../components/QualitativeProfile'
 import DevelopmentPathway from '../components/DevelopmentPathway'
+import PostingHistory from '../components/PostingHistory'
 import { addRemarkAction } from '@/app/actions/remarks'
 
 export const dynamic = 'force-dynamic'
@@ -17,11 +19,12 @@ interface Props {
 }
 
 export default async function OfficerPage({ params }: Props) {
-  const [officer, remarks, signals, positions] = await Promise.all([
+  const [officer, remarks, signals, positions, postings] = await Promise.all([
     getOfficerById(params.id).catch(() => null),
     getOfficerRemarks(params.id),
     getOfficerQualitativeSignals(params.id).catch(() => null),
     getPositions().catch(() => []),
+    getPostingHistory(params.id).catch(() => []),
   ])
 
   if (!officer) {
@@ -47,6 +50,8 @@ export default async function OfficerPage({ params }: Props) {
           officerName={officer.name}
           positions={positionLites}
         />
+
+        <PostingHistory officerId={params.id} postings={postings} />
 
         <OfficerRemarks
           officer_id={params.id}

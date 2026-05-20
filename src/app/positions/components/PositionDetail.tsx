@@ -10,6 +10,7 @@ import {
 import type { PositionWithRelations } from '@/lib/queries/positions'
 import { addSuccessorWithAudit, removeSuccessorWithAudit } from '@/app/actions/submissions'
 import RecommendationPanel from './RecommendationPanel'
+import SortableSuccessorList from './SortableSuccessorList'
 import PipelineDrillDown from '@/app/pipeline-health/components/PipelineDrillDown'
 
 type OfficerOption = { officer_id: string; name: string; grade: string | null }
@@ -71,21 +72,12 @@ function SuccessionTree({ position, canEdit, submissionId, allOfficers, showRecs
             />
           )}
         </div>
-        {shortTermSuccessors.length > 0 ? (
-          <div className="space-y-1">
-            {shortTermSuccessors.map((s, i) => (
-              <div key={s.officer_id} className="flex items-center gap-3 py-1.5">
-                <span className="text-xs text-gray-400 w-4">{i + 1}.</span>
-                <Link href={`/officers/${s.officer_id}`} className="text-sm font-medium text-gray-900 hover:text-blue-600 hover:underline">
-                  {s.name}
-                </Link>
-                <span className="text-xs text-gray-400">{s.service_scheme ?? '—'}</span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-sm text-gray-400 italic py-1">No successors assigned</div>
-        )}
+        <SortableSuccessorList
+          successors={shortTermSuccessors.map((s, i) => ({ officer_id: s.officer_id, name: s.name, service_scheme: s.service_scheme, rank: i + 1 }))}
+          positionId={position.position_id}
+          successionType="0-4_years"
+          canEdit={canEdit}
+        />
       </div>
 
       {/* Longer Term (5-10 years) Successors */}
@@ -107,21 +99,12 @@ function SuccessionTree({ position, canEdit, submissionId, allOfficers, showRecs
             />
           )}
         </div>
-        {longTermSuccessors.length > 0 ? (
-          <div className="space-y-1">
-            {longTermSuccessors.map((s, i) => (
-              <div key={s.officer_id} className="flex items-center gap-3 py-1.5">
-                <span className="text-xs text-gray-400 w-4">{i + 1}.</span>
-                <Link href={`/officers/${s.officer_id}`} className="text-sm font-medium text-gray-900 hover:text-blue-600 hover:underline">
-                  {s.name}
-                </Link>
-                <span className="text-xs text-gray-400">{s.service_scheme ?? '—'}</span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-sm text-gray-400 italic py-1">No successors assigned</div>
-        )}
+        <SortableSuccessorList
+          successors={longTermSuccessors.map((s, i) => ({ officer_id: s.officer_id, name: s.name, service_scheme: s.service_scheme, rank: i + 1 }))}
+          positionId={position.position_id}
+          successionType="5-10_years"
+          canEdit={canEdit}
+        />
       </div>
     </div>
   )
@@ -304,7 +287,7 @@ export default function PositionDetail({ position, submissionStatus, submissionI
     {/* AI Recommendation side panel */}
     {showRecs && (
       <div className="w-[380px] flex-shrink-0 sticky top-20 h-[calc(100vh-6rem)] overflow-hidden rounded-xl border border-gray-200 shadow-lg">
-        <RecommendationPanel positionId={position.position_id} submissionId={submissionId ?? null} onClose={() => setShowRecs(false)} />
+        <RecommendationPanel positionId={position.position_id} submissionId={submissionId ?? null} onClose={() => setShowRecs(false)} allOfficers={allOfficers} />
       </div>
     )}
 

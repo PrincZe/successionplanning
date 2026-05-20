@@ -6,6 +6,7 @@ import Link from 'next/link'
 import {
   X, Sparkles, Loader2, Trophy, TrendingUp, TrendingDown, Minus,
   ChevronDown, ChevronRight, Check, ExternalLink, GitCompare,
+  UserPlus, Search,
 } from 'lucide-react'
 import { addSuccessorAction } from '@/app/actions/positions'
 import { addSuccessorWithAudit } from '@/app/actions/submissions'
@@ -57,7 +58,13 @@ const TRAJECTORY_ICON: Record<string, React.ReactNode> = {
   unknown: null,
 }
 
-export default function RecommendationPanel({ positionId, submissionId, onClose }: { positionId: string; submissionId: string | null; onClose: () => void }) {
+type ManualCandidate = {
+  officer_id: string
+  name: string
+  grade: string | null
+}
+
+export default function RecommendationPanel({ positionId, submissionId, onClose, allOfficers }: { positionId: string; submissionId: string | null; onClose: () => void; allOfficers?: Array<{ officer_id: string; name: string; grade: string | null }> }) {
   const router = useRouter()
   const [result, setResult] = useState<RecommendationResult | null>(null)
   const [loading, setLoading] = useState(true)
@@ -67,6 +74,28 @@ export default function RecommendationPanel({ positionId, submissionId, onClose 
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [showCompare, setShowCompare] = useState(false)
   const [addedKey, setAddedKey] = useState<string | null>(null)
+  const [manualCandidates, setManualCandidates] = useState<ManualCandidate[]>([])
+  const [showManualSearch, setShowManualSearch] = useState(false)
+  const [manualQuery, setManualQuery] = useState('')
+
+  const manualFiltered = useMemo(() => {
+    if (!allOfficers || !manualQuery.trim()) return []
+    const q = manualQuery.toLowerCase()
+    const existingIds = new Set(manualCandidates.map((c) => c.officer_id))
+    return allOfficers
+      .filter((o) => !existingIds.has(o.officer_id) && (o.name.toLowerCase().includes(q) || o.officer_id.toLowerCase().includes(q)))
+      .slice(0, 8)
+  }, [allOfficers, manualQuery, manualCandidates])
+
+  function addManualCandidate(officer: ManualCandidate) {
+    setManualCandidates((prev) => [...prev, officer])
+    setManualQuery('')
+    setShowManualSearch(false)
+  }
+
+  function removeManualCandidate(officerId: string) {
+    setManualCandidates((prev) => prev.filter((c) => c.officer_id !== officerId))
+  }
 
   function loadCached() {
     return fetch(`/api/admin/successor-recommendations?positionId=${encodeURIComponent(positionId)}`)
@@ -143,10 +172,60 @@ export default function RecommendationPanel({ positionId, submissionId, onClose 
             <Sparkles className="h-4 w-4 text-violet-600" />
             <span className="font-semibold text-sm text-gray-900">AI Recommendations</span>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <X className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            {allOfficers && (
+              <button
+                onClick={() => setShowManualSearch(!showManualSearch)}
+                className={`p-1 rounded transition-colors ${showManualSearch ? 'bg-violet-200 text-violet-700' : 'text-gray-400 hover:text-gray-600'}`}
+                title="Add officer manually"
+              >
+                <UserPlus className="h-4 w-4" />
+              </button>
+            )}
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
+
+        {/* Manual search input */}
+        {showManualSearch && (
+          <div className="px-4 py-2 border-b bg-gray-50">
+            <div className="relative">
+              <div className="flex items-center border rounded-md px-3 py-1.5 bg-white">
+                <Search className="h-3.5 w-3.5 text-gray-400 mr-2" />
+                <input
+                  type="text"
+                  value={manualQuery}
+                  onChange={(e) => setManualQuery(e.target.value)}
+                  placeholder="Search officer to add..."
+                  className="w-full text-sm outline-none"
+                  autoFocus
+                />
+              </div>
+              {manualQuery.trim() && manualFiltered.length > 0 && (
+                <div className="absolute z-20 mt-1 w-full bg-white border rounded-md shadow-lg max-h-40 overflow-y-auto">
+                  {manualFiltered.map((o) => (
+                    <button
+                      key={o.officer_id}
+                      type="button"
+                      onClick={() => addManualCandidate(o)}
+                      className="w-full text-left px-3 py-1.5 text-sm hover:bg-violet-50 flex justify-between"
+                    >
+                      <span>{o.name}</span>
+                      <span className="text-gray-400 text-xs">{o.grade ?? ''}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {manualQuery.trim() && manualFiltered.length === 0 && (
+                <div className="absolute z-20 mt-1 w-full bg-white border rounded-md shadow-lg px-3 py-2 text-xs text-gray-500">
+                  No officers found
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Compare bar */}
         {selected.size >= 2 && (
@@ -286,6 +365,54 @@ export default function RecommendationPanel({ positionId, submissionId, onClose 
             </div>
             ))
           })()}
+
+          {/* Manually Added Section */}
+          {manualCandidates.length > 0 && (
+            <div>
+              <div className="px-4 py-2 bg-purple-50 border-y border-purple-100">
+                <span className="text-xs font-semibold text-purple-600 uppercase tracking-wide">Manually Added ({manualCandidates.length})</span>
+              </div>
+              <div className="divide-y">
+                {manualCandidates.map((c) => (
+                  <div key={c.officer_id} className="px-4 py-2.5">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-gray-900 truncate">{c.name}</div>
+                        <div className="text-xs text-gray-500">{c.grade ?? '—'}</div>
+                      </div>
+                      <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">Manual</span>
+                      <button
+                        onClick={() => removeManualCandidate(c.officer_id)}
+                        className="text-gray-400 hover:text-red-500 p-0.5"
+                        title="Remove"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      {(['0-4_years', '5-10_years'] as const).map((type) => {
+                        const key = `${c.officer_id}:${type}`
+                        const added = addedKey === key
+                        return (
+                          <button
+                            key={type}
+                            onClick={() => addToPipeline(c.officer_id, type)}
+                            disabled={!!addedKey}
+                            className={`px-2 py-1 rounded text-xs font-medium ${added ? 'bg-green-100 text-green-700' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
+                          >
+                            {added ? <><Check className="h-3 w-3 inline mr-1" />Added</> : `+ Add to ${type.replace('_', '-')}`}
+                          </button>
+                        )
+                      })}
+                      <Link href={`/officers/${c.officer_id}`} className="ml-auto text-xs text-gray-500 hover:text-blue-600 flex items-center gap-1">
+                        Profile <ExternalLink className="h-3 w-3" />
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {!loading && result && result.candidates.length === 0 && (
             <div className="px-4 py-8 text-center">
