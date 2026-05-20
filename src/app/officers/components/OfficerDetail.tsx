@@ -99,15 +99,29 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{officer.name}</h1>
-              <p className="text-gray-600 mt-1">Officer Profile &amp; Development</p>
+              {officer.positions && officer.positions.length > 0 ? (
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {officer.positions.map((position) => (
+                    <Link
+                      key={position.position_id}
+                      href={`/positions/${position.position_id}`}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-700 hover:bg-blue-100 transition-colors"
+                    >
+                      <Building2 className="h-3.5 w-3.5" />
+                      {position.position_title}, {position.agency}
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm mt-1">No current position</p>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Officer Details & Current Positions - Side by Side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Officer Details Section */}
+      {/* Officer Details */}
+      <div>
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
           <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
             <div className="flex items-center">
@@ -214,44 +228,6 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
           </div>
         </div>
 
-        {/* Current Positions Section */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
-            <div className="flex items-center">
-              <div className="p-1.5 bg-blue-100 rounded mr-3">
-                <Building2 className="h-5 w-5 text-blue-600" />
-              </div>
-              <h2 className="text-base font-semibold text-gray-900">Current Positions</h2>
-            </div>
-          </div>
-          
-          <div className="p-6">
-            {officer.positions && officer.positions.length > 0 ? (
-              <div className="space-y-3">
-                {officer.positions.map((position) => (
-                  <Link
-                    key={position.position_id}
-                    href={`/positions/${position.position_id}`}
-                    className="block p-4 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors"
-                  >
-                    <div className="flex items-center">
-                      <Building2 className="h-5 w-5 text-blue-600 mr-3" />
-                      <div>
-                        <div className="font-medium text-blue-900">{position.position_title}</div>
-                        <div className="text-sm text-blue-600">{position.agency}</div>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Building2 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">No current positions assigned</p>
-              </div>
-            )}
-          </div>
-        </div>
       </div>
 
       {/* Competencies & OOA Stints - Side by Side */}
