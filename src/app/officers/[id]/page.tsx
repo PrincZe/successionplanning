@@ -56,13 +56,13 @@ export default async function OfficerPage({ params }: Props) {
         {/* Aspirations */}
         {aspirationsRes.length > 0 && (
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-sky-50 to-sky-100 px-6 py-4 border-b border-sky-200">
+            <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-sky-200 rounded-lg">
-                  <svg className="h-5 w-5 text-sky-700" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" /></svg>
+                <div className="p-1.5 bg-blue-100 rounded">
+                  <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" /></svg>
                 </div>
-                <h2 className="text-xl font-semibold text-sky-900">Career Aspirations</h2>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-200 text-sky-800">
+                <h2 className="text-base font-semibold text-gray-900">Career Aspirations</h2>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
                   {aspirationsRes.length}
                 </span>
               </div>

@@ -238,12 +238,12 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
     <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8">
       {/* Officer Details Section */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-blue-200">
+        <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
           <div className="flex items-center">
-            <div className="p-2 bg-blue-200 rounded-lg mr-3">
-              <User className="h-5 w-5 text-blue-700" />
+            <div className="p-1.5 bg-blue-100 rounded mr-3">
+              <User className="h-5 w-5 text-blue-600" />
             </div>
-            <h2 className="text-xl font-semibold text-blue-900">Officer Details</h2>
+            <h2 className="text-base font-semibold text-gray-900">Officer Details</h2>
           </div>
         </div>
         
@@ -462,22 +462,22 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
 
       {/* Competencies Section */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-purple-50 to-purple-100 px-6 py-4 border-b border-purple-200">
+        <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
           <button
             type="button"
             onClick={() => setIsCompetenciesOpen(!isCompetenciesOpen)}
             className="flex items-center justify-between w-full text-left"
           >
             <div className="flex items-center">
-              <div className="p-2 bg-purple-200 rounded-lg mr-3">
-                <Award className="h-5 w-5 text-purple-700" />
+              <div className="p-1.5 bg-blue-100 rounded mr-3">
+                <Award className="h-5 w-5 text-blue-600" />
               </div>
-              <h2 className="text-xl font-semibold text-purple-900">Competencies</h2>
+              <h2 className="text-base font-semibold text-gray-900">Competencies</h2>
             </div>
             {isCompetenciesOpen ? (
-              <ChevronDown className="h-5 w-5 text-purple-700" />
+              <ChevronDown className="h-5 w-5 text-gray-500" />
             ) : (
-              <ChevronRight className="h-5 w-5 text-purple-700" />
+              <ChevronRight className="h-5 w-5 text-gray-500" />
             )}
           </button>
         </div>
@@ -563,22 +563,22 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
 
       {/* OOA Stints Section */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-amber-50 to-amber-100 px-6 py-4 border-b border-amber-200">
+        <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
           <button
             type="button"
             onClick={() => setIsStintsOpen(!isStintsOpen)}
             className="flex items-center justify-between w-full text-left"
           >
             <div className="flex items-center">
-              <div className="p-2 bg-amber-200 rounded-lg mr-3">
-                <Briefcase className="h-5 w-5 text-amber-700" />
+              <div className="p-1.5 bg-blue-100 rounded mr-3">
+                <Briefcase className="h-5 w-5 text-blue-600" />
               </div>
-              <h2 className="text-xl font-semibold text-amber-900">OOA Stints</h2>
+              <h2 className="text-base font-semibold text-gray-900">OOA Stints</h2>
             </div>
             {isStintsOpen ? (
-              <ChevronDown className="h-5 w-5 text-amber-700" />
+              <ChevronDown className="h-5 w-5 text-gray-500" />
             ) : (
-              <ChevronRight className="h-5 w-5 text-amber-700" />
+              <ChevronRight className="h-5 w-5 text-gray-500" />
             )}
           </button>
         </div>

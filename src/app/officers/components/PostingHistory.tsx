@@ -64,24 +64,24 @@ export default function PostingHistory({ officerId, postings }: PostingHistoryPr
   return (
     <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-orange-50 to-orange-100 px-6 py-4 border-b border-orange-200">
+      <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="flex items-center justify-between w-full text-left"
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-orange-200 rounded-lg">
-              <Briefcase className="h-5 w-5 text-orange-700" />
+            <div className="p-1.5 bg-blue-100 rounded">
+              <Briefcase className="h-5 w-5 text-blue-600" />
             </div>
-            <h2 className="text-xl font-semibold text-orange-900">Posting History</h2>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-200 text-orange-800">
+            <h2 className="text-base font-semibold text-gray-900">Posting History</h2>
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
               {postings.length}
             </span>
           </div>
           {isOpen ? (
-            <ChevronDown className="h-5 w-5 text-orange-700" />
+            <ChevronDown className="h-5 w-5 text-gray-500" />
           ) : (
-            <ChevronRight className="h-5 w-5 text-orange-700" />
+            <ChevronRight className="h-5 w-5 text-gray-500" />
           )}
         </button>
       </div>

@@ -94,11 +94,11 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className="h-16 w-16 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
-              <span className="text-emerald-700 font-bold text-xl">{getInitials(officer.name)}</span>
+            <div className="h-14 w-14 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
+              <span className="text-blue-700 font-bold text-xl">{getInitials(officer.name)}</span>
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{officer.name}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{officer.name}</h1>
               <p className="text-gray-600 mt-1">Officer Profile &amp; Development</p>
             </div>
           </div>
@@ -109,12 +109,12 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Officer Details Section */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-blue-200">
+          <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
             <div className="flex items-center">
-              <div className="p-2 bg-blue-200 rounded-lg mr-3">
-                <Hash className="h-5 w-5 text-blue-700" />
+              <div className="p-1.5 bg-blue-100 rounded mr-3">
+                <Hash className="h-5 w-5 text-blue-600" />
               </div>
-              <h2 className="text-xl font-semibold text-blue-900">Officer Details</h2>
+              <h2 className="text-base font-semibold text-gray-900">Officer Details</h2>
             </div>
           </div>
           
@@ -216,12 +216,12 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
 
         {/* Current Positions Section */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-green-50 to-green-100 px-6 py-4 border-b border-green-200">
+          <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
             <div className="flex items-center">
-              <div className="p-2 bg-green-200 rounded-lg mr-3">
-                <Building2 className="h-5 w-5 text-green-700" />
+              <div className="p-1.5 bg-blue-100 rounded mr-3">
+                <Building2 className="h-5 w-5 text-blue-600" />
               </div>
-              <h2 className="text-xl font-semibold text-green-900">Current Positions</h2>
+              <h2 className="text-base font-semibold text-gray-900">Current Positions</h2>
             </div>
           </div>
           
@@ -258,24 +258,24 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Competencies Section */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-purple-50 to-purple-100 px-6 py-4 border-b border-purple-200">
+          <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
             <button
               onClick={() => setIsCompetenciesOpen(!isCompetenciesOpen)}
               className="flex items-center justify-between w-full text-left"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-200 rounded-lg">
-                  <Award className="h-5 w-5 text-purple-700" />
+                <div className="p-1.5 bg-blue-100 rounded">
+                  <Award className="h-5 w-5 text-blue-600" />
                 </div>
-                <h2 className="text-xl font-semibold text-purple-900">Competencies</h2>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-200 text-purple-800">
+                <h2 className="text-base font-semibold text-gray-900">Competencies</h2>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
                   {competencyCount}
                 </span>
               </div>
               {isCompetenciesOpen ? (
-                <ChevronDown className="h-5 w-5 text-purple-700" />
+                <ChevronDown className="h-5 w-5 text-gray-500" />
               ) : (
-                <ChevronRight className="h-5 w-5 text-purple-700" />
+                <ChevronRight className="h-5 w-5 text-gray-500" />
               )}
             </button>
           </div>
@@ -304,7 +304,7 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
                   <p className="text-gray-600 font-medium">No competencies recorded</p>
                   <button
                     onClick={() => router.push(`/officers/${officer.officer_id}/edit`)}
-                    className="mt-3 text-sm text-purple-600 hover:text-purple-800 font-medium transition-colors"
+                    className="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
                   >
                     Add via Edit Officer →
                   </button>
@@ -316,24 +316,24 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
 
         {/* OOA Stints Section */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-amber-50 to-amber-100 px-6 py-4 border-b border-amber-200">
+          <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
             <button
               onClick={() => setIsStintsOpen(!isStintsOpen)}
               className="flex items-center justify-between w-full text-left"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-amber-200 rounded-lg">
-                  <Briefcase className="h-5 w-5 text-amber-700" />
+                <div className="p-1.5 bg-blue-100 rounded">
+                  <Briefcase className="h-5 w-5 text-blue-600" />
                 </div>
-                <h2 className="text-xl font-semibold text-amber-900">OOA Stints</h2>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-200 text-amber-800">
+                <h2 className="text-base font-semibold text-gray-900">OOA Stints</h2>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
                   {stintCount}
                 </span>
               </div>
               {isStintsOpen ? (
-                <ChevronDown className="h-5 w-5 text-amber-700" />
+                <ChevronDown className="h-5 w-5 text-gray-500" />
               ) : (
-                <ChevronRight className="h-5 w-5 text-amber-700" />
+                <ChevronRight className="h-5 w-5 text-gray-500" />
               )}
             </button>
           </div>
@@ -363,7 +363,7 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
                   <p className="text-gray-600 font-medium">No stints recorded</p>
                   <button
                     onClick={() => router.push(`/officers/${officer.officer_id}/edit`)}
-                    className="mt-3 text-sm text-amber-600 hover:text-amber-800 font-medium transition-colors"
+                    className="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
                   >
                     Add via Edit Officer →
                   </button>
