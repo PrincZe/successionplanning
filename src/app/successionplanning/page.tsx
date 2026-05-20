@@ -21,11 +21,27 @@ export default async function SuccessionPlanningPage() {
       (s) => s.submission_id !== submission?.submission_id && s.status === 'endorsed'
     )
 
+    let comments: any[] = []
+    if (submission) {
+      const { supabaseServer } = await import('@/lib/supabase')
+      const { data } = await supabaseServer
+        .from('submission_comments')
+        .select('comment_id, comment, created_at, user_id')
+        .eq('submission_id', submission.submission_id)
+        .order('created_at', { ascending: true })
+      if (data && data.length > 0) {
+        const userIds = Array.from(new Set(data.map((c: any) => c.user_id)))
+        const { data: users } = await supabaseServer.from('users').select('user_id, name, role').in('user_id', userIds)
+        const userMap = new Map((users ?? []).map((u: any) => [u.user_id, u]))
+        comments = data.map((c: any) => ({ ...c, user_name: userMap.get(c.user_id)?.name, user_role: userMap.get(c.user_id)?.role }))
+      }
+    }
+
     const { default: AgencyTaskPage } = await import('@/app/agency/AgencyTaskPage')
     return (
       <div className="min-h-screen bg-gray-50">
         <main className="container mx-auto px-4 py-8">
-          <AgencyTaskPage agency={session.agency} cycle={cycle} submission={submission} />
+          <AgencyTaskPage agency={session.agency} cycle={cycle} submission={submission} comments={comments} />
           {pastSubmissions.length > 0 && (
             <div className="max-w-3xl mx-auto mt-8">
               <h2 className="text-lg font-semibold text-gray-900 mb-3">Past Submissions</h2>

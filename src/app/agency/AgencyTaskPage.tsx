@@ -14,16 +14,21 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }>
   returned: { bg: 'bg-red-100', text: 'text-red-700', label: 'Returned' },
 }
 
+type Comment = { comment_id: string; comment: string; created_at: string; user_name?: string; user_role?: string }
+
 export default function AgencyTaskPage({
   agency,
   cycle,
   submission,
+  comments = [],
 }: {
   agency: string
   cycle: SubmissionCycle | null
   submission: PlanSubmission | null
+  comments?: Comment[]
 }) {
   const [submitting, setSubmitting] = useState(false)
+  const [submitNotes, setSubmitNotes] = useState('')
 
   if (!cycle) {
     return (
@@ -45,7 +50,7 @@ export default function AgencyTaskPage({
   async function handleSubmit() {
     if (!submission || !confirm('Submit your succession plan? You will not be able to edit until PSD reviews it.')) return
     setSubmitting(true)
-    await submitPlanAction(submission.submission_id)
+    await submitPlanAction(submission.submission_id, submitNotes || undefined)
     setSubmitting(false)
     window.location.reload()
   }
@@ -110,31 +115,67 @@ export default function AgencyTaskPage({
         )}
       </div>
 
-      {/* Actions */}
-      <div className="flex gap-3">
-        {canEdit && (
-          <Link
-            href="/successionplanning/plan"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
-          >
-            <FileText className="h-4 w-4" />
-            Edit Plan
-          </Link>
-        )}
+      {/* Submit with justification */}
+      <div className="space-y-3">
+        <div className="flex gap-3">
+          {canEdit && (
+            <Link
+              href="/successionplanning/plan"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
+            >
+              <FileText className="h-4 w-4" />
+              Edit Plan
+            </Link>
+          )}
+          {canSubmit && (
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              {submitting ? 'Submitting...' : 'Submit Plan'}
+            </button>
+          )}
+          {!canEdit && submission?.status === 'submitted' && (
+            <div className="text-sm text-gray-500 py-2">Your plan has been submitted and is pending PSD review.</div>
+          )}
+        </div>
         {canSubmit && (
-          <button
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50"
-          >
-            <CheckCircle2 className="h-4 w-4" />
-            {submitting ? 'Submitting...' : 'Submit Plan'}
-          </button>
-        )}
-        {!canEdit && submission?.status === 'submitted' && (
-          <div className="text-sm text-gray-500 py-2">Your plan has been submitted and is pending PSD review.</div>
+          <textarea
+            value={submitNotes}
+            onChange={(e) => setSubmitNotes(e.target.value)}
+            placeholder="Add justification or notes for PSD (optional)..."
+            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            rows={2}
+          />
         )}
       </div>
+
+      {/* Comment thread */}
+      {comments.length > 0 && (
+        <div className="bg-white border rounded-xl p-5 space-y-3">
+          <h3 className="text-sm font-semibold text-gray-700">Comments &amp; Notes</h3>
+          <div className="space-y-2">
+            {comments.map((c) => (
+              <div key={c.comment_id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-sm font-medium text-gray-900">{c.user_name ?? 'Unknown'}</span>
+                    {c.user_role && (
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${c.user_role === 'psd' || c.user_role === 'admin' ? 'bg-violet-100 text-violet-700' : 'bg-green-100 text-green-700'}`}>
+                        {c.user_role === 'agency_hr' ? 'Agency' : 'PSD'}
+                      </span>
+                    )}
+                    <span className="text-xs text-gray-400">{new Date(c.created_at).toLocaleString('en-SG', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                  <p className="text-sm text-gray-700">{c.comment}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

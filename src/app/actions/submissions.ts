@@ -2,14 +2,22 @@
 
 import { revalidatePath } from 'next/cache'
 import { submitPlan, endorseSubmission, returnSubmission, recordChange } from '@/lib/queries/submissions'
+import { supabaseServer } from '@/lib/supabase'
 import { updateSuccessors } from '@/lib/queries/positions'
 import { getCurrentSession } from './auth'
 
-export async function submitPlanAction(submissionId: string) {
+export async function submitPlanAction(submissionId: string, notes?: string) {
   try {
     const session = await getCurrentSession()
     if (!session) return { success: false, error: 'Unauthorized' }
     await submitPlan(submissionId, session.user_id)
+    if (notes?.trim()) {
+      await supabaseServer.from('submission_comments').insert({
+        submission_id: submissionId,
+        user_id: session.user_id,
+        comment: notes.trim(),
+      })
+    }
     revalidatePath('/successionplanning')
     return { success: true }
   } catch (error: any) {
@@ -39,6 +47,11 @@ export async function returnSubmissionAction(submissionId: string, notes: string
       return { success: false, error: 'Unauthorized' }
     }
     await returnSubmission(submissionId, session.user_id, notes)
+    await supabaseServer.from('submission_comments').insert({
+      submission_id: submissionId,
+      user_id: session.user_id,
+      comment: notes.trim(),
+    })
     revalidatePath('/successionplanning')
     revalidatePath('/successionplanning/submissions')
     return { success: true }
