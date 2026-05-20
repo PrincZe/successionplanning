@@ -15,6 +15,11 @@ export async function createOfficerAction(data: {
   name: string
   grade: string | null
   mx_equivalent_grade: string | null
+  service_scheme: string | null
+  date_of_birth: string | null
+  parent_agency: string | null
+  current_agency: string | null
+  leadership_potential: string | null
   ihrp_certification: string | null
   hrlp: string | null
   competencies: Array<OfficerCompetencyData>
@@ -30,6 +35,11 @@ export async function createOfficerAction(data: {
         name: data.name,
         grade: data.grade,
         mx_equivalent_grade: data.mx_equivalent_grade,
+        service_scheme: data.service_scheme as 'SPSL' | 'PSL' | 'AO' | null,
+        date_of_birth: data.date_of_birth,
+        parent_agency: data.parent_agency,
+        current_agency: data.current_agency,
+        leadership_potential: data.leadership_potential,
         ihrp_certification: data.ihrp_certification,
         hrlp: data.hrlp
       })
@@ -57,6 +67,11 @@ export async function createOfficerAction(data: {
         name: data.name,
         grade: data.grade,
         mx_equivalent_grade: data.mx_equivalent_grade,
+        service_scheme: data.service_scheme as 'SPSL' | 'PSL' | 'AO' | null,
+        date_of_birth: data.date_of_birth,
+        parent_agency: data.parent_agency,
+        current_agency: data.current_agency,
+        leadership_potential: data.leadership_potential,
         ihrp_certification: data.ihrp_certification,
         hrlp: data.hrlp
       })

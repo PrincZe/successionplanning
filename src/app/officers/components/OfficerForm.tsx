@@ -26,6 +26,11 @@ interface OfficerFormProps {
     name: string
     grade: string | null
     mx_equivalent_grade: string | null
+    service_scheme: string | null
+    date_of_birth: string | null
+    parent_agency: string | null
+    current_agency: string | null
+    leadership_potential: string | null
     ihrp_certification: string | null
     hrlp: string | null
     competencies: Array<{
@@ -45,6 +50,11 @@ interface FormData {
   name: string
   grade: string
   mx_equivalent_grade: string
+  service_scheme: string
+  date_of_birth: string
+  parent_agency: string
+  current_agency: string
+  leadership_potential: string
   ihrp_certification: string
   hrlp: string
   competencies: Array<{
@@ -101,6 +111,11 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
     name: officer?.name ?? '',
     grade: officer?.grade ?? '',
     mx_equivalent_grade: officer?.mx_equivalent_grade ?? '',
+    service_scheme: officer?.service_scheme ?? '',
+    date_of_birth: officer?.date_of_birth ?? '',
+    parent_agency: officer?.parent_agency ?? '',
+    current_agency: officer?.current_agency ?? '',
+    leadership_potential: officer?.leadership_potential ?? '',
     ihrp_certification: officer?.ihrp_certification ?? '',
     hrlp: officer?.hrlp ?? '',
     competencies: officer?.competencies?.map(comp => ({
@@ -125,6 +140,11 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
           ...formData,
           grade: formData.grade || null,
           mx_equivalent_grade: formData.mx_equivalent_grade || null,
+          service_scheme: formData.service_scheme || null,
+          date_of_birth: formData.date_of_birth || null,
+          parent_agency: formData.parent_agency || null,
+          current_agency: formData.current_agency || null,
+          leadership_potential: formData.leadership_potential || null,
           ihrp_certification: formData.ihrp_certification || null,
           hrlp: formData.hrlp || null
         },
@@ -293,6 +313,109 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                   placeholder="Enter MX equivalent grade"
                 />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="service_scheme" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <Briefcase className="h-4 w-4 mr-2 text-gray-500" />
+                  Service Scheme
+                </label>
+                <select
+                  id="service_scheme"
+                  value={formData.service_scheme}
+                  onChange={(e) => setFormData({ ...formData, service_scheme: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                >
+                  <option value="">Select scheme</option>
+                  <option value="PSL">PSL</option>
+                  <option value="SPSL">SPSL</option>
+                  <option value="AO">AO</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="date_of_birth" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <Calendar className="h-4 w-4 mr-2 text-gray-500" />
+                  Date of Birth
+                </label>
+                <input
+                  type="date"
+                  id="date_of_birth"
+                  value={formData.date_of_birth}
+                  onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="parent_agency" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <Briefcase className="h-4 w-4 mr-2 text-gray-500" />
+                  Parent Agency
+                </label>
+                <input
+                  type="text"
+                  id="parent_agency"
+                  value={formData.parent_agency}
+                  onChange={(e) => setFormData({ ...formData, parent_agency: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="Home ministry (e.g. MOF)"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="current_agency" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <Briefcase className="h-4 w-4 mr-2 text-gray-500" />
+                  Current Agency
+                </label>
+                <input
+                  type="text"
+                  id="current_agency"
+                  value={formData.current_agency}
+                  onChange={(e) => setFormData({ ...formData, current_agency: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="Where currently posted (e.g. MTI)"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="leadership_potential" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <GraduationCap className="h-4 w-4 mr-2 text-gray-500" />
+                  Leadership Potential (LP)
+                </label>
+                <select
+                  id="leadership_potential"
+                  value={formData.leadership_potential}
+                  onChange={(e) => setFormData({ ...formData, leadership_potential: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                >
+                  <option value="">Select LP</option>
+                  {formData.service_scheme === 'AO' ? (
+                    <>
+                      <option value="AR1">AR1</option>
+                      <option value="AR2">AR2</option>
+                      <option value="AR3">AR3</option>
+                      <option value="AR4">AR4</option>
+                      <option value="AR5">AR5</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="JR1">JR1</option>
+                      <option value="JR2">JR2</option>
+                      <option value="JR3">JR3</option>
+                      <option value="JR4">JR4</option>
+                      <option value="JR5">JR5</option>
+                      <option value="JR6">JR6</option>
+                      <option value="JR7">JR7</option>
+                      <option value="JR8">JR8</option>
+                    </>
+                  )}
+                </select>
               </div>
             </div>
 

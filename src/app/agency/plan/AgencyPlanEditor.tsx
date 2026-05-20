@@ -14,7 +14,7 @@ type PositionRow = {
   incumbent: { name: string } | null
   position_successors: Array<{
     succession_type: string
-    successor: { officer_id: string; name: string; grade: string | null }
+    successor: { officer_id: string; name: string; grade: string | null; service_scheme?: string | null }
   }>
 }
 
@@ -363,7 +363,7 @@ function SuccessorList({
   onRemove,
   loading,
 }: {
-  successors: Array<{ succession_type: string; successor: { officer_id: string; name: string; grade: string | null } }>
+  successors: Array<{ succession_type: string; successor: { officer_id: string; name: string; grade: string | null; service_scheme?: string | null } }>
   type: '0-4_years' | '5-10_years'
   removingKey: string | null
   setRemovingKey: (key: string | null) => void
