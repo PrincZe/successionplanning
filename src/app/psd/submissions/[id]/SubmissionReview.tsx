@@ -148,15 +148,19 @@ export default function SubmissionReview({
           <div className="space-y-2">
             {changes.map((c) => (
               <div key={c.change_id} className="flex items-start gap-3 py-2 border-b border-gray-100 last:border-0">
-                <div className={`mt-0.5 p-1 rounded ${c.action === 'add' ? 'bg-green-100' : 'bg-red-100'}`}>
-                  {c.action === 'add' ? <Plus className="h-3 w-3 text-green-600" /> : <Trash2 className="h-3 w-3 text-red-600" />}
+                <div className={`mt-0.5 p-1 rounded ${c.action === 'add' ? 'bg-green-100' : c.action === 'reorder' ? 'bg-blue-100' : 'bg-red-100'}`}>
+                  {c.action === 'add' ? <Plus className="h-3 w-3 text-green-600" /> : c.action === 'reorder' ? <Clock className="h-3 w-3 text-blue-600" /> : <Trash2 className="h-3 w-3 text-red-600" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm text-gray-900">
-                    <span className="font-medium">{officerNames[c.officer_id] ?? c.officer_id}</span>
-                    {' '}{c.action === 'add' ? 'added to' : 'removed from'}{' '}
-                    <span className="font-medium">{positionNames[c.position_id] ?? c.position_id}</span>
-                    {' '}({c.succession_type.replace('_', '-')})
+                    {c.action === 'reorder' ? (
+                      <>Reordered successors for <span className="font-medium">{positionNames[c.position_id] ?? c.position_id}</span> ({c.succession_type.replace('_', '-')})</>
+                    ) : (
+                      <><span className="font-medium">{officerNames[c.officer_id] ?? c.officer_id}</span>
+                      {' '}{c.action === 'add' ? 'added to' : 'removed from'}{' '}
+                      <span className="font-medium">{positionNames[c.position_id] ?? c.position_id}</span>
+                      {' '}({c.succession_type.replace('_', '-')})</>
+                    )}
                   </div>
                   {c.reason && <div className="text-xs text-gray-500 mt-0.5 italic">Reason: {c.reason}</div>}
                 </div>
@@ -164,6 +168,7 @@ export default function SubmissionReview({
                   {c.changed_by_role && c.changed_by_role !== 'agency_hr' && (
                     <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-violet-100 text-violet-700 mb-0.5">PSD</span>
                   )}
+                  {c.changed_by_name && <div className="text-xs text-gray-600 font-medium">{c.changed_by_name}</div>}
                   <div className="text-xs text-gray-400 whitespace-nowrap">{new Date(c.changed_at).toLocaleString()}</div>
                 </div>
               </div>

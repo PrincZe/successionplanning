@@ -105,6 +105,7 @@ export default function AgencyPlanEditor({
                   {c.changed_by_role && c.changed_by_role !== 'agency_hr' && (
                     <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-violet-100 text-violet-700">PSD</span>
                   )}
+                  {c.changed_by_name && <span className="text-xs text-gray-600 font-medium">{c.changed_by_name}</span>}
                   <span className="text-xs text-gray-400 whitespace-nowrap">{new Date(c.changed_at).toLocaleString()}</span>
                 </span>
               </div>
@@ -291,6 +292,7 @@ function PositionCard({
           successors={successors04}
           type="0-4_years"
           positionId={position.position_id}
+          submissionId={submissionId}
           removingKey={removingKey}
           setRemovingKey={setRemovingKey}
           removeReason={removeReason}
@@ -312,6 +314,7 @@ function PositionCard({
           successors={successors410}
           type="5-10_years"
           positionId={position.position_id}
+          submissionId={submissionId}
           removingKey={removingKey}
           setRemovingKey={setRemovingKey}
           removeReason={removeReason}
@@ -410,6 +413,7 @@ function SuccessorList({
   successors,
   type,
   positionId,
+  submissionId,
   removingKey,
   setRemovingKey,
   removeReason,
@@ -420,6 +424,7 @@ function SuccessorList({
   successors: Array<{ succession_type: string; rank?: number; successor: { officer_id: string; name: string; grade: string | null; service_scheme?: string | null } }>
   type: '0-4_years' | '5-10_years'
   positionId: string
+  submissionId: string
   removingKey: string | null
   setRemovingKey: (key: string | null) => void
   removeReason: string
@@ -443,7 +448,7 @@ function SuccessorList({
     const newIdx = items.findIndex(s => s.successor.officer_id === over.id)
     const reordered = arrayMove(items, oldIdx, newIdx)
     setItems(reordered)
-    await reorderSuccessors(positionId, type, reordered.map(s => s.successor.officer_id))
+    await reorderSuccessors(positionId, type, reordered.map(s => s.successor.officer_id), submissionId)
   }
 
   return (
