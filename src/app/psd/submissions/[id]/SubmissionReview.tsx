@@ -21,6 +21,8 @@ type PositionRow = {
   }>
 }
 
+type Comment = { comment_id: string; comment: string; created_at: string; user_name?: string; user_role?: string }
+
 export default function SubmissionReview({
   submission,
   positions,
@@ -28,6 +30,7 @@ export default function SubmissionReview({
   officerNames,
   positionNames,
   allOfficers = [],
+  comments = [],
 }: {
   submission: PlanSubmission
   positions: PositionRow[]
@@ -35,6 +38,7 @@ export default function SubmissionReview({
   officerNames: Record<string, string>
   positionNames: Record<string, string>
   allOfficers?: OfficerOption[]
+  comments?: Comment[]
 }) {
   const [returnNotes, setReturnNotes] = useState('')
   const [showReturn, setShowReturn] = useState(false)
@@ -93,6 +97,31 @@ export default function SubmissionReview({
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="text-sm font-medium text-red-800 mb-1">Previous return notes:</div>
           <p className="text-sm text-red-700">{submission.review_notes}</p>
+        </div>
+      )}
+
+      {/* Comment thread */}
+      {comments.length > 0 && (
+        <div className="bg-white border rounded-xl p-5 space-y-3">
+          <h3 className="text-sm font-semibold text-gray-700">Comments &amp; Notes ({comments.length})</h3>
+          <div className="space-y-2">
+            {comments.map((c) => (
+              <div key={c.comment_id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-sm font-medium text-gray-900">{c.user_name ?? 'Unknown'}</span>
+                    {c.user_role && (
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${c.user_role === 'psd' || c.user_role === 'admin' ? 'bg-violet-100 text-violet-700' : 'bg-green-100 text-green-700'}`}>
+                        {c.user_role === 'agency_hr' ? 'Agency' : 'PSD'}
+                      </span>
+                    )}
+                    <span className="text-xs text-gray-400">{new Date(c.created_at).toLocaleString('en-SG', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                  <p className="text-sm text-gray-700">{c.comment}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
