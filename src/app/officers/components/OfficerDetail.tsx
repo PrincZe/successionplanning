@@ -132,97 +132,59 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
             </div>
           </div>
           
-          <div className="p-6">
-            <div className="space-y-6">
+          <div className="p-5">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               <div>
-                <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
-                  <Hash className="h-4 w-4 mr-2" />
-                  Officer ID
-                </dt>
-                <dd className="text-lg font-semibold text-gray-900 font-mono">{officer.officer_id}</dd>
+                <dt className="text-xs font-medium text-gray-500 mb-0.5">Officer ID</dt>
+                <dd className="text-sm font-semibold text-gray-900 font-mono">{officer.officer_id}</dd>
               </div>
-
               <div>
-                <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Age
-                </dt>
-                <dd className="text-lg font-semibold text-gray-900">
+                <dt className="text-xs font-medium text-gray-500 mb-0.5">Age</dt>
+                <dd className="text-sm font-semibold text-gray-900">
                   {officer.date_of_birth
-                    ? `${Math.floor((Date.now() - new Date(officer.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))} years old`
-                    : 'Not available'}
-                  {officer.service_scheme && (
-                    <span className="ml-2 text-sm font-normal text-gray-500">({officer.service_scheme})</span>
-                  )}
+                    ? `${Math.floor((Date.now() - new Date(officer.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))} yrs`
+                    : '—'}
                 </dd>
               </div>
-
               <div>
-                <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
-                  <GraduationCap className="h-4 w-4 mr-2" />
-                  Grade
-                </dt>
-                <dd className="text-lg font-semibold text-gray-900">{officer.grade ?? 'Not assigned'}</dd>
-              </div>
-              
-              <div>
-                <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
-                  <GraduationCap className="h-4 w-4 mr-2" />
-                  MX Equivalent Grade
-                </dt>
-                <dd className="text-lg font-semibold text-gray-900">{officer.mx_equivalent_grade ?? 'Not assigned'}</dd>
-              </div>
-              
-              <div>
-                <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
-                  <Award className="h-4 w-4 mr-2" />
-                  IHRP Certification
-                </dt>
-                <dd className="text-lg font-semibold text-gray-900">{officer.ihrp_certification ?? 'None'}</dd>
-              </div>
-              
-              <div>
-                <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
-                  <Award className="h-4 w-4 mr-2" />
-                  HRLP
-                </dt>
-                <dd className="text-lg font-semibold text-gray-900">{officer.hrlp ?? 'None'}</dd>
-              </div>
-
-              <div>
-                <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
-                  <GraduationCap className="h-4 w-4 mr-2" />
-                  Leadership Potential (LP)
-                </dt>
-                <dd className="text-lg font-semibold text-gray-900">{officer.leadership_potential ?? 'Not assessed'}</dd>
-              </div>
-
-              <div>
-                <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Date of Birth
-                </dt>
-                <dd className="text-lg font-semibold text-gray-900">
+                <dt className="text-xs font-medium text-gray-500 mb-0.5">DOB</dt>
+                <dd className="text-sm font-semibold text-gray-900">
                   {officer.date_of_birth
-                    ? new Date(officer.date_of_birth).toLocaleDateString('en-SG', { day: 'numeric', month: 'long', year: 'numeric' })
-                    : 'Not available'}
+                    ? new Date(officer.date_of_birth).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' })
+                    : '—'}
                 </dd>
               </div>
-
               <div>
-                <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
-                  <Building2 className="h-4 w-4 mr-2" />
-                  Parent Agency
-                </dt>
-                <dd className="text-lg font-semibold text-gray-900">{officer.parent_agency ?? 'Not set'}</dd>
+                <dt className="text-xs font-medium text-gray-500 mb-0.5">Scheme</dt>
+                <dd className="text-sm font-semibold text-gray-900">{officer.service_scheme ?? '—'}</dd>
               </div>
-
               <div>
-                <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
-                  <Building2 className="h-4 w-4 mr-2" />
-                  Current Agency
-                </dt>
-                <dd className="text-lg font-semibold text-gray-900">{officer.current_agency ?? 'Not set'}</dd>
+                <dt className="text-xs font-medium text-gray-500 mb-0.5">Grade</dt>
+                <dd className="text-sm font-semibold text-gray-900">{officer.grade ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-xs font-medium text-gray-500 mb-0.5">MX Equivalent</dt>
+                <dd className="text-sm font-semibold text-gray-900">{officer.mx_equivalent_grade ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-xs font-medium text-gray-500 mb-0.5">Leadership Potential</dt>
+                <dd className="text-sm font-semibold text-gray-900">{officer.leadership_potential ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-xs font-medium text-gray-500 mb-0.5">Parent Agency</dt>
+                <dd className="text-sm font-semibold text-gray-900">{officer.parent_agency ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-xs font-medium text-gray-500 mb-0.5">Current Agency</dt>
+                <dd className="text-sm font-semibold text-gray-900">{officer.current_agency ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-xs font-medium text-gray-500 mb-0.5">IHRP</dt>
+                <dd className="text-sm font-semibold text-gray-900">{officer.ihrp_certification ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-xs font-medium text-gray-500 mb-0.5">HRLP</dt>
+                <dd className="text-sm font-semibold text-gray-900">{officer.hrlp ?? '—'}</dd>
               </div>
             </div>
           </div>
