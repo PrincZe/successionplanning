@@ -40,10 +40,11 @@ export default function AgencyPlanEditor({
 }) {
   const [showConfirm, setShowConfirm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [submitNotes, setSubmitNotes] = useState('')
 
   async function handleSubmit() {
     setSubmitting(true)
-    await submitPlanAction(submission.submission_id)
+    await submitPlanAction(submission.submission_id, submitNotes || undefined)
     setSubmitting(false)
     setShowConfirm(false)
     window.location.href = '/successionplanning'
@@ -127,9 +128,16 @@ export default function AgencyPlanEditor({
             <p className="text-sm text-gray-600 mb-2">
               Are you sure you want to submit this succession plan to PSD for review?
             </p>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="text-sm text-gray-500 mb-3">
               You will not be able to make further changes until PSD completes their review.
             </p>
+            <textarea
+              value={submitNotes}
+              onChange={(e) => setSubmitNotes(e.target.value)}
+              placeholder="Add comments or justification for PSD (optional)..."
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4"
+              rows={3}
+            />
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowConfirm(false)}
