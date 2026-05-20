@@ -69,9 +69,13 @@ const RANKING_TOOL = {
   },
 }
 
+type PostingRecord = { position_title: string; agency: string; start_date: string; end_date: string | null; grade_at_time: string | null }
+type CandidatePostings = Record<string, PostingRecord[]>
+
 function buildPrompt(
   position: { position_id: string; position_title: string },
-  candidates: Candidate[]
+  candidates: Candidate[],
+  postings: CandidatePostings = {}
 ): string {
   const candidatesBlock = candidates
     .map((c, i) => {
@@ -102,6 +106,14 @@ function buildPrompt(
       if (c.reasons.length > 0) {
         lines.push(`   engine notes: ${c.reasons.join('; ')}`)
       }
+      const officerPostings = postings[c.officer_id]
+      if (officerPostings && officerPostings.length > 0) {
+        lines.push(`   career history:`)
+        officerPostings.forEach((p) => {
+          const end = p.end_date ? p.end_date.slice(0, 4) : 'present'
+          lines.push(`     - ${p.position_title}, ${p.agency} (${p.start_date.slice(0, 4)}–${end})${p.grade_at_time ? ' [' + p.grade_at_time + ']' : ''}`)
+        })
+      }
       return lines.join('\n')
     })
     .join('\n\n')
@@ -115,8 +127,9 @@ ${position.position_title} (${position.position_id})
 ${candidatesBlock}
 
 ## How to rerank
-- The engine score is a starting point, not a verdict. You can disagree if the qualitative signal, aspiration alignment, or specific gaps warrant it.
+- The engine score is a starting point, not a verdict. You can disagree if the qualitative signal, aspiration alignment, career history, or specific gaps warrant it.
 - Weight forum endorsements heavily — that is the load-bearing CHROO signal.
+- Consider career history: breadth of agency exposure, relevance of past roles to this position, and progression trajectory. An officer who has served in the same domain or adjacent agencies is more likely to be effective.
 - Treat aspiration matches as a meaningful nudge: an officer who explicitly aspires to this role is more committed than one who doesn't.
 - A "stretch placement" (one grade below) with strong qualitative signal can outrank a same-grade officer with weak qualitative signal.
 - Don't penalise officers with no qualitative signal — flag it instead and recommend extracting first.
@@ -132,12 +145,30 @@ For each candidate, recommend whether they should be placed in the 0-4 year or 5
 - Include EVERY candidate above in your ranked output, even if some are weak. CHROO needs to see the full bench.`
 }
 
+async function fetchCandidatePostings(candidateIds: string[]): Promise<CandidatePostings> {
+  if (candidateIds.length === 0) return {}
+  const { data } = await supabaseServer
+    .from('officer_posting_history')
+    .select('officer_id, position_title, agency, start_date, end_date, grade_at_time')
+    .in('officer_id', candidateIds)
+    .order('start_date', { ascending: true })
+  if (!data) return {}
+  const result: CandidatePostings = {}
+  for (const row of data) {
+    if (!result[row.officer_id]) result[row.officer_id] = []
+    result[row.officer_id].push(row)
+  }
+  return result
+}
+
 async function callClaudeRerank(
   position: { position_id: string; position_title: string },
   candidates: Candidate[]
 ): Promise<{ summary: string; ranked: Array<{ officer_id: string; ai_rank: number; reasoning: string; recommended_band: '0-4_years' | '5-10_years' }> }> {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) throw new Error('ANTHROPIC_API_KEY missing')
+
+  const postings = await fetchCandidatePostings(candidates.map(c => c.officer_id))
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -151,7 +182,7 @@ async function callClaudeRerank(
       max_tokens: 2000,
       tools: [RANKING_TOOL],
       tool_choice: { type: 'tool', name: RANKING_TOOL.name },
-      messages: [{ role: 'user', content: buildPrompt(position, candidates) }],
+      messages: [{ role: 'user', content: buildPrompt(position, candidates, postings) }],
     }),
   })
 
