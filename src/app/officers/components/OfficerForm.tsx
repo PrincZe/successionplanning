@@ -2,15 +2,13 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { 
-  User, 
-  Hash, 
-  GraduationCap, 
-  Award, 
+import {
+  User,
+  Hash,
+  GraduationCap,
+  Award,
   Calendar,
   Briefcase,
-  ChevronDown,
-  ChevronRight,
   Save,
   X
 } from 'lucide-react'
@@ -68,15 +66,17 @@ interface FormData {
   }>
 }
 
+type TabValue = 'details' | 'competencies' | 'stints'
+
 function PLBadge({ level }: { level: number }) {
   const colorClasses = {
     1: 'bg-red-100 text-red-800',
-    2: 'bg-orange-100 text-orange-800', 
+    2: 'bg-orange-100 text-orange-800',
     3: 'bg-yellow-100 text-yellow-800',
     4: 'bg-blue-100 text-blue-800',
     5: 'bg-green-100 text-green-800'
   }
-  
+
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClasses[level as keyof typeof colorClasses] || 'bg-gray-100 text-gray-800'}`}>
       PL{level}
@@ -91,7 +91,7 @@ function TypeBadge({ type }: { type: string }) {
     'Exchange': 'bg-purple-100 text-purple-800',
     'Training': 'bg-orange-100 text-orange-800'
   }
-  
+
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClasses[type as keyof typeof colorClasses] || 'bg-gray-100 text-gray-800'}`}>
       {type}
@@ -103,8 +103,7 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string>()
-  const [isCompetenciesOpen, setIsCompetenciesOpen] = useState(true)
-  const [isStintsOpen, setIsStintsOpen] = useState(true)
+  const [activeTab, setActiveTab] = useState<TabValue>('details')
 
   const [formData, setFormData] = useState<FormData>({
     officer_id: officer?.officer_id ?? '',
@@ -166,7 +165,7 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
   const handleCompetencyChange = (competencyId: string, field: 'achieved_pl_level' | 'assessment_date', value: string | number) => {
     setFormData(prev => ({
       ...prev,
-      competencies: prev.competencies.map(comp => 
+      competencies: prev.competencies.map(comp =>
         comp.competency_id === competencyId
           ? { ...comp, [field]: value }
           : comp
@@ -177,7 +176,7 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
   const toggleCompetency = (competencyId: string) => {
     setFormData(prev => {
       const exists = prev.competencies.some(comp => comp.competency_id === competencyId)
-      
+
       if (exists) {
         return {
           ...prev,
@@ -202,7 +201,7 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
   const handleStintChange = (stintId: number, field: 'completion_year', value: number) => {
     setFormData(prev => ({
       ...prev,
-      stints: prev.stints.map(stint => 
+      stints: prev.stints.map(stint =>
         stint.stint_id === stintId
           ? { ...stint, [field]: value }
           : stint
@@ -213,7 +212,7 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
   const toggleStint = (stintId: number) => {
     setFormData(prev => {
       const exists = prev.stints.some(stint => stint.stint_id === stintId)
-      
+
       if (exists) {
         return {
           ...prev,
@@ -234,261 +233,259 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
     })
   }
 
+  const tabs: { value: TabValue; label: string }[] = [
+    { value: 'details', label: 'Details' },
+    { value: 'competencies', label: 'Competencies' },
+    { value: 'stints', label: 'Stints' },
+  ]
+
   return (
     <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8">
-      {/* Officer Details Section */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-        <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
-          <div className="flex items-center">
-            <div className="p-1.5 bg-blue-100 rounded mr-3">
-              <User className="h-5 w-5 text-blue-600" />
-            </div>
-            <h2 className="text-base font-semibold text-gray-900">Officer Details</h2>
-          </div>
-        </div>
-        
-        <div className="p-6">
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="officer_id" className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <Hash className="h-4 w-4 mr-2 text-gray-500" />
-                  Officer ID
-                </label>
-                <input
-                  type="text"
-                  id="officer_id"
-                  value={formData.officer_id}
-                  onChange={(e) => setFormData({ ...formData, officer_id: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="Enter officer ID"
-                  required
-                  disabled={!!officer}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="name" className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <User className="h-4 w-4 mr-2 text-gray-500" />
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="Enter full name"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="grade" className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <GraduationCap className="h-4 w-4 mr-2 text-gray-500" />
-                  Grade
-                </label>
-                <input
-                  type="text"
-                  id="grade"
-                  value={formData.grade}
-                  onChange={(e) => setFormData({ ...formData, grade: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="Enter grade"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="mx_equivalent_grade" className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <GraduationCap className="h-4 w-4 mr-2 text-gray-500" />
-                  MX Equivalent Grade
-                </label>
-                <input
-                  type="text"
-                  id="mx_equivalent_grade"
-                  value={formData.mx_equivalent_grade}
-                  onChange={(e) => setFormData({ ...formData, mx_equivalent_grade: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="Enter MX equivalent grade"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="service_scheme" className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <Briefcase className="h-4 w-4 mr-2 text-gray-500" />
-                  Service Scheme
-                </label>
-                <select
-                  id="service_scheme"
-                  value={formData.service_scheme}
-                  onChange={(e) => setFormData({ ...formData, service_scheme: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                >
-                  <option value="">Select scheme</option>
-                  <option value="PSL">PSL</option>
-                  <option value="SPSL">SPSL</option>
-                  <option value="AO">AO</option>
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="date_of_birth" className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <Calendar className="h-4 w-4 mr-2 text-gray-500" />
-                  Date of Birth
-                </label>
-                <input
-                  type="date"
-                  id="date_of_birth"
-                  value={formData.date_of_birth}
-                  onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="parent_agency" className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <Briefcase className="h-4 w-4 mr-2 text-gray-500" />
-                  Parent Agency
-                </label>
-                <input
-                  type="text"
-                  id="parent_agency"
-                  value={formData.parent_agency}
-                  onChange={(e) => setFormData({ ...formData, parent_agency: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="Home ministry (e.g. MOF)"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="current_agency" className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <Briefcase className="h-4 w-4 mr-2 text-gray-500" />
-                  Current Agency
-                </label>
-                <input
-                  type="text"
-                  id="current_agency"
-                  value={formData.current_agency}
-                  onChange={(e) => setFormData({ ...formData, current_agency: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="Where currently posted (e.g. MTI)"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="leadership_potential" className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <GraduationCap className="h-4 w-4 mr-2 text-gray-500" />
-                  Leadership Potential (LP)
-                </label>
-                <select
-                  id="leadership_potential"
-                  value={formData.leadership_potential}
-                  onChange={(e) => setFormData({ ...formData, leadership_potential: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                >
-                  <option value="">Select LP</option>
-                  {formData.service_scheme === 'AO' ? (
-                    <>
-                      <option value="AR1">AR1</option>
-                      <option value="AR2">AR2</option>
-                      <option value="AR3">AR3</option>
-                      <option value="AR4">AR4</option>
-                      <option value="AR5">AR5</option>
-                    </>
-                  ) : (
-                    <>
-                      <option value="JR1">JR1</option>
-                      <option value="JR2">JR2</option>
-                      <option value="JR3">JR3</option>
-                      <option value="JR4">JR4</option>
-                      <option value="JR5">JR5</option>
-                      <option value="JR6">JR6</option>
-                      <option value="JR7">JR7</option>
-                      <option value="JR8">JR8</option>
-                    </>
-                  )}
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="ihrp_certification" className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <Award className="h-4 w-4 mr-2 text-gray-500" />
-                  IHRP Certification
-                </label>
-                <select
-                  id="ihrp_certification"
-                  value={formData.ihrp_certification}
-                  onChange={(e) => setFormData({ ...formData, ihrp_certification: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                >
-                  <option value="">Select certification</option>
-                  <option value="IHRP-CP">IHRP-CP</option>
-                  <option value="IHRP-SP">IHRP-SP</option>
-                  <option value="IHRP-MP">IHRP-MP</option>
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="hrlp" className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <Award className="h-4 w-4 mr-2 text-gray-500" />
-                  HRLP Status
-                </label>
-                <select
-                  id="hrlp"
-                  value={formData.hrlp}
-                  onChange={(e) => setFormData({ ...formData, hrlp: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                >
-                  <option value="">Select status</option>
-                  <option value="Not Started">Not Started</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Completed">Completed</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Tab Bar */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          {tabs.map((tab) => (
+            <button
+              key={tab.value}
+              type="button"
+              onClick={() => setActiveTab(tab.value)}
+              className={`py-3 px-1 border-b-2 text-sm ${
+                activeTab === tab.value
+                  ? 'text-blue-600 border-b-2 border-blue-600 font-medium'
+                  : 'text-gray-500 hover:text-gray-700 border-b-2 border-transparent'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
       </div>
 
-      {/* Competencies Section */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-        <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
-          <button
-            type="button"
-            onClick={() => setIsCompetenciesOpen(!isCompetenciesOpen)}
-            className="flex items-center justify-between w-full text-left"
-          >
-            <div className="flex items-center">
-              <div className="p-1.5 bg-blue-100 rounded mr-3">
-                <Award className="h-5 w-5 text-blue-600" />
+      {/* Tab Content */}
+      {activeTab === 'details' && (
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="p-6">
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="officer_id" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                    <Hash className="h-4 w-4 mr-2 text-gray-500" />
+                    Officer ID
+                  </label>
+                  <input
+                    type="text"
+                    id="officer_id"
+                    value={formData.officer_id}
+                    onChange={(e) => setFormData({ ...formData, officer_id: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="Enter officer ID"
+                    required
+                    disabled={!!officer}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="name" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                    <User className="h-4 w-4 mr-2 text-gray-500" />
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="Enter full name"
+                    required
+                  />
+                </div>
               </div>
-              <h2 className="text-base font-semibold text-gray-900">Competencies</h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="grade" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                    <GraduationCap className="h-4 w-4 mr-2 text-gray-500" />
+                    Grade
+                  </label>
+                  <input
+                    type="text"
+                    id="grade"
+                    value={formData.grade}
+                    onChange={(e) => setFormData({ ...formData, grade: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="Enter grade"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="mx_equivalent_grade" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                    <GraduationCap className="h-4 w-4 mr-2 text-gray-500" />
+                    MX Equivalent Grade
+                  </label>
+                  <input
+                    type="text"
+                    id="mx_equivalent_grade"
+                    value={formData.mx_equivalent_grade}
+                    onChange={(e) => setFormData({ ...formData, mx_equivalent_grade: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="Enter MX equivalent grade"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="service_scheme" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                    <Briefcase className="h-4 w-4 mr-2 text-gray-500" />
+                    Service Scheme
+                  </label>
+                  <select
+                    id="service_scheme"
+                    value={formData.service_scheme}
+                    onChange={(e) => setFormData({ ...formData, service_scheme: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  >
+                    <option value="">Select scheme</option>
+                    <option value="PSL">PSL</option>
+                    <option value="SPSL">SPSL</option>
+                    <option value="AO">AO</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="date_of_birth" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                    <Calendar className="h-4 w-4 mr-2 text-gray-500" />
+                    Date of Birth
+                  </label>
+                  <input
+                    type="date"
+                    id="date_of_birth"
+                    value={formData.date_of_birth}
+                    onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="parent_agency" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                    <Briefcase className="h-4 w-4 mr-2 text-gray-500" />
+                    Parent Agency
+                  </label>
+                  <input
+                    type="text"
+                    id="parent_agency"
+                    value={formData.parent_agency}
+                    onChange={(e) => setFormData({ ...formData, parent_agency: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="Home ministry (e.g. MOF)"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="current_agency" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                    <Briefcase className="h-4 w-4 mr-2 text-gray-500" />
+                    Current Agency
+                  </label>
+                  <input
+                    type="text"
+                    id="current_agency"
+                    value={formData.current_agency}
+                    onChange={(e) => setFormData({ ...formData, current_agency: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="Where currently posted (e.g. MTI)"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="leadership_potential" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                    <GraduationCap className="h-4 w-4 mr-2 text-gray-500" />
+                    Leadership Potential (LP)
+                  </label>
+                  <select
+                    id="leadership_potential"
+                    value={formData.leadership_potential}
+                    onChange={(e) => setFormData({ ...formData, leadership_potential: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  >
+                    <option value="">Select LP</option>
+                    {formData.service_scheme === 'AO' ? (
+                      <>
+                        <option value="AR1">AR1</option>
+                        <option value="AR2">AR2</option>
+                        <option value="AR3">AR3</option>
+                        <option value="AR4">AR4</option>
+                        <option value="AR5">AR5</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="JR1">JR1</option>
+                        <option value="JR2">JR2</option>
+                        <option value="JR3">JR3</option>
+                        <option value="JR4">JR4</option>
+                        <option value="JR5">JR5</option>
+                        <option value="JR6">JR6</option>
+                        <option value="JR7">JR7</option>
+                        <option value="JR8">JR8</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="ihrp_certification" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                    <Award className="h-4 w-4 mr-2 text-gray-500" />
+                    IHRP Certification
+                  </label>
+                  <select
+                    id="ihrp_certification"
+                    value={formData.ihrp_certification}
+                    onChange={(e) => setFormData({ ...formData, ihrp_certification: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  >
+                    <option value="">Select certification</option>
+                    <option value="IHRP-CP">IHRP-CP</option>
+                    <option value="IHRP-SP">IHRP-SP</option>
+                    <option value="IHRP-MP">IHRP-MP</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="hrlp" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                    <Award className="h-4 w-4 mr-2 text-gray-500" />
+                    HRLP Status
+                  </label>
+                  <select
+                    id="hrlp"
+                    value={formData.hrlp}
+                    onChange={(e) => setFormData({ ...formData, hrlp: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  >
+                    <option value="">Select status</option>
+                    <option value="Not Started">Not Started</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                </div>
+              </div>
             </div>
-            {isCompetenciesOpen ? (
-              <ChevronDown className="h-5 w-5 text-gray-500" />
-            ) : (
-              <ChevronRight className="h-5 w-5 text-gray-500" />
-            )}
-          </button>
+          </div>
         </div>
-        
-        {isCompetenciesOpen && (
+      )}
+
+      {activeTab === 'competencies' && (
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
           <div className="p-6 space-y-4">
             {competencies.map((competency) => {
               const officerCompetency = formData.competencies.find(
                 comp => comp.competency_id === competency.competency_id.toString()
               )
-              
+
               return (
                 <div key={competency.competency_id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:bg-gray-100 transition-colors">
                   <div className="flex items-start justify-between mb-3">
@@ -558,36 +555,15 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
               )
             })}
           </div>
-        )}
-      </div>
-
-      {/* OOA Stints Section */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-        <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
-          <button
-            type="button"
-            onClick={() => setIsStintsOpen(!isStintsOpen)}
-            className="flex items-center justify-between w-full text-left"
-          >
-            <div className="flex items-center">
-              <div className="p-1.5 bg-blue-100 rounded mr-3">
-                <Briefcase className="h-5 w-5 text-blue-600" />
-              </div>
-              <h2 className="text-base font-semibold text-gray-900">OOA Stints</h2>
-            </div>
-            {isStintsOpen ? (
-              <ChevronDown className="h-5 w-5 text-gray-500" />
-            ) : (
-              <ChevronRight className="h-5 w-5 text-gray-500" />
-            )}
-          </button>
         </div>
-        
-        {isStintsOpen && (
+      )}
+
+      {activeTab === 'stints' && (
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
           <div className="p-6 space-y-4">
             {stints.map((stint) => {
               const officerStint = formData.stints.find(s => s.stint_id === Number(stint.stint_id))
-              
+
               return (
                 <div key={stint.stint_id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:bg-gray-100 transition-colors">
                   <div className="flex items-start justify-between mb-3">
@@ -634,8 +610,8 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
               )
             })}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Error Display */}
       {error && (
@@ -667,4 +643,4 @@ export default function OfficerForm({ officer, competencies, stints, onSubmit }:
       </div>
     </form>
   )
-} 
+}
