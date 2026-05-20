@@ -1,8 +1,13 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Plus, Trash2, Clock, Search, CheckCircle2, X } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Clock, Search, CheckCircle2, X, GripVertical } from 'lucide-react'
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import type { DragEndEvent } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { reorderSuccessors } from '@/app/actions/reorder-successors'
 import type { PlanSubmission, SuccessorChange } from '@/lib/queries/submissions'
 import { addSuccessorWithAudit, removeSuccessorWithAudit, submitPlanAction } from '@/app/actions/submissions'
 
@@ -285,6 +290,7 @@ function PositionCard({
         <SuccessorList
           successors={successors04}
           type="0-4_years"
+          positionId={position.position_id}
           removingKey={removingKey}
           setRemovingKey={setRemovingKey}
           removeReason={removeReason}
@@ -305,6 +311,7 @@ function PositionCard({
         <SuccessorList
           successors={successors410}
           type="5-10_years"
+          positionId={position.position_id}
           removingKey={removingKey}
           setRemovingKey={setRemovingKey}
           removeReason={removeReason}
@@ -353,17 +360,10 @@ function PositionCard({
   )
 }
 
-function SuccessorList({
-  successors,
-  type,
-  removingKey,
-  setRemovingKey,
-  removeReason,
-  setRemoveReason,
-  onRemove,
-  loading,
+function SortableSuccessorItem({
+  s, type, removingKey, setRemovingKey, removeReason, setRemoveReason, onRemove, loading, rank,
 }: {
-  successors: Array<{ succession_type: string; successor: { officer_id: string; name: string; grade: string | null; service_scheme?: string | null } }>
+  s: { successor: { officer_id: string; name: string; grade: string | null; service_scheme?: string | null } }
   type: '0-4_years' | '5-10_years'
   removingKey: string | null
   setRemovingKey: (key: string | null) => void
@@ -371,51 +371,101 @@ function SuccessorList({
   setRemoveReason: (r: string) => void
   onRemove: (officerId: string, type: '0-4_years' | '5-10_years') => void
   loading: boolean
+  rank: number
 }) {
-  if (successors.length === 0) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: s.successor.officer_id })
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
+  const key = `${s.successor.officer_id}:${type}`
+  const isRemoving = removingKey === key
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <div className="flex items-center gap-2 bg-gray-50 rounded px-2 py-1.5">
+        <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 touch-none">
+          <GripVertical className="h-3.5 w-3.5" />
+        </button>
+        <span className="text-xs text-gray-400 w-3">{rank}.</span>
+        <div className="flex-1 text-sm text-gray-800">
+          {s.successor.name}{s.successor.service_scheme && <span className="text-gray-400 text-xs ml-1">({s.successor.service_scheme})</span>}
+        </div>
+        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${rank === 1 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+          {rank === 1 ? 'Immediate' : 'Contingency'}
+        </span>
+        <button onClick={() => setRemovingKey(isRemoving ? null : key)} className="text-red-400 hover:text-red-600">
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      </div>
+      {isRemoving && (
+        <div className="flex items-center gap-2 mt-1 ml-8">
+          <input type="text" placeholder="Reason for removal (required)" value={removeReason} onChange={(e) => setRemoveReason(e.target.value)} className="flex-1 border rounded px-2 py-1 text-xs" />
+          <button onClick={() => onRemove(s.successor.officer_id, type)} disabled={loading} className="px-2 py-1 bg-red-600 text-white rounded text-xs disabled:opacity-50">Remove</button>
+          <button onClick={() => setRemovingKey(null)} className="px-2 py-1 border rounded text-xs">Cancel</button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SuccessorList({
+  successors,
+  type,
+  positionId,
+  removingKey,
+  setRemovingKey,
+  removeReason,
+  setRemoveReason,
+  onRemove,
+  loading,
+}: {
+  successors: Array<{ succession_type: string; rank?: number; successor: { officer_id: string; name: string; grade: string | null; service_scheme?: string | null } }>
+  type: '0-4_years' | '5-10_years'
+  positionId: string
+  removingKey: string | null
+  setRemovingKey: (key: string | null) => void
+  removeReason: string
+  setRemoveReason: (r: string) => void
+  onRemove: (officerId: string, type: '0-4_years' | '5-10_years') => void
+  loading: boolean
+}) {
+  const [items, setItems] = useState(successors)
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
+
+  useEffect(() => { setItems(successors) }, [successors.map(s => s.successor.officer_id).join(',')])
+
+  if (items.length === 0) {
     return <div className="text-xs text-gray-400 italic py-1">No successors assigned</div>
   }
 
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIdx = items.findIndex(s => s.successor.officer_id === active.id)
+    const newIdx = items.findIndex(s => s.successor.officer_id === over.id)
+    const reordered = arrayMove(items, oldIdx, newIdx)
+    setItems(reordered)
+    await reorderSuccessors(positionId, type, reordered.map(s => s.successor.officer_id))
+  }
+
   return (
-    <div className="space-y-1">
-      {successors.map((s) => {
-        const key = `${s.successor.officer_id}:${type}`
-        const isRemoving = removingKey === key
-        return (
-          <div key={key}>
-            <div className="flex items-center justify-between bg-gray-50 rounded px-3 py-1.5">
-              <div className="text-sm text-gray-800">
-                {s.successor.name}{s.successor.service_scheme && <span className="text-gray-400 text-xs ml-1">({s.successor.service_scheme})</span>}
-              </div>
-              <button
-                onClick={() => setRemovingKey(isRemoving ? null : key)}
-                className="text-red-400 hover:text-red-600"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </button>
-            </div>
-            {isRemoving && (
-              <div className="flex items-center gap-2 mt-1 ml-3">
-                <input
-                  type="text"
-                  placeholder="Reason for removal (required)"
-                  value={removeReason}
-                  onChange={(e) => setRemoveReason(e.target.value)}
-                  className="flex-1 border rounded px-2 py-1 text-xs"
-                />
-                <button
-                  onClick={() => onRemove(s.successor.officer_id, type)}
-                  disabled={loading}
-                  className="px-2 py-1 bg-red-600 text-white rounded text-xs disabled:opacity-50"
-                >
-                  Remove
-                </button>
-                <button onClick={() => setRemovingKey(null)} className="px-2 py-1 border rounded text-xs">Cancel</button>
-              </div>
-            )}
-          </div>
-        )
-      })}
-    </div>
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <SortableContext items={items.map(s => s.successor.officer_id)} strategy={verticalListSortingStrategy}>
+        <div className="space-y-1">
+          {items.map((s, i) => (
+            <SortableSuccessorItem
+              key={s.successor.officer_id}
+              s={s}
+              type={type}
+              rank={i + 1}
+              removingKey={removingKey}
+              setRemovingKey={setRemovingKey}
+              removeReason={removeReason}
+              setRemoveReason={setRemoveReason}
+              onRemove={onRemove}
+              loading={loading}
+            />
+          ))}
+        </div>
+      </SortableContext>
+    </DndContext>
   )
 }

@@ -31,7 +31,8 @@ export default async function AgencyPlanPage() {
       incumbent:officers!positions_incumbent_id_fkey(name),
       position_successors(
         succession_type,
-        successor:officers!position_successors_successor_id_fkey(officer_id, name, grade)
+        rank,
+        successor:officers!position_successors_successor_id_fkey(officer_id, name, grade, service_scheme)
       )
     `)
     .eq('agency', agency)
