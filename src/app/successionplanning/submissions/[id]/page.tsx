@@ -56,6 +56,20 @@ export default async function SubmissionDetailPage({ params }: { params: { id: s
     for (const o of data ?? []) officerNames[o.officer_id] = (o as any).name
   }
 
+  // Fetch comment thread
+  let comments: any[] = []
+  const { data: commentData } = await supabaseServer
+    .from('submission_comments')
+    .select('comment_id, comment, created_at, user_id')
+    .eq('submission_id', submission.submission_id)
+    .order('created_at', { ascending: true })
+  if (commentData && commentData.length > 0) {
+    const userIds = Array.from(new Set(commentData.map(c => c.user_id)))
+    const { data: users } = await supabaseServer.from('users').select('user_id, name, role').in('user_id', userIds)
+    const userMap = new Map((users ?? []).map(u => [u.user_id, u]))
+    comments = commentData.map(c => ({ ...c, user_name: userMap.get(c.user_id)?.name, user_role: userMap.get(c.user_id)?.role }))
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto px-4 py-8">
@@ -66,6 +80,7 @@ export default async function SubmissionDetailPage({ params }: { params: { id: s
           officerNames={officerNames}
           positionNames={positionNames}
           allOfficers={allOfficers ?? []}
+          comments={comments}
         />
       </main>
     </div>
