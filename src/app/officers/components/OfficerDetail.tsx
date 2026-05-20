@@ -174,6 +174,42 @@ export default function OfficerDetail({ officer }: OfficerDetailProps) {
                 </dt>
                 <dd className="text-lg font-semibold text-gray-900">{officer.hrlp ?? 'None'}</dd>
               </div>
+
+              <div>
+                <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
+                  <GraduationCap className="h-4 w-4 mr-2" />
+                  Leadership Potential (LP)
+                </dt>
+                <dd className="text-lg font-semibold text-gray-900">{officer.leadership_potential ?? 'Not assessed'}</dd>
+              </div>
+
+              <div>
+                <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Date of Birth
+                </dt>
+                <dd className="text-lg font-semibold text-gray-900">
+                  {officer.date_of_birth
+                    ? new Date(officer.date_of_birth).toLocaleDateString('en-SG', { day: 'numeric', month: 'long', year: 'numeric' })
+                    : 'Not available'}
+                </dd>
+              </div>
+
+              <div>
+                <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
+                  <Building2 className="h-4 w-4 mr-2" />
+                  Parent Agency
+                </dt>
+                <dd className="text-lg font-semibold text-gray-900">{officer.parent_agency ?? 'Not set'}</dd>
+              </div>
+
+              <div>
+                <dt className="flex items-center text-sm font-medium text-gray-500 mb-2">
+                  <Building2 className="h-4 w-4 mr-2" />
+                  Current Agency
+                </dt>
+                <dd className="text-lg font-semibold text-gray-900">{officer.current_agency ?? 'Not set'}</dd>
+              </div>
             </div>
           </div>
         </div>
