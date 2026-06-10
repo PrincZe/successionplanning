@@ -32,6 +32,7 @@ export default async function AgencyPlanPage() {
       position_successors(
         succession_type,
         rank,
+        tag,
         successor:officers!position_successors_successor_id_fkey(officer_id, name, grade, service_scheme)
       )
     `)

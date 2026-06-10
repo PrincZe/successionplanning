@@ -25,6 +25,8 @@ export default async function SubmissionReviewPage({ params }: { params: { id: s
       incumbent:officers!positions_incumbent_id_fkey(officer_id, name, grade, date_of_birth, service_scheme),
       position_successors(
         succession_type,
+        rank,
+        tag,
         successor:officers!position_successors_successor_id_fkey(officer_id, name, grade)
       )
     `)

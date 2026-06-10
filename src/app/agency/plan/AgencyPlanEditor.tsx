@@ -8,6 +8,7 @@ import type { DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { reorderSuccessors } from '@/app/actions/reorder-successors'
+import { updateSuccessorTag } from '@/app/actions/update-successor-tag'
 import type { PlanSubmission, SuccessorChange } from '@/lib/queries/submissions'
 import { addSuccessorWithAudit, removeSuccessorWithAudit, submitPlanAction } from '@/app/actions/submissions'
 
@@ -19,6 +20,7 @@ type PositionRow = {
   incumbent: { name: string } | null
   position_successors: Array<{
     succession_type: string
+    tag?: 'immediate' | 'contingency' | null
     successor: { officer_id: string; name: string; grade: string | null; service_scheme?: string | null }
   }>
 }
@@ -292,9 +294,13 @@ function PositionCard({
       <div className="mb-3">
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs font-semibold text-gray-600 uppercase">Near Term (0–4 years) Successors</span>
-          <button onClick={() => { setAdding('0-4_years'); setSelectedOfficer('') }} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
-            <Plus className="h-3 w-3" /> Add
-          </button>
+          {successors04.length < 5 ? (
+            <button onClick={() => { setAdding('0-4_years'); setSelectedOfficer('') }} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
+              <Plus className="h-3 w-3" /> Add
+            </button>
+          ) : (
+            <span className="text-[10px] text-gray-400">5/5 max</span>
+          )}
         </div>
         <SuccessorList
           successors={successors04}
@@ -314,9 +320,13 @@ function PositionCard({
       <div className="mb-3">
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs font-semibold text-gray-600 uppercase">Longer Term (5–10 years) Successors</span>
-          <button onClick={() => { setAdding('5-10_years'); setSelectedOfficer('') }} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
-            <Plus className="h-3 w-3" /> Add
-          </button>
+          {successors410.length < 10 ? (
+            <button onClick={() => { setAdding('5-10_years'); setSelectedOfficer('') }} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
+              <Plus className="h-3 w-3" /> Add
+            </button>
+          ) : (
+            <span className="text-[10px] text-gray-400">10/10 max</span>
+          )}
         </div>
         <SuccessorList
           successors={successors410}
@@ -372,9 +382,9 @@ function PositionCard({
 }
 
 function SortableSuccessorItem({
-  s, type, removingKey, setRemovingKey, removeReason, setRemoveReason, onRemove, loading, rank,
+  s, type, removingKey, setRemovingKey, removeReason, setRemoveReason, onRemove, loading, rank, positionId, submissionId, onTagChange,
 }: {
-  s: { successor: { officer_id: string; name: string; grade: string | null; service_scheme?: string | null } }
+  s: { tag?: 'immediate' | 'contingency' | null; successor: { officer_id: string; name: string; grade: string | null; service_scheme?: string | null } }
   type: '0-4_years' | '5-10_years'
   removingKey: string | null
   setRemovingKey: (key: string | null) => void
@@ -383,11 +393,19 @@ function SortableSuccessorItem({
   onRemove: (officerId: string, type: '0-4_years' | '5-10_years') => void
   loading: boolean
   rank: number
+  positionId: string
+  submissionId: string
+  onTagChange: (officerId: string, tag: 'immediate' | 'contingency' | null) => void
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: s.successor.officer_id })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
   const key = `${s.successor.officer_id}:${type}`
   const isRemoving = removingKey === key
+
+  async function handleTagChange(tag: 'immediate' | 'contingency' | null) {
+    onTagChange(s.successor.officer_id, tag)
+    await updateSuccessorTag(positionId, s.successor.officer_id, type, tag, submissionId)
+  }
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -399,9 +417,17 @@ function SortableSuccessorItem({
         <div className="flex-1 text-sm text-gray-800">
           {s.successor.name}{s.successor.service_scheme && <span className="text-gray-400 text-xs ml-1">({s.successor.service_scheme})</span>}
         </div>
-        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${rank === 1 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-          {rank === 1 ? 'Immediate' : 'Contingency'}
-        </span>
+        {type === '0-4_years' && (
+          <select
+            value={s.tag ?? ''}
+            onChange={(e) => handleTagChange(e.target.value === '' ? null : e.target.value as 'immediate' | 'contingency')}
+            className="text-[10px] border rounded px-1 py-0.5 bg-white text-gray-700"
+          >
+            <option value="">—</option>
+            <option value="immediate">Immediate</option>
+            <option value="contingency">Contingency</option>
+          </select>
+        )}
         <button onClick={() => setRemovingKey(isRemoving ? null : key)} className="text-red-400 hover:text-red-600">
           <Trash2 className="h-3.5 w-3.5" />
         </button>
@@ -429,7 +455,7 @@ function SuccessorList({
   onRemove,
   loading,
 }: {
-  successors: Array<{ succession_type: string; rank?: number; successor: { officer_id: string; name: string; grade: string | null; service_scheme?: string | null } }>
+  successors: Array<{ succession_type: string; rank?: number; tag?: 'immediate' | 'contingency' | null; successor: { officer_id: string; name: string; grade: string | null; service_scheme?: string | null } }>
   type: '0-4_years' | '5-10_years'
   positionId: string
   submissionId: string
@@ -442,11 +468,26 @@ function SuccessorList({
 }) {
   const [items, setItems] = useState(successors)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
+  const [rank1Empty, setRank1Empty] = useState(() => {
+    if (successors.length > 0 && (successors[0].rank ?? 1) > 1) return true
+    return false
+  })
 
-  useEffect(() => { setItems(successors) }, [successors.map(s => s.successor.officer_id).join(',')])
+  useEffect(() => {
+    setItems(successors)
+    if (successors.length > 0 && (successors[0].rank ?? 1) > 1) setRank1Empty(true)
+  }, [successors.map(s => s.successor.officer_id).join(',')])
+
+  const startRank = rank1Empty ? 2 : 1
+  const maxCount = type === '0-4_years' ? 5 : 10
 
   if (items.length === 0) {
-    return <div className="text-xs text-gray-400 italic py-1">No successors assigned</div>
+    return (
+      <div>
+        <div className="text-xs text-gray-400 italic py-1">No successors assigned</div>
+        <div className="text-[10px] text-gray-400">{0}/{maxCount} max</div>
+      </div>
+    )
   }
 
   async function handleDragEnd(event: DragEndEvent) {
@@ -456,29 +497,56 @@ function SuccessorList({
     const newIdx = items.findIndex(s => s.successor.officer_id === over.id)
     const reordered = arrayMove(items, oldIdx, newIdx)
     setItems(reordered)
-    await reorderSuccessors(positionId, type, reordered.map(s => s.successor.officer_id), submissionId)
+    await reorderSuccessors(positionId, type, reordered.map(s => s.successor.officer_id), submissionId, startRank)
+  }
+
+  async function handleRank1Toggle(checked: boolean) {
+    setRank1Empty(checked)
+    const newStartRank = checked ? 2 : 1
+    await reorderSuccessors(positionId, type, items.map(s => s.successor.officer_id), submissionId, newStartRank)
+  }
+
+  function handleTagChange(officerId: string, tag: 'immediate' | 'contingency' | null) {
+    setItems(prev => prev.map(s => s.successor.officer_id === officerId ? { ...s, tag } : s))
   }
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <SortableContext items={items.map(s => s.successor.officer_id)} strategy={verticalListSortingStrategy}>
-        <div className="space-y-1">
-          {items.map((s, i) => (
-            <SortableSuccessorItem
-              key={s.successor.officer_id}
-              s={s}
-              type={type}
-              rank={i + 1}
-              removingKey={removingKey}
-              setRemovingKey={setRemovingKey}
-              removeReason={removeReason}
-              setRemoveReason={setRemoveReason}
-              onRemove={onRemove}
-              loading={loading}
-            />
-          ))}
-        </div>
-      </SortableContext>
-    </DndContext>
+    <div>
+      {type === '0-4_years' && (
+        <label className="flex items-center gap-2 mb-1.5 text-[10px] text-gray-500 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={rank1Empty}
+            onChange={(e) => handleRank1Toggle(e.target.checked)}
+            className="rounded border-gray-300 h-3 w-3"
+          />
+          No #1 rank
+        </label>
+      )}
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={items.map(s => s.successor.officer_id)} strategy={verticalListSortingStrategy}>
+          <div className="space-y-1">
+            {items.map((s, i) => (
+              <SortableSuccessorItem
+                key={s.successor.officer_id}
+                s={s}
+                type={type}
+                rank={i + startRank}
+                positionId={positionId}
+                submissionId={submissionId}
+                onTagChange={handleTagChange}
+                removingKey={removingKey}
+                setRemovingKey={setRemovingKey}
+                removeReason={removeReason}
+                setRemoveReason={setRemoveReason}
+                onRemove={onRemove}
+                loading={loading}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
+      <div className="text-[10px] text-gray-400 mt-1">{items.length}/{maxCount} max</div>
+    </div>
   )
 }

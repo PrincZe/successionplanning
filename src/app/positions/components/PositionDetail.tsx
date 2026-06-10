@@ -16,8 +16,17 @@ import PipelineDrillDown from '@/app/pipeline-health/components/PipelineDrillDow
 type OfficerOption = { officer_id: string; name: string; grade: string | null }
 
 function SuccessionTree({ position, canEdit, submissionId, allOfficers, showRecs, setShowRecs }: { position: PositionWithRelations; canEdit: boolean; submissionId: string | null; allOfficers: OfficerOption[]; showRecs: boolean; setShowRecs: (v: boolean) => void }) {
+  const positionSuccessors = position.position_successors || []
   const shortTermSuccessors = position.successors_0_4_years || []
   const longTermSuccessors = position.successors_5_10_years || []
+  const shortTermWithMeta = positionSuccessors
+    .filter(s => s.succession_type === '0-4_years')
+    .sort((a, b) => a.rank - b.rank)
+    .map(s => ({ officer_id: s.successor.officer_id, name: s.successor.name, service_scheme: s.successor.service_scheme, rank: s.rank, tag: (s as any).tag ?? null }))
+  const longTermWithMeta = positionSuccessors
+    .filter(s => s.succession_type === '5-10_years')
+    .sort((a, b) => a.rank - b.rank)
+    .map(s => ({ officer_id: s.successor.officer_id, name: s.successor.name, service_scheme: s.successor.service_scheme, rank: s.rank, tag: null as null }))
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
@@ -73,10 +82,13 @@ function SuccessionTree({ position, canEdit, submissionId, allOfficers, showRecs
           )}
         </div>
         <SortableSuccessorList
-          successors={shortTermSuccessors.map((s, i) => ({ officer_id: s.officer_id, name: s.name, service_scheme: s.service_scheme, rank: i + 1 }))}
+          successors={shortTermWithMeta}
           positionId={position.position_id}
           successionType="0-4_years"
           canEdit={canEdit}
+          showTags={true}
+          maxCount={5}
+          submissionId={submissionId}
         />
       </div>
 
@@ -100,10 +112,13 @@ function SuccessionTree({ position, canEdit, submissionId, allOfficers, showRecs
           )}
         </div>
         <SortableSuccessorList
-          successors={longTermSuccessors.map((s, i) => ({ officer_id: s.officer_id, name: s.name, service_scheme: s.service_scheme, rank: i + 1 }))}
+          successors={longTermWithMeta}
           positionId={position.position_id}
           successionType="5-10_years"
           canEdit={canEdit}
+          showTags={false}
+          maxCount={10}
+          submissionId={submissionId}
         />
       </div>
     </div>

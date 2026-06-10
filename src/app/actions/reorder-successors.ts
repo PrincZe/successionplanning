@@ -7,14 +7,15 @@ export async function reorderSuccessors(
   positionId: string,
   successionType: '0-4_years' | '5-10_years',
   orderedOfficerIds: string[],
-  submissionId?: string
+  submissionId?: string,
+  startRank: number = 1
 ) {
   const session = await getCurrentSession()
 
   for (let i = 0; i < orderedOfficerIds.length; i++) {
     const { error } = await supabaseServer
       .from('position_successors')
-      .update({ rank: i + 1 })
+      .update({ rank: i + startRank })
       .eq('position_id', positionId)
       .eq('successor_id', orderedOfficerIds[i])
       .eq('succession_type', successionType)
@@ -28,7 +29,7 @@ export async function reorderSuccessors(
       officer_id: orderedOfficerIds[0],
       action: 'reorder',
       succession_type: successionType,
-      reason: `Reordered: ${orderedOfficerIds.map((_, i) => `#${i + 1}`).join(', ')}`,
+      reason: `Reordered: ${orderedOfficerIds.map((_, i) => `#${i + startRank}`).join(', ')}`,
       changed_by: session.user_id,
     })
   }

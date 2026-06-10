@@ -46,6 +46,7 @@ export interface PositionSuccessor {
   successor_id: string
   succession_type: '0-4_years' | '5-10_years'
   rank: number
+  tag: 'immediate' | 'contingency' | null
   created_at: string
 }
 

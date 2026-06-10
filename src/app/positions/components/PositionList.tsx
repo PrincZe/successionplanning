@@ -131,7 +131,7 @@ export default function PositionList({ positions, statusByAgency = {}, hasActive
       cell: (row: PositionWithRelations) => (
         <SuccessorDisplay
           successors={row.successors_5_10_years || []}
-          max={5}
+          max={10}
           type="5-10Y"
         />
       )

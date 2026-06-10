@@ -5,6 +5,7 @@ type Officer = Database['public']['Tables']['officers']['Row']
 type PositionSuccessor = {
   succession_type: '0-4_years' | '5-10_years'
   rank: number
+  tag: 'immediate' | 'contingency' | null
   successor: Officer
 }
 
@@ -24,6 +25,7 @@ export async function getPositions() {
       position_successors(
         succession_type,
         rank,
+        tag,
         successor:officers!position_successors_successor_id_fkey(*)
       )
     `)
@@ -58,6 +60,7 @@ export async function getPositionById(id: string) {
       position_successors(
         succession_type,
         rank,
+        tag,
         successor:officers!position_successors_successor_id_fkey(*)
       )
     `)
@@ -131,6 +134,17 @@ export async function addSuccessor(
   successorId: string,
   successionType: '0-4_years' | '5-10_years'
 ) {
+  const maxCount = successionType === '0-4_years' ? 5 : 10
+  const { count } = await supabase
+    .from('position_successors')
+    .select('*', { count: 'exact', head: true })
+    .eq('position_id', positionId)
+    .eq('succession_type', successionType)
+
+  if ((count ?? 0) >= maxCount) {
+    throw new Error(`Maximum ${maxCount} successors allowed for ${successionType === '0-4_years' ? 'near-term' : 'longer-term'} band`)
+  }
+
   const { data: existing } = await supabase
     .from('position_successors')
     .select('rank')

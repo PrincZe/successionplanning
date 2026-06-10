@@ -30,6 +30,8 @@ export default async function SuccessionPlanEditPage() {
       incumbent:officers!positions_incumbent_id_fkey(name),
       position_successors(
         succession_type,
+        rank,
+        tag,
         successor:officers!position_successors_successor_id_fkey(officer_id, name, grade)
       )
     `)
