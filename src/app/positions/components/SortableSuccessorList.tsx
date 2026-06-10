@@ -255,12 +255,18 @@ export default function SortableSuccessorList({
             onChange={(e) => handleRank1Toggle(e.target.checked)}
             className="rounded border-gray-300"
           />
-          No #1 rank
+          Leave Rank #1 vacant
         </label>
       )}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={successors.map((s) => s.officer_id)} strategy={verticalListSortingStrategy}>
           <div className="space-y-1">
+            {rank1Empty && (
+              <div className="flex items-center gap-3 py-2 px-2 rounded-lg bg-gray-50 border border-dashed border-gray-300">
+                <span className="text-xs text-gray-400 w-4 flex-shrink-0">1.</span>
+                <span className="text-sm text-gray-400 italic">— Vacant —</span>
+              </div>
+            )}
             {successors.map((s) => (
               <SortableItem
                 key={s.officer_id}
