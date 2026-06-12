@@ -71,7 +71,7 @@ function SuccessionTree({ position, canEdit, submissionId, allOfficers, showRecs
               {shortTermSuccessors.length}
             </span>
           </div>
-          {canEdit && submissionId && (
+          {canEdit && (
             <InlineSuccessorEditor
               positionId={position.position_id}
               submissionId={submissionId}
@@ -101,7 +101,7 @@ function SuccessionTree({ position, canEdit, submissionId, allOfficers, showRecs
               {longTermSuccessors.length}
             </span>
           </div>
-          {canEdit && submissionId && (
+          {canEdit && (
             <InlineSuccessorEditor
               positionId={position.position_id}
               submissionId={submissionId}
@@ -138,11 +138,13 @@ interface PositionDetailProps {
   submissionStatus?: string | null
   submissionId?: string | null
   userRole?: string | null
+  userAgency?: string | null
   allOfficers?: OfficerOption[]
 }
 
-export default function PositionDetail({ position, submissionStatus, submissionId, userRole, allOfficers = [] }: PositionDetailProps) {
+export default function PositionDetail({ position, submissionStatus, submissionId, userRole, userAgency, allOfficers = [] }: PositionDetailProps) {
   const canPsdEdit = (userRole === 'psd' || userRole === 'admin') && (submissionStatus === 'submitted' || submissionStatus === 'in_review')
+  const canAgencyEdit = userRole === 'agency_hr' && position.agency === userAgency
   const router = useRouter()
   const [showRecs, setShowRecs] = useState(false)
   const [showPipelineHealth, setShowPipelineHealth] = useState(false)
@@ -291,7 +293,7 @@ export default function PositionDetail({ position, submissionStatus, submissionI
       {/* Succession Tree */}
       <SuccessionTree
         position={position}
-        canEdit={canPsdEdit}
+        canEdit={canPsdEdit || canAgencyEdit}
         submissionId={submissionId ?? null}
         allOfficers={allOfficers}
         showRecs={showRecs}
@@ -336,7 +338,7 @@ function InlineSuccessorEditor({
   allOfficers,
 }: {
   positionId: string
-  submissionId: string
+  submissionId: string | null
   successionType: '0-4_years' | '5-10_years'
   existingOfficerIds: string[]
   allOfficers: OfficerOption[]

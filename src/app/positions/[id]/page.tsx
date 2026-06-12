@@ -52,6 +52,7 @@ export default async function PositionDetailPage({ params }: PositionDetailPageP
         submissionStatus={submissionStatus}
         submissionId={submissionId}
         userRole={session?.role ?? null}
+        userAgency={session?.agency ?? null}
         allOfficers={allOfficers ?? []}
       />
     </main>

@@ -171,10 +171,10 @@ export async function getChangesForSubmission(submissionId: string): Promise<Suc
 }
 
 export async function recordChange(change: {
-  submission_id: string
+  submission_id?: string | null
   position_id: string
   officer_id: string
-  action: 'add' | 'remove' | 'reorder'
+  action: 'add' | 'remove' | 'reorder' | 'tag_change'
   succession_type: '0-4_years' | '5-10_years'
   reason?: string
   changed_by: string
@@ -183,4 +183,43 @@ export async function recordChange(change: {
     .from('successor_changes')
     .insert(change)
   if (error) throw error
+}
+
+export async function getPostSubmissionEditCount(agency: string, sinceDate: string): Promise<number> {
+  const { data: agencyPositions } = await supabase
+    .from('positions')
+    .select('position_id')
+    .eq('agency', agency)
+
+  if (!agencyPositions || agencyPositions.length === 0) return 0
+
+  const positionIds = agencyPositions.map(p => p.position_id)
+
+  const { count } = await supabase
+    .from('successor_changes')
+    .select('*', { count: 'exact', head: true })
+    .in('position_id', positionIds)
+    .gt('changed_at', sinceDate)
+
+  return count ?? 0
+}
+
+export async function getSnapshotsForAgency(agency: string) {
+  const { data, error } = await supabase
+    .from('endorsed_plan_snapshots')
+    .select('snapshot_id, submission_id, agency, endorsed_at, endorsed_by')
+    .eq('agency', agency)
+    .order('endorsed_at', { ascending: false })
+  if (error) throw error
+  return data ?? []
+}
+
+export async function getSnapshotById(snapshotId: string) {
+  const { data, error } = await supabase
+    .from('endorsed_plan_snapshots')
+    .select('*')
+    .eq('snapshot_id', snapshotId)
+    .single()
+  if (error) throw error
+  return data
 }

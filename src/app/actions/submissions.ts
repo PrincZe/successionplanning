@@ -32,6 +32,51 @@ export async function endorseSubmissionAction(submissionId: string) {
       return { success: false, error: 'Unauthorized' }
     }
     await endorseSubmission(submissionId, session.user_id)
+
+    // Capture endorsed plan snapshot
+    const { data: submission } = await supabaseServer
+      .from('plan_submissions')
+      .select('agency')
+      .eq('submission_id', submissionId)
+      .single()
+
+    if (submission) {
+      const { data: positions } = await supabaseServer
+        .from('positions')
+        .select(`
+          position_id, position_title, jr_grade, incumbent_id,
+          incumbent:officers!positions_incumbent_id_fkey(officer_id, name, grade, service_scheme),
+          position_successors(
+            succession_type, rank, tag,
+            successor:officers!position_successors_successor_id_fkey(officer_id, name, grade, service_scheme)
+          )
+        `)
+        .eq('agency', submission.agency)
+        .order('position_title')
+
+      const snapshot = (positions ?? []).map((p: any) => ({
+        position_id: p.position_id,
+        position_title: p.position_title,
+        jr_grade: p.jr_grade,
+        incumbent: p.incumbent ? { officer_id: p.incumbent.officer_id, name: p.incumbent.name, grade: p.incumbent.grade, service_scheme: p.incumbent.service_scheme } : null,
+        successors_0_4: (p.position_successors || [])
+          .filter((s: any) => s.succession_type === '0-4_years')
+          .sort((a: any, b: any) => a.rank - b.rank)
+          .map((s: any) => ({ ...s.successor, rank: s.rank, tag: s.tag })),
+        successors_5_10: (p.position_successors || [])
+          .filter((s: any) => s.succession_type === '5-10_years')
+          .sort((a: any, b: any) => a.rank - b.rank)
+          .map((s: any) => ({ ...s.successor, rank: s.rank })),
+      }))
+
+      await supabaseServer.from('endorsed_plan_snapshots').insert({
+        submission_id: submissionId,
+        agency: submission.agency,
+        endorsed_by: session.user_id,
+        snapshot,
+      })
+    }
+
     revalidatePath('/successionplanning')
     revalidatePath('/successionplanning/submissions')
     return { success: true }
@@ -61,7 +106,7 @@ export async function returnSubmissionAction(submissionId: string, notes: string
 }
 
 export async function addSuccessorWithAudit(data: {
-  submission_id: string
+  submission_id?: string | null
   position_id: string
   officer_id: string
   succession_type: '0-4_years' | '5-10_years'
@@ -71,9 +116,8 @@ export async function addSuccessorWithAudit(data: {
     const session = await getCurrentSession()
     if (!session) return { success: false, error: 'Unauthorized' }
 
-    // Record the change
     await recordChange({
-      submission_id: data.submission_id,
+      submission_id: data.submission_id ?? null,
       position_id: data.position_id,
       officer_id: data.officer_id,
       action: 'add',
@@ -82,11 +126,11 @@ export async function addSuccessorWithAudit(data: {
       changed_by: session.user_id,
     })
 
-    // Apply to position_successors via existing addSuccessor
     const { addSuccessor } = await import('@/lib/queries/positions')
     await addSuccessor(data.position_id, data.officer_id, data.succession_type)
 
     revalidatePath('/successionplanning/plan')
+    revalidatePath('/positions')
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error?.message ?? 'Failed to add successor' }
@@ -94,7 +138,7 @@ export async function addSuccessorWithAudit(data: {
 }
 
 export async function removeSuccessorWithAudit(data: {
-  submission_id: string
+  submission_id?: string | null
   position_id: string
   officer_id: string
   succession_type: '0-4_years' | '5-10_years'
@@ -104,9 +148,8 @@ export async function removeSuccessorWithAudit(data: {
     const session = await getCurrentSession()
     if (!session) return { success: false, error: 'Unauthorized' }
 
-    // Record the change
     await recordChange({
-      submission_id: data.submission_id,
+      submission_id: data.submission_id ?? null,
       position_id: data.position_id,
       officer_id: data.officer_id,
       action: 'remove',
@@ -115,7 +158,6 @@ export async function removeSuccessorWithAudit(data: {
       changed_by: session.user_id,
     })
 
-    // Remove from position_successors
     const { supabaseServer } = await import('@/lib/supabase')
     await supabaseServer
       .from('position_successors')
@@ -125,6 +167,7 @@ export async function removeSuccessorWithAudit(data: {
       .eq('succession_type', data.succession_type)
 
     revalidatePath('/successionplanning/plan')
+    revalidatePath('/positions')
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error?.message ?? 'Failed to remove successor' }

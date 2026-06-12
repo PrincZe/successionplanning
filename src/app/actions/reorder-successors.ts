@@ -22,9 +22,9 @@ export async function reorderSuccessors(
     if (error) throw error
   }
 
-  if (session && submissionId) {
+  if (session) {
     await supabaseServer.from('successor_changes').insert({
-      submission_id: submissionId,
+      submission_id: submissionId ?? null,
       position_id: positionId,
       officer_id: orderedOfficerIds[0],
       action: 'reorder',

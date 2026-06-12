@@ -21,9 +21,9 @@ export async function updateSuccessorTag(
 
   if (error) throw error
 
-  if (session && submissionId) {
+  if (session) {
     await supabaseServer.from('successor_changes').insert({
-      submission_id: submissionId,
+      submission_id: submissionId ?? null,
       position_id: positionId,
       officer_id: successorId,
       action: 'tag_change',

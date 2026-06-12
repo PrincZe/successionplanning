@@ -51,6 +51,41 @@ export async function getPositions() {
   return transformedPositions as PositionWithRelations[]
 }
 
+export async function getPositionsByAgency(agency: string) {
+  const { data: positions, error } = await supabase
+    .from('positions')
+    .select(`
+      *,
+      incumbent:officers!positions_incumbent_id_fkey(*),
+      position_successors(
+        succession_type,
+        rank,
+        tag,
+        successor:officers!position_successors_successor_id_fkey(*)
+      )
+    `)
+    .eq('agency', agency)
+
+  if (error) throw error
+
+  const transformedPositions = positions?.map((position: PositionWithRelations) => {
+    const successors = position.position_successors || []
+    return {
+      ...position,
+      successors_0_4_years: successors
+        .filter((s: PositionSuccessor) => s.succession_type === '0-4_years')
+        .sort((a: PositionSuccessor, b: PositionSuccessor) => a.rank - b.rank)
+        .map((s: PositionSuccessor) => s.successor),
+      successors_5_10_years: successors
+        .filter((s: PositionSuccessor) => s.succession_type === '5-10_years')
+        .sort((a: PositionSuccessor, b: PositionSuccessor) => a.rank - b.rank)
+        .map((s: PositionSuccessor) => s.successor),
+    }
+  })
+
+  return transformedPositions as PositionWithRelations[]
+}
+
 export async function getPositionById(id: string) {
   const { data: position, error } = await supabase
     .from('positions')

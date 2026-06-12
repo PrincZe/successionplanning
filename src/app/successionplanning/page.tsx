@@ -37,28 +37,46 @@ export default async function SuccessionPlanningPage() {
       }
     }
 
+    // Check for post-submission edits
+    let postEditCount = 0
+    const referenceDate = submission?.reviewed_at ?? submission?.submitted_at
+    if (submission && (submission.status === 'submitted' || submission.status === 'endorsed') && referenceDate) {
+      const { getPostSubmissionEditCount } = await import('@/lib/queries/submissions')
+      postEditCount = await getPostSubmissionEditCount(session.agency, referenceDate)
+    }
+
+    // Get endorsed snapshots
+    const { getSnapshotsForAgency } = await import('@/lib/queries/submissions')
+    const snapshots = await getSnapshotsForAgency(session.agency)
+
     const { default: AgencyTaskPage } = await import('@/app/agency/AgencyTaskPage')
     return (
       <div className="min-h-screen bg-gray-50">
         <main className="container mx-auto px-4 py-8">
+          {postEditCount > 0 && (
+            <div className="max-w-3xl mx-auto mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+              <strong>{postEditCount}</strong> change{postEditCount > 1 ? 's' : ''} made since your last {submission?.status === 'endorsed' ? 'endorsed' : 'submitted'} plan on {new Date(referenceDate!).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' })}.
+            </div>
+          )}
           <AgencyTaskPage agency={session.agency} cycle={cycle} submission={submission} comments={comments} />
-          {pastSubmissions.length > 0 && (
+          {snapshots.length > 0 && (
             <div className="max-w-3xl mx-auto mt-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">Past Submissions</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-3">Endorsed Plans</h2>
               <div className="space-y-2">
-                {pastSubmissions.map((s) => (
-                  <div key={s.submission_id} className="bg-white border rounded-lg p-4 flex items-center justify-between">
-                    <div>
-                      <div className="font-medium text-gray-900">{(s.cycle as any)?.title ?? 'Unknown cycle'}</div>
-                      <div className="text-xs text-gray-500">
-                        Submitted {s.submitted_at ? new Date(s.submitted_at).toLocaleDateString() : '—'}
-                        {s.reviewed_at && <> &middot; Endorsed {new Date(s.reviewed_at).toLocaleDateString()}</>}
+                {snapshots.map((snap: any) => (
+                  <a key={snap.snapshot_id} href={`/successionplanning/snapshots/${snap.snapshot_id}`} className="block bg-white border rounded-lg p-4 hover:border-blue-300 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium text-gray-900">Endorsed Plan</div>
+                        <div className="text-xs text-gray-500">
+                          Endorsed {new Date(snap.endorsed_at).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </div>
                       </div>
+                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                        View Snapshot
+                      </span>
                     </div>
-                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                      Endorsed
-                    </span>
-                  </div>
+                  </a>
                 ))}
               </div>
             </div>
@@ -69,10 +87,18 @@ export default async function SuccessionPlanningPage() {
   }
 
   if (session.role === 'psd' || session.role === 'admin') {
-    // Reuse PSD dashboard logic
-    const { getActiveCycle, getSubmissions } = await import('@/lib/queries/submissions')
+    const { getActiveCycle, getSubmissions, getPostSubmissionEditCount } = await import('@/lib/queries/submissions')
     const cycle = await getActiveCycle()
     const submissions = cycle ? await getSubmissions({ cycle_id: cycle.cycle_id }) : []
+
+    // Compute post-submission edit counts for each submitted/endorsed agency
+    const editCounts: Record<string, number> = {}
+    for (const s of submissions) {
+      const refDate = s.reviewed_at ?? s.submitted_at
+      if ((s.status === 'submitted' || s.status === 'endorsed') && refDate) {
+        editCounts[s.submission_id] = await getPostSubmissionEditCount(s.agency, refDate)
+      }
+    }
 
     const counts = {
       draft: submissions.filter((s) => s.status === 'draft').length,
@@ -166,9 +192,16 @@ export default async function SuccessionPlanningPage() {
                               {s.submitted_at ? `Submitted ${new Date(s.submitted_at).toLocaleDateString()}` : 'Not yet submitted'}
                             </div>
                           </div>
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${sc.className}`}>
-                            {sc.label}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            {editCounts[s.submission_id] > 0 && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-orange-100 text-orange-700">
+                                {editCounts[s.submission_id]} edit{editCounts[s.submission_id] > 1 ? 's' : ''} since
+                              </span>
+                            )}
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${sc.className}`}>
+                              {sc.label}
+                            </span>
+                          </div>
                         </Link>
                       )
                     })}

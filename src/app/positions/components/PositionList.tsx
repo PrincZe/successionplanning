@@ -18,6 +18,7 @@ interface PositionListProps {
   positions: PositionWithRelations[]
   statusByAgency?: Record<string, string>
   hasActiveCycle?: boolean
+  hideAddButton?: boolean
 }
 
 function StatusBadge({ count, max, label }: { count: number; max: number; label: string }) {
@@ -60,7 +61,7 @@ function SuccessorDisplay({ successors, max, type }: { successors: any[], max: n
   )
 }
 
-export default function PositionList({ positions, statusByAgency = {}, hasActiveCycle = false }: PositionListProps) {
+export default function PositionList({ positions, statusByAgency = {}, hasActiveCycle = false, hideAddButton = false }: PositionListProps) {
   const router = useRouter()
 
   const columns = [
@@ -200,17 +201,19 @@ export default function PositionList({ positions, statusByAgency = {}, hasActive
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-          <div className="flex items-center justify-center h-full">
-            <button
-              onClick={() => router.push('/positions/new')}
-              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-colors shadow-md"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Position
-            </button>
+        {!hideAddButton && (
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+            <div className="flex items-center justify-center h-full">
+              <button
+                onClick={() => router.push('/positions/new')}
+                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-colors shadow-md"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Position
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Enhanced Data Table */}
