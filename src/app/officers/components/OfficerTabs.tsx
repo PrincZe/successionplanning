@@ -38,6 +38,26 @@ type Aspiration = {
   positions: { position_title: string; agency: string } | null
 }
 
+type SuccessionPosition = {
+  succession_type: string
+  rank: number
+  tag: string | null
+  position: { position_id: string; position_title: string; agency: string; jr_grade: string } | null
+}
+
+type ChangeHistoryItem = {
+  change_id: string
+  position_id: string
+  action: string
+  succession_type: string
+  reason: string | null
+  changed_at: string
+  position_title: string
+  position_agency: string
+  changed_by_name: string
+  changed_by_role: string
+}
+
 interface OfficerTabsProps {
   officer: OfficerWithRelations
   signals: OfficerQualitativeSignals | null
@@ -51,10 +71,13 @@ interface OfficerTabsProps {
     place: string
     details: string
   }) => Promise<{ success: boolean; error?: string }>
+  successionPositions?: SuccessionPosition[]
+  changeHistory?: ChangeHistoryItem[]
 }
 
 const TABS = [
   { key: 'profile', label: 'Profile' },
+  { key: 'succession', label: 'Succession' },
   { key: 'qualitative', label: 'Qualitative' },
   { key: 'development', label: 'Development' },
   { key: 'history', label: 'History' },
@@ -81,6 +104,8 @@ export default function OfficerTabs({
   remarks,
   officerId,
   onAddRemark,
+  successionPositions = [],
+  changeHistory = [],
 }: OfficerTabsProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('profile')
 
@@ -184,6 +209,87 @@ export default function OfficerTabs({
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'succession' && (
+          <div className="space-y-6">
+            {/* Current succession positions */}
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+              <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
+                <h2 className="text-base font-semibold text-gray-900">Identified Successor For</h2>
+              </div>
+              <div className="p-6">
+                {successionPositions.length === 0 ? (
+                  <p className="text-sm text-gray-400 italic">Not currently listed as a successor for any position.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {successionPositions.map((sp, i) => (
+                      <Link
+                        key={i}
+                        href={`/positions/${sp.position?.position_id}`}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors"
+                      >
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{sp.position?.position_title}</div>
+                          <div className="text-xs text-gray-500">{sp.position?.agency} &middot; {sp.position?.jr_grade}</div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-500">
+                            {sp.succession_type === '0-4_years' ? 'Near Term' : 'Longer Term'} #{sp.rank}
+                          </span>
+                          {sp.tag && (
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${sp.tag === 'immediate' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                              {sp.tag === 'immediate' ? 'Immediate' : 'Contingency'}
+                            </span>
+                          )}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Change history timeline */}
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+              <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
+                <h2 className="text-base font-semibold text-gray-900">Succession History</h2>
+              </div>
+              <div className="p-6">
+                {changeHistory.length === 0 ? (
+                  <p className="text-sm text-gray-400 italic">No succession changes recorded.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {changeHistory.map((c) => (
+                      <div key={c.change_id} className="flex items-start gap-3 text-sm">
+                        <div className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                          c.action === 'add' ? 'bg-green-100 text-green-700' :
+                          c.action === 'remove' ? 'bg-red-100 text-red-700' :
+                          'bg-gray-100 text-gray-600'
+                        }`}>
+                          {c.action === 'add' ? '+' : c.action === 'remove' ? '−' : '↕'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-gray-900">
+                            <span className="font-medium">{c.action === 'add' ? 'Added to' : c.action === 'remove' ? 'Removed from' : 'Updated in'}</span>
+                            {' '}<Link href={`/positions/${c.position_id}`} className="text-blue-600 hover:underline">{c.position_title}</Link>
+                            {' '}<span className="text-gray-500">({c.position_agency})</span>
+                            {' '}<span className="text-gray-500">&middot; {c.succession_type === '0-4_years' ? '0-4yr' : '5-10yr'}</span>
+                          </div>
+                          {c.reason && <div className="text-gray-500 text-xs mt-0.5 italic">&ldquo;{c.reason}&rdquo;</div>}
+                          <div className="text-xs text-gray-400 mt-0.5">
+                            {new Date(c.changed_at).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            {c.changed_by_name && <> &middot; by {c.changed_by_name}</>}
+                            {c.changed_by_role && c.changed_by_role !== 'agency_hr' && <span className="ml-1 text-[10px] px-1 py-0.5 rounded bg-violet-100 text-violet-700">PSD</span>}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 

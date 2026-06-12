@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { getPositionById } from '@/lib/queries/positions'
 import { getCurrentSession } from '@/app/actions/auth'
-import { getActiveCycle } from '@/lib/queries/submissions'
+import { getActiveCycle, getPositionChangeHistory } from '@/lib/queries/submissions'
 import { supabaseServer } from '@/lib/supabase'
 import PositionDetail from '../components/PositionDetail'
 
@@ -40,10 +40,10 @@ export default async function PositionDetailPage({ params }: PositionDetailPageP
     }
   }
 
-  const { data: allOfficers } = await supabaseServer
-    .from('officers')
-    .select('officer_id, name, grade')
-    .order('name')
+  const [{ data: allOfficers }, changeHistory] = await Promise.all([
+    supabaseServer.from('officers').select('officer_id, name, grade').order('name'),
+    getPositionChangeHistory(params.id).catch(() => []),
+  ])
 
   return (
     <main className="container mx-auto px-4 py-8">
@@ -54,6 +54,7 @@ export default async function PositionDetailPage({ params }: PositionDetailPageP
         userRole={session?.role ?? null}
         userAgency={session?.agency ?? null}
         allOfficers={allOfficers ?? []}
+        changeHistory={changeHistory}
       />
     </main>
   )

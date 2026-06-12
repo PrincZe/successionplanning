@@ -133,6 +133,18 @@ const STATUS_BADGE: Record<string, { label: string; className: string }> = {
   returned: { label: 'Returned', className: 'bg-red-100 text-red-700' },
 }
 
+type ChangeHistoryItem = {
+  change_id: string
+  officer_id: string
+  officer_name: string
+  action: string
+  succession_type: string
+  reason: string | null
+  changed_at: string
+  changed_by_name: string
+  changed_by_role: string
+}
+
 interface PositionDetailProps {
   position: PositionWithRelations
   submissionStatus?: string | null
@@ -140,9 +152,10 @@ interface PositionDetailProps {
   userRole?: string | null
   userAgency?: string | null
   allOfficers?: OfficerOption[]
+  changeHistory?: ChangeHistoryItem[]
 }
 
-export default function PositionDetail({ position, submissionStatus, submissionId, userRole, userAgency, allOfficers = [] }: PositionDetailProps) {
+export default function PositionDetail({ position, submissionStatus, submissionId, userRole, userAgency, allOfficers = [], changeHistory = [] }: PositionDetailProps) {
   const canPsdEdit = (userRole === 'psd' || userRole === 'admin') && (submissionStatus === 'submitted' || submissionStatus === 'in_review')
   const canAgencyEdit = userRole === 'agency_hr' && position.agency === userAgency
   const router = useRouter()
@@ -299,6 +312,43 @@ export default function PositionDetail({ position, submissionStatus, submissionI
         showRecs={showRecs}
         setShowRecs={setShowRecs}
       />
+
+      {/* Change History */}
+      {changeHistory.length > 0 && (
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="px-6 py-3 border-b border-gray-100">
+            <span className="text-sm font-semibold text-gray-900">Change History</span>
+            <span className="ml-2 text-xs text-gray-400">({changeHistory.length})</span>
+          </div>
+          <div className="px-6 py-4 max-h-80 overflow-y-auto space-y-2.5">
+            {changeHistory.map((c) => (
+              <div key={c.change_id} className="flex items-start gap-2.5 text-sm">
+                <div className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                  c.action === 'add' ? 'bg-green-100 text-green-700' :
+                  c.action === 'remove' ? 'bg-red-100 text-red-700' :
+                  c.action === 'tag_change' ? 'bg-blue-100 text-blue-700' :
+                  'bg-gray-100 text-gray-600'
+                }`}>
+                  {c.action === 'add' ? '+' : c.action === 'remove' ? '−' : c.action === 'tag_change' ? 'T' : '↕'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-gray-900">
+                    <Link href={`/officers/${c.officer_id}`} className="font-medium text-blue-600 hover:underline">{c.officer_name}</Link>
+                    {' '}<span className="text-gray-600">{c.action === 'add' ? 'added' : c.action === 'remove' ? 'removed' : c.action === 'tag_change' ? 'tag updated' : 'reordered'}</span>
+                    {' '}<span className="text-gray-500">({c.succession_type === '0-4_years' ? '0-4yr' : '5-10yr'})</span>
+                  </div>
+                  {c.reason && <div className="text-xs text-gray-500 italic mt-0.5">&ldquo;{c.reason}&rdquo;</div>}
+                  <div className="text-xs text-gray-400 mt-0.5">
+                    {new Date(c.changed_at).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    {c.changed_by_name && <> &middot; {c.changed_by_name}</>}
+                    {c.changed_by_role && c.changed_by_role !== 'agency_hr' && <span className="ml-1 text-[10px] px-1 py-0.5 rounded bg-violet-100 text-violet-700">PSD</span>}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
 
     {/* AI Recommendation side panel */}

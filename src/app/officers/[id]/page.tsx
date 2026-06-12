@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { getOfficerById, getOfficerQualitativeSignals } from '@/lib/queries/officers'
+import { getOfficerById, getOfficerQualitativeSignals, getOfficerSuccessionPositions, getOfficerChangeHistory } from '@/lib/queries/officers'
 import { getPositions } from '@/lib/queries/positions'
 import { getOfficerRemarks } from '@/lib/queries/remarks'
 import { getPostingHistory } from '@/lib/queries/posting-history'
@@ -16,13 +16,15 @@ interface Props {
 }
 
 export default async function OfficerPage({ params }: Props) {
-  const [officer, remarks, signals, positions, postings, aspirationsRes] = await Promise.all([
+  const [officer, remarks, signals, positions, postings, aspirationsRes, successionPositions, changeHistory] = await Promise.all([
     getOfficerById(params.id).catch(() => null),
     getOfficerRemarks(params.id),
     getOfficerQualitativeSignals(params.id).catch(() => null),
     getPositions().catch(() => []),
     getPostingHistory(params.id).catch(() => []),
     supabaseServer.from('officer_aspirations').select('*, positions(position_title, agency)').eq('officer_id', params.id).then(r => r.data ?? []),
+    getOfficerSuccessionPositions(params.id).catch(() => []),
+    getOfficerChangeHistory(params.id).catch(() => []),
   ])
 
   if (!officer) {
@@ -46,6 +48,8 @@ export default async function OfficerPage({ params }: Props) {
       remarks={remarks}
       officerId={params.id}
       onAddRemark={addRemarkAction.bind(null, params.id)}
+      successionPositions={successionPositions as any}
+      changeHistory={changeHistory}
     />
   )
 }

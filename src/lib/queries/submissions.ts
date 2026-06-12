@@ -214,6 +214,36 @@ export async function getSnapshotsForAgency(agency: string) {
   return data ?? []
 }
 
+export async function getPositionChangeHistory(positionId: string) {
+  const { data, error } = await supabase
+    .from('successor_changes')
+    .select('change_id, officer_id, action, succession_type, reason, changed_by, changed_at')
+    .eq('position_id', positionId)
+    .order('changed_at', { ascending: false })
+    .limit(50)
+
+  if (error) throw error
+  if (!data || data.length === 0) return []
+
+  const officerIds = Array.from(new Set(data.map(c => c.officer_id)))
+  const userIds = Array.from(new Set(data.map(c => c.changed_by)))
+
+  const [{ data: officers }, { data: users }] = await Promise.all([
+    supabase.from('officers').select('officer_id, name').in('officer_id', officerIds),
+    supabase.from('users').select('user_id, name, role').in('user_id', userIds),
+  ])
+
+  const officerMap = new Map((officers ?? []).map((o: any) => [o.officer_id, o.name]))
+  const userMap = new Map((users ?? []).map((u: any) => [u.user_id, u]))
+
+  return data.map(c => ({
+    ...c,
+    officer_name: officerMap.get(c.officer_id) ?? c.officer_id,
+    changed_by_name: userMap.get(c.changed_by)?.name ?? '',
+    changed_by_role: userMap.get(c.changed_by)?.role ?? '',
+  }))
+}
+
 export async function getSnapshotById(snapshotId: string) {
   const { data, error } = await supabase
     .from('endorsed_plan_snapshots')
