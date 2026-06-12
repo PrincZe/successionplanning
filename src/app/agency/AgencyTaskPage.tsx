@@ -5,6 +5,7 @@ import { Clock, FileText, CheckCircle2, AlertTriangle, Info } from 'lucide-react
 import type { SubmissionCycle, PlanSubmission } from '@/lib/queries/submissions'
 import { submitPlanAction } from '@/app/actions/submissions'
 import { useState } from 'react'
+import CommentThread from '@/app/components/CommentThread'
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   draft: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Pending Submission' },
@@ -153,28 +154,8 @@ export default function AgencyTaskPage({
       </div>
 
       {/* Comment thread */}
-      {comments.length > 0 && (
-        <div className="bg-white border rounded-xl p-5 space-y-3">
-          <h3 className="text-sm font-semibold text-gray-700">Comments &amp; Notes</h3>
-          <div className="space-y-2">
-            {comments.map((c) => (
-              <div key={c.comment_id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-sm font-medium text-gray-900">{c.user_name ?? 'Unknown'}</span>
-                    {c.user_role && (
-                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${c.user_role === 'psd' || c.user_role === 'admin' ? 'bg-violet-100 text-violet-700' : 'bg-green-100 text-green-700'}`}>
-                        {c.user_role === 'agency_hr' ? 'Agency' : 'PSD'}
-                      </span>
-                    )}
-                    <span className="text-xs text-gray-400">{new Date(c.created_at).toLocaleString('en-SG', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
-                  </div>
-                  <p className="text-sm text-gray-700">{c.comment}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+      {submission && (
+        <CommentThread comments={comments} submissionId={submission.submission_id} />
       )}
     </div>
   )
