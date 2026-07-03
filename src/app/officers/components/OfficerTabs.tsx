@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Edit, ArrowLeft } from 'lucide-react'
+import { Edit, ArrowLeft, Pencil } from 'lucide-react'
 import OfficerDetail from './OfficerDetail'
 import QualitativeProfile from './QualitativeProfile'
 import DevelopmentPathway from './DevelopmentPathway'
@@ -85,6 +85,14 @@ const TABS = [
 ] as const
 
 type TabKey = (typeof TABS)[number]['key']
+
+// A change counts as a documented human decision when it carries a rationale
+// that isn't the system's auto-generated AI-acceptance note. Mirrors the same
+// helper in PositionDetail so the "Human decision" marker is consistent.
+function isHumanDecision(reason: string | null | undefined): boolean {
+  if (!reason) return false
+  return !/via AI recommendation/i.test(reason)
+}
 
 function getInitials(name: string): string {
   return name
@@ -276,6 +284,11 @@ export default function OfficerTabs({
                             {' '}<Link href={`/positions/${c.position_id}`} className="text-blue-600 hover:underline">{c.position_title}</Link>
                             {' '}<span className="text-gray-500">({c.position_agency})</span>
                             {' '}<span className="text-gray-500">&middot; {c.succession_type === '0-4_years' ? '0-4yr' : '5-10yr'}</span>
+                            {isHumanDecision(c.reason) && (
+                              <span className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 font-medium align-middle">
+                                <Pencil className="h-2.5 w-2.5" /> Human decision
+                              </span>
+                            )}
                           </div>
                           {c.reason && <div className="text-gray-500 text-xs mt-0.5 italic">&ldquo;{c.reason}&rdquo;</div>}
                           <div className="text-xs text-gray-400 mt-0.5">
