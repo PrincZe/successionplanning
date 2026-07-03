@@ -13,12 +13,15 @@ const ASPIRATION_LABEL: Record<string, string> = { exact_position: 'Exact match'
 const BAR_COLOR: Record<Band, string> = { green: 'bg-emerald-500', amber: 'bg-amber-500', red: 'bg-red-500' }
 const SCORE_BG: Record<Band, string> = { green: 'bg-emerald-100 text-emerald-800', amber: 'bg-amber-100 text-amber-800', red: 'bg-red-100 text-red-800' }
 
-const SUB_SCORE_LABELS: Array<{ key: keyof RankedCandidate['sub_scores']; label: string }> = [
-  { key: 'competency_fit', label: 'Competency Fit' },
-  { key: 'qualitative', label: 'Qualitative' },
-  { key: 'stint_diversity', label: 'Stint Diversity' },
-  { key: 'aspiration_alignment', label: 'Aspiration' },
-  { key: 'grade_proximity', label: 'Grade Fit' },
+// Weights mirror WEIGHTS in src/lib/successor-recommender/recommend.ts — keep in sync.
+// Shown alongside each dimension so the compare view exposes the balance between
+// performance data (competency) and qualitative inputs, same as the detail card.
+const SUB_SCORE_LABELS: Array<{ key: keyof RankedCandidate['sub_scores']; label: string; weight: number }> = [
+  { key: 'competency_fit', label: 'Competency Fit', weight: 0.30 },
+  { key: 'qualitative', label: 'Qualitative', weight: 0.30 },
+  { key: 'stint_diversity', label: 'Stint Diversity', weight: 0.15 },
+  { key: 'aspiration_alignment', label: 'Aspiration', weight: 0.15 },
+  { key: 'grade_proximity', label: 'Grade Fit', weight: 0.10 },
 ]
 
 export default function CompareModal({
@@ -74,10 +77,14 @@ export default function CompareModal({
           <CompareRow label="Stints" candidates={candidates} render={(c) => String(c.stint_count)} />
           <CompareRow label="Aspiration" candidates={candidates} render={(c) => ASPIRATION_LABEL[c.aspiration_match] ?? '—'} />
 
-          {/* Sub-scores with bars */}
-          {SUB_SCORE_LABELS.map(({ key, label }) => (
+          {/* Sub-scores with bars — header shows the weight; each cell shows the
+              contribution (score × weight) so the derivation is visible here too. */}
+          {SUB_SCORE_LABELS.map(({ key, label, weight }) => (
             <div key={key} className="border-t border-gray-100 py-3">
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{label}</div>
+              <div className="flex items-baseline gap-1.5 mb-2">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{label}</span>
+                <span className="text-[10px] font-medium text-gray-400">×{Math.round(weight * 100)}%</span>
+              </div>
               <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${candidates.length}, 1fr)` }}>
                 {candidates.map((c) => {
                   const val = c.sub_scores?.[key] ?? 0
@@ -88,7 +95,8 @@ export default function CompareModal({
                         <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
                           <div className={`h-full ${BAR_COLOR[band]}`} style={{ width: `${Math.min(100, val)}%` }} />
                         </div>
-                        <span className="text-xs font-medium text-gray-700 w-7 text-right">{Math.round(val)}</span>
+                        <span className="text-xs font-medium text-gray-700 w-7 text-right tabular-nums">{Math.round(val)}</span>
+                        <span className="text-[10px] text-gray-500 w-9 text-right tabular-nums">{(val * weight).toFixed(1)}</span>
                       </div>
                     </div>
                   )
@@ -96,6 +104,29 @@ export default function CompareModal({
               </div>
             </div>
           ))}
+
+          {/* Why — deterministic reasons from the scoring engine */}
+          <div className="border-t border-gray-100 py-3">
+            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Why</div>
+            <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${candidates.length}, 1fr)` }}>
+              {candidates.map((c) => (
+                <div key={c.officer_id}>
+                  {c.reasons && c.reasons.length > 0 ? (
+                    <ul className="space-y-0.5">
+                      {c.reasons.map((r, i) => (
+                        <li key={i} className="text-xs text-gray-700 flex gap-1.5">
+                          <span className="text-gray-300 select-none">•</span>
+                          <span>{r}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span className="text-xs text-gray-400">—</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
 
           {/* AI Reasoning */}
           <div className="border-t border-gray-100 py-3">
