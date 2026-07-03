@@ -46,6 +46,8 @@ type RecommendationResult = {
   generated_at: string
 }
 
+const MAX_COMPARE = 3
+
 type Band = 'green' | 'amber' | 'red'
 function bandFromScore(s: number): Band { return s >= 75 ? 'green' : s >= 50 ? 'amber' : 'red' }
 const BAND_BG: Record<Band, string> = { green: 'bg-emerald-100 text-emerald-800', amber: 'bg-amber-100 text-amber-800', red: 'bg-red-100 text-red-800' }
@@ -147,7 +149,7 @@ export default function RecommendationPanel({ positionId, submissionId, onClose,
     setSelected((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
-      else if (next.size < 3) next.add(id)
+      else if (next.size < MAX_COMPARE) next.add(id)
       return next
     })
   }
@@ -241,7 +243,9 @@ export default function RecommendationPanel({ positionId, submissionId, onClose,
         {/* Compare bar */}
         {selected.size >= 2 && (
           <div className="px-4 py-2 bg-violet-50 border-b flex items-center justify-between">
-            <span className="text-xs text-violet-700">{selected.size} selected</span>
+            <span className="text-xs text-violet-700">
+              {selected.size} of {MAX_COMPARE} selected{selected.size >= MAX_COMPARE ? ' (max)' : ''}
+            </span>
             <button onClick={() => setShowCompare(true)} className="inline-flex items-center gap-1 px-3 py-1 bg-violet-600 text-white rounded text-xs font-medium hover:bg-violet-700">
               <GitCompare className="h-3 w-3" /> Compare
             </button>
@@ -288,8 +292,10 @@ export default function RecommendationPanel({ positionId, submissionId, onClose,
                       <input
                         type="checkbox"
                         checked={isSelected}
+                        disabled={!isSelected && selected.size >= MAX_COMPARE}
                         onChange={() => toggleSelect(c.officer_id)}
-                        className="h-3.5 w-3.5 rounded border-gray-300 text-violet-600 focus:ring-violet-500"
+                        title={!isSelected && selected.size >= MAX_COMPARE ? `You can compare up to ${MAX_COMPARE} candidates` : undefined}
+                        className="h-3.5 w-3.5 rounded border-gray-300 text-violet-600 focus:ring-violet-500 disabled:opacity-40 disabled:cursor-not-allowed"
                       />
                       {c.ai_rank ? (
                         <span className="flex items-center justify-center w-5 h-5 rounded-full bg-violet-100 text-violet-700 text-xs font-bold">{c.ai_rank}</span>
