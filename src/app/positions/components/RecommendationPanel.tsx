@@ -334,7 +334,7 @@ export default function RecommendationPanel({ positionId, submissionId, onClose,
                               <DerivationRow
                                 key={d.key}
                                 label={d.label}
-                                value={c.sub_scores[d.key]}
+                                value={c.sub_scores[d.key] ?? 0}
                                 weight={d.weight}
                               />
                             ))}
@@ -496,16 +496,18 @@ export default function RecommendationPanel({ positionId, submissionId, onClose,
 // One row of the score derivation: the sub-score, its weight, and the
 // resulting contribution to the composite (sub-score × weight).
 function DerivationRow({ label, value, weight }: { label: string; value: number; weight: number }) {
-  const band = bandFromScore(value)
+  // Guard against stale cached recommendations missing a sub-score (would be NaN).
+  const safe = Number.isFinite(value) ? value : 0
+  const band = bandFromScore(safe)
   const colors: Record<Band, string> = { green: 'bg-emerald-500', amber: 'bg-amber-500', red: 'bg-red-500' }
-  const contribution = value * weight
+  const contribution = safe * weight
   return (
     <div className="flex items-center gap-2">
       <span className="text-xs text-gray-500 w-20 truncate">{label}</span>
       <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-        <div className={`h-full ${colors[band]}`} style={{ width: `${Math.min(100, value)}%` }} />
+        <div className={`h-full ${colors[band]}`} style={{ width: `${Math.min(100, safe)}%` }} />
       </div>
-      <span className="text-xs text-gray-600 w-7 text-right tabular-nums">{Math.round(value)}</span>
+      <span className="text-xs text-gray-600 w-7 text-right tabular-nums">{Math.round(safe)}</span>
       <span className="text-[10px] text-gray-400 w-8 text-right tabular-nums">×{Math.round(weight * 100)}%</span>
       <span className="text-xs text-gray-700 w-9 text-right tabular-nums font-medium">{contribution.toFixed(1)}</span>
     </div>
