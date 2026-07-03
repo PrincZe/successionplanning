@@ -13,6 +13,7 @@ export type SubScores = {
   stint_diversity: number
   aspiration_alignment: number
   grade_proximity: number
+  leadership_potential: number
 }
 
 export type Candidate = {
@@ -28,14 +29,16 @@ export type Candidate = {
   competency_gaps: Array<{ competency_id: number; required_pl_level: number; achieved_pl_level: number }>
   aspiration_match: 'exact_position' | 'grade' | 'domain' | 'none'
   stint_count: number
+  leadership_potential: string | null
 }
 
 const WEIGHTS = {
-  competency_fit: 0.30,
-  qualitative: 0.30,
+  competency_fit: 0.25,
+  qualitative: 0.25,
   stint_diversity: 0.15,
-  aspiration_alignment: 0.15,
+  aspiration_alignment: 0.10,
   grade_proximity: 0.10,
+  leadership_potential: 0.15,
 }
 
 const GRADE_PROXIMITY_BAND = 1 // accept officers within ±1 JR grade
@@ -62,7 +65,7 @@ type LoadedContext = {
     weight: number
     competency_name: string
   }>
-  officers: Map<string, { officer_id: string; name: string; grade: string | null }>
+  officers: Map<string, { officer_id: string; name: string; grade: string | null; leadership_potential: string | null }>
   availabilityByOfficer: Map<string, { status: AvailabilityStatus; available_from: string | null }>
   competenciesByOfficer: Map<string, Map<number, number>>
   qualitativeByOfficer: Map<string, { score: number; trajectory: string | null }>
@@ -97,7 +100,7 @@ async function loadContext(positionId: string): Promise<LoadedContext> {
       .select('competency_id, required_pl_level, weight')
       .eq('position_id', positionId),
     supabaseServer.from('hr_competencies').select('competency_id, competency_name'),
-    supabaseServer.from('officers').select('officer_id, name, grade'),
+    supabaseServer.from('officers').select('officer_id, name, grade, leadership_potential'),
     supabaseServer.from('officer_availability').select('officer_id, status, available_from'),
     supabaseServer.from('officer_competencies').select('officer_id, competency_id, achieved_pl_level'),
     supabaseServer
@@ -124,9 +127,9 @@ async function loadContext(positionId: string): Promise<LoadedContext> {
     competency_name: competencyNames.get(r.competency_id) ?? `C${r.competency_id}`,
   }))
 
-  const officers = new Map<string, { officer_id: string; name: string; grade: string | null }>()
+  const officers = new Map<string, { officer_id: string; name: string; grade: string | null; leadership_potential: string | null }>()
   for (const o of officersRes.data ?? []) {
-    officers.set(o.officer_id, { officer_id: o.officer_id, name: o.name, grade: o.grade })
+    officers.set(o.officer_id, { officer_id: o.officer_id, name: o.name, grade: o.grade, leadership_potential: (o as any).leadership_potential ?? null })
   }
 
   const availabilityByOfficer = new Map<string, { status: AvailabilityStatus; available_from: string | null }>()
@@ -262,6 +265,33 @@ function scoreGradeProximity(officerGrade: string | null, positionGrade: string)
   return 0
 }
 
+// Leadership Potential is a *ceiling*: the highest grade an officer is assessed
+// able to reach. Lower number = higher ceiling (matches JR/AR convention). We
+// compare that ceiling to the target position's grade:
+//   - ceiling at/above the role  → they can grow into it (strong signal)
+//   - role above their ceiling   → they've likely peaked below it (penalty)
+// AO-scheme LP ("AR#") isn't comparable to a JR position, so we stay neutral.
+function scoreLeadershipPotential(
+  lp: string | null,
+  positionGrade: string
+): { score: number; note: 'reaches' | 'stretch' | 'below_ceiling' | 'unknown' } {
+  if (!lp) return { score: 50, note: 'unknown' }
+  const lpIsJR = /^JR/i.test(lp)
+  const posIsJR = /^JR/i.test(positionGrade)
+  // Different scales (e.g. AR ceiling vs JR position): can't compare → neutral.
+  if (!lpIsJR || !posIsJR) return { score: 50, note: 'unknown' }
+
+  const ceiling = parseGrade(lp)
+  const pg = parseGrade(positionGrade)
+  if (ceiling === null || pg === null) return { score: 50, note: 'unknown' }
+
+  const headroom = pg - ceiling // >0: ceiling is more senior than the role
+  if (headroom >= 2) return { score: 100, note: 'reaches' }   // clear headroom above the role
+  if (headroom >= 0) return { score: 85, note: 'reaches' }    // ceiling at/just above role
+  if (headroom === -1) return { score: 45, note: 'stretch' }  // role one grade above ceiling
+  return { score: 15, note: 'below_ceiling' }                 // role well above their ceiling
+}
+
 function buildReasons(candidate: Candidate, position: LoadedContext['position']): string[] {
   const reasons: string[] = []
   const sub = candidate.sub_scores
@@ -296,6 +326,14 @@ function buildReasons(candidate: Candidate, position: LoadedContext['position'])
   if (og !== null && pg !== null) {
     if (og - pg === -1) reasons.push(`Stretch placement: 1 grade below position (${candidate.grade} → ${position.jr_grade})`)
     if (og - pg === 1) reasons.push(`Lateral / step-back: 1 grade above (${candidate.grade} → ${position.jr_grade})`)
+  }
+
+  // Leadership Potential (ceiling) vs the role.
+  if (candidate.leadership_potential) {
+    if (candidate.sub_scores.leadership_potential >= 85)
+      reasons.push(`Leadership potential (${candidate.leadership_potential}) reaches this role`)
+    else if (candidate.sub_scores.leadership_potential <= 45)
+      reasons.push(`Role may exceed assessed ceiling (LP ${candidate.leadership_potential})`)
   }
 
   return reasons
@@ -354,6 +392,7 @@ export async function recommendSuccessors(positionId: string): Promise<{
       requiredCompetencyNames
     )
     const gradeProximity = scoreGradeProximity(officer.grade, ctx.position.jr_grade)
+    const lpResult = scoreLeadershipPotential(officer.leadership_potential, ctx.position.jr_grade)
 
     const subScores: SubScores = {
       competency_fit: competencyResult.score,
@@ -361,6 +400,7 @@ export async function recommendSuccessors(positionId: string): Promise<{
       stint_diversity: stintDiversity,
       aspiration_alignment: aspirationResult.score,
       grade_proximity: gradeProximity,
+      leadership_potential: lpResult.score,
     }
 
     const composite =
@@ -368,7 +408,8 @@ export async function recommendSuccessors(positionId: string): Promise<{
       WEIGHTS.qualitative * subScores.qualitative +
       WEIGHTS.stint_diversity * subScores.stint_diversity +
       WEIGHTS.aspiration_alignment * subScores.aspiration_alignment +
-      WEIGHTS.grade_proximity * subScores.grade_proximity
+      WEIGHTS.grade_proximity * subScores.grade_proximity +
+      WEIGHTS.leadership_potential * subScores.leadership_potential
 
     const candidate: Candidate = {
       officer_id: officer.officer_id,
@@ -382,6 +423,7 @@ export async function recommendSuccessors(positionId: string): Promise<{
       competency_gaps: competencyResult.gaps,
       aspiration_match: aspirationResult.match,
       stint_count: stintCount,
+      leadership_potential: officer.leadership_potential,
     }
     candidate.reasons = buildReasons(candidate, ctx.position)
     candidates.push(candidate)

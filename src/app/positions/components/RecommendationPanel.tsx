@@ -18,6 +18,7 @@ type SubScores = {
   stint_diversity: number
   aspiration_alignment: number
   grade_proximity: number
+  leadership_potential: number
 }
 
 export type RankedCandidate = {
@@ -32,6 +33,7 @@ export type RankedCandidate = {
   competency_gaps: Array<{ competency_id: number; required_pl_level: number; achieved_pl_level: number }>
   aspiration_match: 'exact_position' | 'grade' | 'domain' | 'none'
   stint_count: number
+  leadership_potential: string | null
   ai_rank: number | null
   ai_reasoning: string | null
   recommended_band: '0-4_years' | '5-10_years' | null
@@ -56,11 +58,12 @@ const BAND_BG: Record<Band, string> = { green: 'bg-emerald-100 text-emerald-800'
 // Drives the "how this score is derived" breakdown so users see the balance
 // between performance data (competency) and qualitative inputs.
 const DERIVATION: Array<{ key: keyof SubScores; label: string; weight: number }> = [
-  { key: 'competency_fit', label: 'Competency', weight: 0.30 },
-  { key: 'qualitative', label: 'Qualitative', weight: 0.30 },
+  { key: 'competency_fit', label: 'Competency', weight: 0.25 },
+  { key: 'qualitative', label: 'Qualitative', weight: 0.25 },
   { key: 'stint_diversity', label: 'Stints', weight: 0.15 },
-  { key: 'aspiration_alignment', label: 'Aspiration', weight: 0.15 },
+  { key: 'aspiration_alignment', label: 'Aspiration', weight: 0.10 },
   { key: 'grade_proximity', label: 'Grade fit', weight: 0.10 },
+  { key: 'leadership_potential', label: 'Leadership', weight: 0.15 },
 ]
 
 const ASPIRATION_LABEL: Record<string, string> = { exact_position: 'Exact match', grade: 'Grade match', domain: 'Domain match', none: 'No match' }

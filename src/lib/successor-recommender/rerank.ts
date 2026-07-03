@@ -85,7 +85,7 @@ function buildPrompt(
       )
       const sub = c.sub_scores
       lines.push(
-        `   sub-scores: competency ${sub.competency_fit.toFixed(0)}, qualitative ${sub.qualitative.toFixed(0)}, stints ${sub.stint_diversity.toFixed(0)}, aspiration ${sub.aspiration_alignment.toFixed(0)}, grade-fit ${sub.grade_proximity.toFixed(0)}`
+        `   sub-scores: competency ${sub.competency_fit.toFixed(0)}, qualitative ${sub.qualitative.toFixed(0)}, stints ${sub.stint_diversity.toFixed(0)}, aspiration ${sub.aspiration_alignment.toFixed(0)}, grade-fit ${sub.grade_proximity.toFixed(0)}, leadership-potential ${sub.leadership_potential.toFixed(0)}${c.leadership_potential ? ` (ceiling ${c.leadership_potential})` : ''}`
       )
       if (c.qualitative_score !== null) {
         lines.push(

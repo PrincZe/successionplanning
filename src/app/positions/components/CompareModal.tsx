@@ -17,11 +17,12 @@ const SCORE_BG: Record<Band, string> = { green: 'bg-emerald-100 text-emerald-800
 // Shown alongside each dimension so the compare view exposes the balance between
 // performance data (competency) and qualitative inputs, same as the detail card.
 const SUB_SCORE_LABELS: Array<{ key: keyof RankedCandidate['sub_scores']; label: string; weight: number }> = [
-  { key: 'competency_fit', label: 'Competency Fit', weight: 0.30 },
-  { key: 'qualitative', label: 'Qualitative', weight: 0.30 },
+  { key: 'competency_fit', label: 'Competency Fit', weight: 0.25 },
+  { key: 'qualitative', label: 'Qualitative', weight: 0.25 },
   { key: 'stint_diversity', label: 'Stint Diversity', weight: 0.15 },
-  { key: 'aspiration_alignment', label: 'Aspiration', weight: 0.15 },
+  { key: 'aspiration_alignment', label: 'Aspiration', weight: 0.10 },
   { key: 'grade_proximity', label: 'Grade Fit', weight: 0.10 },
+  { key: 'leadership_potential', label: 'Leadership Potential', weight: 0.15 },
 ]
 
 export default function CompareModal({
