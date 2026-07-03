@@ -50,6 +50,17 @@ type Band = 'green' | 'amber' | 'red'
 function bandFromScore(s: number): Band { return s >= 75 ? 'green' : s >= 50 ? 'amber' : 'red' }
 const BAND_BG: Record<Band, string> = { green: 'bg-emerald-100 text-emerald-800', amber: 'bg-amber-100 text-amber-800', red: 'bg-red-100 text-red-800' }
 
+// Mirror of WEIGHTS in src/lib/successor-recommender/recommend.ts — keep in sync.
+// Drives the "how this score is derived" breakdown so users see the balance
+// between performance data (competency) and qualitative inputs.
+const DERIVATION: Array<{ key: keyof SubScores; label: string; weight: number }> = [
+  { key: 'competency_fit', label: 'Competency', weight: 0.30 },
+  { key: 'qualitative', label: 'Qualitative', weight: 0.30 },
+  { key: 'stint_diversity', label: 'Stints', weight: 0.15 },
+  { key: 'aspiration_alignment', label: 'Aspiration', weight: 0.15 },
+  { key: 'grade_proximity', label: 'Grade fit', weight: 0.10 },
+]
+
 const ASPIRATION_LABEL: Record<string, string> = { exact_position: 'Exact match', grade: 'Grade match', domain: 'Domain match', none: 'No match' }
 const TRAJECTORY_ICON: Record<string, React.ReactNode> = {
   improving: <TrendingUp className="h-3 w-3 text-emerald-600" />,
@@ -304,14 +315,45 @@ export default function RecommendationPanel({ positionId, submissionId, onClose,
                           <p className="text-xs text-gray-700 italic bg-gray-50 rounded px-2 py-1.5">{c.ai_reasoning}</p>
                         )}
 
-                        {/* Sub-scores */}
-                        <div className="space-y-1">
-                          <ScoreBar label="Competency" value={c.sub_scores.competency_fit} />
-                          <ScoreBar label="Qualitative" value={c.sub_scores.qualitative} />
-                          <ScoreBar label="Stints" value={c.sub_scores.stint_diversity} />
-                          <ScoreBar label="Aspiration" value={c.sub_scores.aspiration_alignment} />
-                          <ScoreBar label="Grade fit" value={c.sub_scores.grade_proximity} />
+                        {/* How this score is derived: sub-score × weight = contribution */}
+                        <div>
+                          <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">
+                            How this score is derived
+                          </div>
+                          <div className="space-y-1">
+                            {DERIVATION.map((d) => (
+                              <DerivationRow
+                                key={d.key}
+                                label={d.label}
+                                value={c.sub_scores[d.key]}
+                                weight={d.weight}
+                              />
+                            ))}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1 pt-1 border-t border-gray-100">
+                            <span className="text-xs font-medium text-gray-600 w-20">Composite</span>
+                            <div className="flex-1" />
+                            <span className="text-xs text-gray-400 w-14 text-right">weighted sum</span>
+                            <span className="text-xs font-bold text-gray-900 w-9 text-right">
+                              {Math.round(c.composite_score)}
+                            </span>
+                          </div>
                         </div>
+
+                        {/* Why — deterministic reasons from the scoring engine */}
+                        {c.reasons && c.reasons.length > 0 && (
+                          <div>
+                            <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Why</div>
+                            <ul className="space-y-0.5">
+                              {c.reasons.map((r, i) => (
+                                <li key={i} className="text-xs text-gray-700 flex gap-1.5">
+                                  <span className="text-gray-300 select-none">•</span>
+                                  <span>{r}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
 
                         <div className="flex items-center gap-3 text-xs text-gray-500">
                           <span>{c.stint_count} stint{c.stint_count !== 1 ? 's' : ''}</span>
@@ -442,16 +484,21 @@ export default function RecommendationPanel({ positionId, submissionId, onClose,
   )
 }
 
-function ScoreBar({ label, value }: { label: string; value: number }) {
+// One row of the score derivation: the sub-score, its weight, and the
+// resulting contribution to the composite (sub-score × weight).
+function DerivationRow({ label, value, weight }: { label: string; value: number; weight: number }) {
   const band = bandFromScore(value)
   const colors: Record<Band, string> = { green: 'bg-emerald-500', amber: 'bg-amber-500', red: 'bg-red-500' }
+  const contribution = value * weight
   return (
     <div className="flex items-center gap-2">
       <span className="text-xs text-gray-500 w-20 truncate">{label}</span>
       <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
         <div className={`h-full ${colors[band]}`} style={{ width: `${Math.min(100, value)}%` }} />
       </div>
-      <span className="text-xs text-gray-600 w-7 text-right">{Math.round(value)}</span>
+      <span className="text-xs text-gray-600 w-7 text-right tabular-nums">{Math.round(value)}</span>
+      <span className="text-[10px] text-gray-400 w-8 text-right tabular-nums">×{Math.round(weight * 100)}%</span>
+      <span className="text-xs text-gray-700 w-9 text-right tabular-nums font-medium">{contribution.toFixed(1)}</span>
     </div>
   )
 }
