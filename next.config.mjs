@@ -9,29 +9,9 @@ const nextConfig = {
         port: "",
         pathname: "/**",
       },
-      {
-        protocol: "https",
-        hostname: "replicate.com",
-      },
-      {
-        protocol: "https",
-        hostname: "replicate.delivery",
-      },
-      {
-        protocol: "https",
-        hostname: "firebasestorage.googleapis.com",
-      },
     ],
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-  },
-  async rewrites() {
-    return [
-      {
-        source: "/api/openai/:path*",
-        destination: "https://api.openai.com/:path*",
-      },
-    ];
   },
 };
 
