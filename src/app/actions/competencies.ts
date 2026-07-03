@@ -10,8 +10,11 @@ export async function createCompetencyAction(data: {
   max_pl_level: number
 }) {
   try {
+    if (!(data.competency_name ?? '').trim()) {
+      return { success: false, error: 'Competency name is required' }
+    }
     const competency = await createCompetency({
-      competency_name: data.competency_name,
+      competency_name: data.competency_name.trim(),
       description: data.description,
       max_pl_level: data.max_pl_level
     })

@@ -6,12 +6,20 @@ import { supabaseServer as supabase } from '@/lib/supabase'
 
 export async function createUserAction(data: { email: string; name: string; role: string; agency?: string }) {
   try {
+    if (!(data.email ?? '').trim()) return { success: false, error: 'Email is required' }
+    if (!(data.name ?? '').trim()) return { success: false, error: 'Name is required' }
+    if (!(data.role ?? '').trim()) return { success: false, error: 'Role is required' }
+
     // Also add to allowed_emails if not there
     await supabase.from('allowed_emails').upsert(
       { id: crypto.randomUUID(), email: data.email.toLowerCase().trim() },
       { onConflict: 'email', ignoreDuplicates: true }
     )
-    const user = await createUser(data)
+    const user = await createUser({
+      ...data,
+      email: data.email.toLowerCase().trim(),
+      name: data.name.trim(),
+    })
     revalidatePath('/admin/users')
     return { success: true, data: user }
   } catch (error: any) {

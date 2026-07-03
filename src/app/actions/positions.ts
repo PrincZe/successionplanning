@@ -17,11 +17,17 @@ export async function createPositionAction(data: {
   try {
     console.log('Starting createPositionAction with data:', data)
 
+    // Server-side validation — form `required` is client-only and bypassable.
+    const positionId = (data.position_id ?? '').trim()
+    if (!positionId) return { success: false, error: 'Position ID is required' }
+    if (!(data.position_title ?? '').trim()) return { success: false, error: 'Position title is required' }
+    if (!(data.agency ?? '').trim()) return { success: false, error: 'Agency is required' }
+
     // Check if position ID already exists
     const { data: existingPosition, error: checkError } = await supabase
       .from('positions')
       .select()
-      .filter('position_id', 'eq', data.position_id)
+      .filter('position_id', 'eq', positionId)
       .maybeSingle()
 
     if (checkError) {
@@ -39,9 +45,9 @@ export async function createPositionAction(data: {
     console.log('Creating position...')
     // Create position
     const position = await createPosition({
-      position_id: data.position_id,
-      position_title: data.position_title,
-      agency: data.agency,
+      position_id: positionId,
+      position_title: data.position_title.trim(),
+      agency: data.agency.trim(),
       jr_grade: data.jr_grade,
       incumbent_id: data.incumbent_id
     })

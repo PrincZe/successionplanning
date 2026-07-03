@@ -10,8 +10,11 @@ export async function createStintAction(data: {
   year: number
 }) {
   try {
+    if (!(data.stint_name ?? '').trim()) {
+      return { success: false, error: 'Stint name is required' }
+    }
     const stint = await createStint({
-      stint_name: data.stint_name,
+      stint_name: data.stint_name.trim(),
       stint_type: data.stint_type,
       year: data.year
     })
