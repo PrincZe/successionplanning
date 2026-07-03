@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Crown, User, Sparkles, Activity,
-  ArrowLeft, Edit, Hash, Building2, Award, FileText, Plus, Search
+  ArrowLeft, Edit, Hash, Building2, Award, FileText, Plus, Search, Pencil
 } from 'lucide-react'
 import type { PositionWithRelations } from '@/lib/queries/positions'
 import { addSuccessorWithAudit, removeSuccessorWithAudit } from '@/app/actions/submissions'
@@ -143,6 +143,14 @@ type ChangeHistoryItem = {
   changed_at: string
   changed_by_name: string
   changed_by_role: string
+}
+
+// A change counts as a documented human decision when it carries a rationale
+// that isn't the system's auto-generated AI-acceptance note. This is what makes
+// the process "high tech, high touch" — a person made a deliberate, recorded call.
+function isHumanDecision(reason: string | null): boolean {
+  if (!reason) return false
+  return !/via AI recommendation/i.test(reason)
 }
 
 interface PositionDetailProps {
@@ -336,6 +344,11 @@ export default function PositionDetail({ position, submissionStatus, submissionI
                     <Link href={`/officers/${c.officer_id}`} className="font-medium text-blue-600 hover:underline">{c.officer_name}</Link>
                     {' '}<span className="text-gray-600">{c.action === 'add' ? 'added' : c.action === 'remove' ? 'removed' : c.action === 'tag_change' ? 'tag updated' : 'reordered'}</span>
                     {' '}<span className="text-gray-500">({c.succession_type === '0-4_years' ? '0-4yr' : '5-10yr'})</span>
+                    {isHumanDecision(c.reason) && (
+                      <span className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 font-medium align-middle">
+                        <Pencil className="h-2.5 w-2.5" /> Human decision
+                      </span>
+                    )}
                   </div>
                   {c.reason && <div className="text-xs text-gray-500 italic mt-0.5">&ldquo;{c.reason}&rdquo;</div>}
                   <div className="text-xs text-gray-400 mt-0.5">
@@ -470,13 +483,21 @@ function InlineSuccessorEditor({
           {selectedName && (
             <div className="text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded">Selected: {selectedName}</div>
           )}
-          <input
-            type="text"
-            placeholder="Reason (optional)"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            className="w-full border rounded-md px-3 py-1.5 text-sm"
-          />
+          {/* Decision rationale — the "human touch": capture why this person, in
+              their own words. Documented in the audit trail as a human decision. */}
+          <div>
+            <label className="flex items-center gap-1 text-xs font-medium text-gray-700 mb-1">
+              <Pencil className="h-3 w-3 text-violet-500" /> Decision rationale
+            </label>
+            <textarea
+              rows={2}
+              placeholder="Why this officer? e.g. strong LCF360, ready now, or reason for overriding the AI recommendation…"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              className="w-full border rounded-md px-3 py-1.5 text-sm resize-none focus:ring-1 focus:ring-violet-400 focus:border-violet-400"
+            />
+            <p className="text-[10px] text-gray-400 mt-0.5">Recorded in the change history. Optional, but recommended to keep decisions high-touch and auditable.</p>
+          </div>
           <div className="flex gap-2">
             <button onClick={handleAdd} disabled={!selectedOfficer || loading} className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium disabled:opacity-50">
               {loading ? 'Adding...' : 'Add'}
