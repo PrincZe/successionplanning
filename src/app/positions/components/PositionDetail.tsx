@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Crown, User, Sparkles, Activity,
-  ArrowLeft, Edit, Hash, Building2, Award, FileText, Plus, Search, Pencil
+  ArrowLeft, Edit, Hash, Building2, Award, FileText, Plus, Search, Pencil, History, X, ExternalLink
 } from 'lucide-react'
 import type { PositionWithRelations } from '@/lib/queries/positions'
 import { addSuccessorWithAudit, removeSuccessorWithAudit } from '@/app/actions/submissions'
@@ -207,7 +207,9 @@ export default function PositionDetail({ position, submissionStatus, submissionI
   const router = useRouter()
   const [showRecs, setShowRecs] = useState(false)
   const [showPipelineHealth, setShowPipelineHealth] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
   const [historyTab, setHistoryTab] = useState<'changes' | 'endorsed'>('changes')
+  const historyCount = changeHistory.length + endorsedHistory.length
 
   return (
     <div className={`flex gap-6 ${showRecs ? '' : ''}`}>
@@ -231,6 +233,16 @@ export default function PositionDetail({ position, submissionStatus, submissionI
                 <Activity className="h-4 w-4 mr-2" />
                 Pipeline Health
               </button>
+              {historyCount > 0 && (
+                <button
+                  onClick={() => setShowHistory(true)}
+                  className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+                >
+                  <History className="h-4 w-4 mr-2" />
+                  History
+                  <span className="ml-2 text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">{historyCount}</span>
+                </button>
+              )}
               <Link
                 href={`/plans/position/${position.position_id}`}
                 className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
@@ -360,32 +372,73 @@ export default function PositionDetail({ position, submissionStatus, submissionI
         setShowRecs={setShowRecs}
       />
 
-      {/* History: change log + endorsed plan snapshots for this position */}
-      {(changeHistory.length > 0 || endorsedHistory.length > 0) && (
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          {/* Tab strip */}
-          <div className="flex items-center gap-1 px-4 pt-2 border-b border-gray-100">
-            <button
-              onClick={() => setHistoryTab('changes')}
-              className={`px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                historyTab === 'changes' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Change History <span className="text-xs text-gray-400">({changeHistory.length})</span>
+    </div>
+
+    {/* AI Recommendation side panel */}
+    {showRecs && (
+      <div className="w-[380px] flex-shrink-0 sticky top-20 h-[calc(100vh-6rem)] overflow-hidden rounded-xl border border-gray-200 shadow-lg">
+        <RecommendationPanel positionId={position.position_id} submissionId={submissionId ?? null} onClose={() => setShowRecs(false)} allOfficers={allOfficers} />
+      </div>
+    )}
+
+    {/* Pipeline Health side panel */}
+    {showPipelineHealth && (
+      <div className="fixed inset-0 z-40 flex" onClick={() => setShowPipelineHealth(false)}>
+        <div className="flex-1 bg-black/40" />
+        <div className="w-full max-w-2xl bg-white shadow-2xl overflow-y-auto h-screen" onClick={(e) => e.stopPropagation()}>
+          <div className="sticky top-0 bg-white border-b z-10 flex items-center justify-between px-6 py-4">
+            <div>
+              <div className="text-xs text-gray-500">{position.position_id} · {position.agency}</div>
+              <div className="text-lg font-semibold text-gray-900">Pipeline Health</div>
+            </div>
+            <button onClick={() => setShowPipelineHealth(false)} className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Close">
+              <span className="text-gray-600 text-xl">&times;</span>
             </button>
-            <button
-              onClick={() => setHistoryTab('endorsed')}
-              className={`px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                historyTab === 'endorsed' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Endorsed Plans <span className="text-xs text-gray-400">({endorsedHistory.length})</span>
-            </button>
+          </div>
+          <PipelineDrillDown positionId={position.position_id} />
+        </div>
+      </div>
+    )}
+
+    {/* History slide-over: change log + endorsed plan snapshots */}
+    {showHistory && (
+      <div className="fixed inset-0 z-40 flex" onClick={() => setShowHistory(false)}>
+        <div className="flex-1 bg-black/40" />
+        <div className="w-full max-w-xl bg-white shadow-2xl overflow-y-auto h-screen" onClick={(e) => e.stopPropagation()}>
+          <div className="sticky top-0 bg-white border-b z-10 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-xs text-gray-500">{position.position_id} · {position.agency}</div>
+                <div className="text-lg font-semibold text-gray-900">History</div>
+              </div>
+              <button onClick={() => setShowHistory(false)} className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Close">
+                <X className="h-5 w-5 text-gray-600" />
+              </button>
+            </div>
+            {/* Tab strip */}
+            <div className="flex items-center gap-1 mt-3 -mb-4">
+              <button
+                onClick={() => setHistoryTab('changes')}
+                className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  historyTab === 'changes' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Change History <span className="text-xs text-gray-400">({changeHistory.length})</span>
+              </button>
+              <button
+                onClick={() => setHistoryTab('endorsed')}
+                className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  historyTab === 'endorsed' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Endorsed Plans <span className="text-xs text-gray-400">({endorsedHistory.length})</span>
+              </button>
+            </div>
           </div>
 
           {/* Change History tab */}
           {historyTab === 'changes' && (
-            <div className="px-6 py-4 max-h-80 overflow-y-auto space-y-2.5">
+            <div className="px-6 py-4 space-y-2.5">
               {changeHistory.length === 0 ? (
                 <p className="text-sm text-gray-400 italic">No changes recorded.</p>
               ) : changeHistory.map((c) => (
@@ -421,9 +474,9 @@ export default function PositionDetail({ position, submissionStatus, submissionI
             </div>
           )}
 
-          {/* Endorsed Plans tab — this position's successor line-up at each past endorsement */}
+          {/* Endorsed Plans tab — this position's line-up at each past endorsement */}
           {historyTab === 'endorsed' && (
-            <div className="px-6 py-4 max-h-96 overflow-y-auto space-y-4">
+            <div className="px-6 py-4 space-y-4">
               {endorsedHistory.length === 0 ? (
                 <p className="text-sm text-gray-400 italic">No endorsed plans yet. A snapshot is captured each time this agency&rsquo;s plan is endorsed.</p>
               ) : endorsedHistory.map((snap) => (
@@ -433,7 +486,15 @@ export default function PositionDetail({ position, submissionStatus, submissionI
                       <FileText className="h-3 w-3" />
                       Endorsed {new Date(snap.endorsed_at).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </span>
-                    {snap.endorsed_by_name && <span className="text-[10px] text-emerald-700">by {snap.endorsed_by_name}</span>}
+                    <div className="flex items-center gap-2">
+                      {snap.endorsed_by_name && <span className="text-[10px] text-emerald-700">by {snap.endorsed_by_name}</span>}
+                      <Link
+                        href={`/successionplanning/snapshots/${snap.snapshot_id}`}
+                        className="text-[10px] font-medium text-blue-600 hover:text-blue-800 inline-flex items-center gap-0.5"
+                      >
+                        View full plan <ExternalLink className="h-2.5 w-2.5" />
+                      </Link>
+                    </div>
                   </div>
                   <div className="px-3 py-2 grid grid-cols-2 gap-3">
                     <EndorsedBand label="Near Term (0–4 yr)" people={snap.successors_0_4} />
@@ -443,32 +504,6 @@ export default function PositionDetail({ position, submissionStatus, submissionI
               ))}
             </div>
           )}
-        </div>
-      )}
-    </div>
-
-    {/* AI Recommendation side panel */}
-    {showRecs && (
-      <div className="w-[380px] flex-shrink-0 sticky top-20 h-[calc(100vh-6rem)] overflow-hidden rounded-xl border border-gray-200 shadow-lg">
-        <RecommendationPanel positionId={position.position_id} submissionId={submissionId ?? null} onClose={() => setShowRecs(false)} allOfficers={allOfficers} />
-      </div>
-    )}
-
-    {/* Pipeline Health side panel */}
-    {showPipelineHealth && (
-      <div className="fixed inset-0 z-40 flex" onClick={() => setShowPipelineHealth(false)}>
-        <div className="flex-1 bg-black/40" />
-        <div className="w-full max-w-2xl bg-white shadow-2xl overflow-y-auto h-screen" onClick={(e) => e.stopPropagation()}>
-          <div className="sticky top-0 bg-white border-b z-10 flex items-center justify-between px-6 py-4">
-            <div>
-              <div className="text-xs text-gray-500">{position.position_id} · {position.agency}</div>
-              <div className="text-lg font-semibold text-gray-900">Pipeline Health</div>
-            </div>
-            <button onClick={() => setShowPipelineHealth(false)} className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Close">
-              <span className="text-gray-600 text-xl">&times;</span>
-            </button>
-          </div>
-          <PipelineDrillDown positionId={position.position_id} />
         </div>
       </div>
     )}
