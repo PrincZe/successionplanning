@@ -29,10 +29,21 @@ export async function createOfficerAction(data: {
   }>
 }, id?: string) {
   try {
+    // Server-side validation — the form's `required` attributes are client-only
+    // and can be bypassed, which previously allowed an officer with empty id/name.
+    const officerId = (data.officer_id ?? '').trim()
+    const name = (data.name ?? '').trim()
+    if (!id && !officerId) {
+      return { success: false, error: 'Officer ID is required' }
+    }
+    if (!name) {
+      return { success: false, error: 'Name is required' }
+    }
+
     if (id) {
       // Update officer
       const officer = await updateOfficer(id, {
-        name: data.name,
+        name: name,
         grade: data.grade,
         mx_equivalent_grade: data.mx_equivalent_grade,
         service_scheme: data.service_scheme as 'SPSL' | 'PSL' | 'AO' | null,
@@ -63,8 +74,8 @@ export async function createOfficerAction(data: {
     } else {
       // Create officer
       const officer = await createOfficer({
-        officer_id: data.officer_id,
-        name: data.name,
+        officer_id: officerId,
+        name: name,
         grade: data.grade,
         mx_equivalent_grade: data.mx_equivalent_grade,
         service_scheme: data.service_scheme as 'SPSL' | 'PSL' | 'AO' | null,
