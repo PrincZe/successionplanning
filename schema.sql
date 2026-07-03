@@ -7,7 +7,10 @@ create table officers (
   ihrp_certification varchar,
   hrlp varchar,
   date_of_birth date,
-  service_scheme varchar check (service_scheme in ('SPSL', 'PSL')),
+  service_scheme varchar check (service_scheme in ('SPSL', 'PSL', 'AO')),
+  parent_agency varchar,
+  current_agency varchar,
+  leadership_potential varchar, -- ceiling grade (JR4-8 for PSL/SPSL, AR1-5 for AO)
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -36,7 +39,9 @@ create table hr_competencies (
 create table position_successors (
   position_id varchar references positions(position_id),
   successor_id varchar references officers(officer_id),
-  succession_type varchar check (succession_type in ('0-4_years', '4-10_years')),
+  succession_type varchar check (succession_type in ('0-4_years', '5-10_years')),
+  rank integer not null,
+  tag varchar,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   primary key (position_id, successor_id, succession_type)
 );
@@ -277,12 +282,36 @@ create table plan_submissions (
 
 create table successor_changes (
   change_id uuid primary key default gen_random_uuid(),
-  submission_id uuid not null references plan_submissions(submission_id),
+  submission_id uuid references plan_submissions(submission_id), -- nullable: out-of-cycle edits
   position_id varchar not null references positions(position_id),
   officer_id varchar not null references officers(officer_id),
-  action varchar not null check (action in ('add', 'remove')),
-  succession_type varchar not null check (succession_type in ('0-4_years', '4-10_years')),
+  action varchar not null check (action in ('add', 'remove', 'reorder', 'tag_change')),
+  succession_type varchar not null check (succession_type in ('0-4_years', '5-10_years')),
   reason text,
   changed_by uuid not null references users(user_id),
   changed_at timestamptz default now()
+);
+
+-- Added via migration-business-feedback.sql (2026-05-20): chronological career history.
+create table officer_posting_history (
+  posting_id serial primary key,
+  officer_id varchar not null references officers(officer_id),
+  position_title varchar not null,
+  agency varchar,
+  start_date date,
+  end_date date,
+  grade_at_time varchar,
+  notes text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- Added via migration-always-open-editing.sql (2026-06-12): frozen plan captured at endorsement.
+create table endorsed_plan_snapshots (
+  snapshot_id uuid primary key default gen_random_uuid(),
+  submission_id uuid references plan_submissions(submission_id),
+  agency varchar not null,
+  endorsed_at timestamptz not null default now(),
+  endorsed_by varchar,
+  snapshot jsonb not null
 );
