@@ -214,6 +214,50 @@ export async function getSnapshotsForAgency(agency: string) {
   return data ?? []
 }
 
+// Endorsed history for a single position: pull every endorsed snapshot for the
+// position's agency and extract just this position's slice, so the position page
+// can show how its successor line-up looked at each past endorsement.
+export type PositionEndorsedSnapshot = {
+  snapshot_id: string
+  endorsed_at: string
+  endorsed_by_name: string
+  successors_0_4: Array<{ officer_id: string; name: string; grade: string | null; rank: number; tag?: string | null }>
+  successors_5_10: Array<{ officer_id: string; name: string; grade: string | null; rank: number }>
+}
+
+export async function getPositionEndorsedHistory(
+  positionId: string,
+  agency: string
+): Promise<PositionEndorsedSnapshot[]> {
+  const { data, error } = await supabase
+    .from('endorsed_plan_snapshots')
+    .select('snapshot_id, endorsed_at, endorsed_by, snapshot')
+    .eq('agency', agency)
+    .order('endorsed_at', { ascending: false })
+  if (error) throw error
+  if (!data || data.length === 0) return []
+
+  const userIds = Array.from(new Set(data.map((s: any) => s.endorsed_by).filter(Boolean)))
+  const { data: users } = userIds.length
+    ? await supabase.from('users').select('user_id, name').in('user_id', userIds)
+    : { data: [] as any[] }
+  const userMap = new Map((users ?? []).map((u: any) => [u.user_id, u.name]))
+
+  const result: PositionEndorsedSnapshot[] = []
+  for (const row of data as any[]) {
+    const positionSlice = (row.snapshot ?? []).find((p: any) => p.position_id === positionId)
+    if (!positionSlice) continue // position wasn't in that endorsed plan
+    result.push({
+      snapshot_id: row.snapshot_id,
+      endorsed_at: row.endorsed_at,
+      endorsed_by_name: userMap.get(row.endorsed_by) ?? '',
+      successors_0_4: positionSlice.successors_0_4 ?? [],
+      successors_5_10: positionSlice.successors_5_10 ?? [],
+    })
+  }
+  return result
+}
+
 export async function getPositionChangeHistory(positionId: string) {
   const { data, error } = await supabase
     .from('successor_changes')

@@ -153,6 +153,43 @@ function isHumanDecision(reason: string | null): boolean {
   return !/via AI recommendation/i.test(reason)
 }
 
+// One band (near/longer term) of successors within an endorsed snapshot.
+function EndorsedBand({
+  label,
+  people,
+}: {
+  label: string
+  people: Array<{ officer_id: string; name: string; grade: string | null; rank: number; tag?: string | null }>
+}) {
+  return (
+    <div>
+      <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">{label}</div>
+      {people.length === 0 ? (
+        <p className="text-xs text-gray-400 italic">None</p>
+      ) : (
+        <ol className="space-y-0.5">
+          {[...people].sort((a, b) => a.rank - b.rank).map((p) => (
+            <li key={p.officer_id} className="text-xs text-gray-700 flex items-center gap-1.5">
+              <span className="text-gray-400 tabular-nums w-3">{p.rank}.</span>
+              <Link href={`/officers/${p.officer_id}`} className="text-blue-600 hover:underline truncate">{p.name}</Link>
+              {p.grade && <span className="text-gray-400">{p.grade}</span>}
+              {p.tag === 'immediate' && <span className="text-[9px] px-1 rounded-full bg-emerald-100 text-emerald-700">Immediate</span>}
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  )
+}
+
+type EndorsedSnapshotItem = {
+  snapshot_id: string
+  endorsed_at: string
+  endorsed_by_name: string
+  successors_0_4: Array<{ officer_id: string; name: string; grade: string | null; rank: number; tag?: string | null }>
+  successors_5_10: Array<{ officer_id: string; name: string; grade: string | null; rank: number }>
+}
+
 interface PositionDetailProps {
   position: PositionWithRelations
   submissionStatus?: string | null
@@ -161,14 +198,16 @@ interface PositionDetailProps {
   userAgency?: string | null
   allOfficers?: OfficerOption[]
   changeHistory?: ChangeHistoryItem[]
+  endorsedHistory?: EndorsedSnapshotItem[]
 }
 
-export default function PositionDetail({ position, submissionStatus, submissionId, userRole, userAgency, allOfficers = [], changeHistory = [] }: PositionDetailProps) {
+export default function PositionDetail({ position, submissionStatus, submissionId, userRole, userAgency, allOfficers = [], changeHistory = [], endorsedHistory = [] }: PositionDetailProps) {
   const canPsdEdit = (userRole === 'psd' || userRole === 'admin') && (submissionStatus === 'submitted' || submissionStatus === 'in_review')
   const canAgencyEdit = userRole === 'agency_hr' && position.agency === userAgency
   const router = useRouter()
   const [showRecs, setShowRecs] = useState(false)
   const [showPipelineHealth, setShowPipelineHealth] = useState(false)
+  const [historyTab, setHistoryTab] = useState<'changes' | 'endorsed'>('changes')
 
   return (
     <div className={`flex gap-6 ${showRecs ? '' : ''}`}>
@@ -321,45 +360,89 @@ export default function PositionDetail({ position, submissionStatus, submissionI
         setShowRecs={setShowRecs}
       />
 
-      {/* Change History */}
-      {changeHistory.length > 0 && (
+      {/* History: change log + endorsed plan snapshots for this position */}
+      {(changeHistory.length > 0 || endorsedHistory.length > 0) && (
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="px-6 py-3 border-b border-gray-100">
-            <span className="text-sm font-semibold text-gray-900">Change History</span>
-            <span className="ml-2 text-xs text-gray-400">({changeHistory.length})</span>
+          {/* Tab strip */}
+          <div className="flex items-center gap-1 px-4 pt-2 border-b border-gray-100">
+            <button
+              onClick={() => setHistoryTab('changes')}
+              className={`px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                historyTab === 'changes' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Change History <span className="text-xs text-gray-400">({changeHistory.length})</span>
+            </button>
+            <button
+              onClick={() => setHistoryTab('endorsed')}
+              className={`px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                historyTab === 'endorsed' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Endorsed Plans <span className="text-xs text-gray-400">({endorsedHistory.length})</span>
+            </button>
           </div>
-          <div className="px-6 py-4 max-h-80 overflow-y-auto space-y-2.5">
-            {changeHistory.map((c) => (
-              <div key={c.change_id} className="flex items-start gap-2.5 text-sm">
-                <div className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                  c.action === 'add' ? 'bg-green-100 text-green-700' :
-                  c.action === 'remove' ? 'bg-red-100 text-red-700' :
-                  c.action === 'tag_change' ? 'bg-blue-100 text-blue-700' :
-                  'bg-gray-100 text-gray-600'
-                }`}>
-                  {c.action === 'add' ? '+' : c.action === 'remove' ? '−' : c.action === 'tag_change' ? 'T' : '↕'}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-gray-900">
-                    <Link href={`/officers/${c.officer_id}`} className="font-medium text-blue-600 hover:underline">{c.officer_name}</Link>
-                    {' '}<span className="text-gray-600">{c.action === 'add' ? 'added' : c.action === 'remove' ? 'removed' : c.action === 'tag_change' ? 'tag updated' : 'reordered'}</span>
-                    {' '}<span className="text-gray-500">({c.succession_type === '0-4_years' ? '0-4yr' : '5-10yr'})</span>
-                    {isHumanDecision(c.reason) && (
-                      <span className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 font-medium align-middle">
-                        <Pencil className="h-2.5 w-2.5" /> Human decision
-                      </span>
-                    )}
+
+          {/* Change History tab */}
+          {historyTab === 'changes' && (
+            <div className="px-6 py-4 max-h-80 overflow-y-auto space-y-2.5">
+              {changeHistory.length === 0 ? (
+                <p className="text-sm text-gray-400 italic">No changes recorded.</p>
+              ) : changeHistory.map((c) => (
+                <div key={c.change_id} className="flex items-start gap-2.5 text-sm">
+                  <div className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                    c.action === 'add' ? 'bg-green-100 text-green-700' :
+                    c.action === 'remove' ? 'bg-red-100 text-red-700' :
+                    c.action === 'tag_change' ? 'bg-blue-100 text-blue-700' :
+                    'bg-gray-100 text-gray-600'
+                  }`}>
+                    {c.action === 'add' ? '+' : c.action === 'remove' ? '−' : c.action === 'tag_change' ? 'T' : '↕'}
                   </div>
-                  {c.reason && <div className="text-xs text-gray-500 italic mt-0.5">&ldquo;{c.reason}&rdquo;</div>}
-                  <div className="text-xs text-gray-400 mt-0.5">
-                    {new Date(c.changed_at).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    {c.changed_by_name && <> &middot; {c.changed_by_name}</>}
-                    {c.changed_by_role && c.changed_by_role !== 'agency_hr' && <span className="ml-1 text-[10px] px-1 py-0.5 rounded bg-violet-100 text-violet-700">PSD</span>}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-gray-900">
+                      <Link href={`/officers/${c.officer_id}`} className="font-medium text-blue-600 hover:underline">{c.officer_name}</Link>
+                      {' '}<span className="text-gray-600">{c.action === 'add' ? 'added' : c.action === 'remove' ? 'removed' : c.action === 'tag_change' ? 'tag updated' : 'reordered'}</span>
+                      {' '}<span className="text-gray-500">({c.succession_type === '0-4_years' ? '0-4yr' : '5-10yr'})</span>
+                      {isHumanDecision(c.reason) && (
+                        <span className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 font-medium align-middle">
+                          <Pencil className="h-2.5 w-2.5" /> Human decision
+                        </span>
+                      )}
+                    </div>
+                    {c.reason && <div className="text-xs text-gray-500 italic mt-0.5">&ldquo;{c.reason}&rdquo;</div>}
+                    <div className="text-xs text-gray-400 mt-0.5">
+                      {new Date(c.changed_at).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      {c.changed_by_name && <> &middot; {c.changed_by_name}</>}
+                      {c.changed_by_role && c.changed_by_role !== 'agency_hr' && <span className="ml-1 text-[10px] px-1 py-0.5 rounded bg-violet-100 text-violet-700">PSD</span>}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
+
+          {/* Endorsed Plans tab — this position's successor line-up at each past endorsement */}
+          {historyTab === 'endorsed' && (
+            <div className="px-6 py-4 max-h-96 overflow-y-auto space-y-4">
+              {endorsedHistory.length === 0 ? (
+                <p className="text-sm text-gray-400 italic">No endorsed plans yet. A snapshot is captured each time this agency&rsquo;s plan is endorsed.</p>
+              ) : endorsedHistory.map((snap) => (
+                <div key={snap.snapshot_id} className="border border-gray-100 rounded-lg overflow-hidden">
+                  <div className="flex items-center justify-between px-3 py-2 bg-emerald-50 border-b border-emerald-100">
+                    <span className="text-xs font-semibold text-emerald-800 inline-flex items-center gap-1">
+                      <FileText className="h-3 w-3" />
+                      Endorsed {new Date(snap.endorsed_at).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                    {snap.endorsed_by_name && <span className="text-[10px] text-emerald-700">by {snap.endorsed_by_name}</span>}
+                  </div>
+                  <div className="px-3 py-2 grid grid-cols-2 gap-3">
+                    <EndorsedBand label="Near Term (0–4 yr)" people={snap.successors_0_4} />
+                    <EndorsedBand label="Longer Term (5–10 yr)" people={snap.successors_5_10} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
