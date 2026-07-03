@@ -92,6 +92,21 @@ export default async function SuccessionPlanningPage() {
     const submissions = cycle ? await getSubmissions({ cycle_id: cycle.cycle_id }) : []
     const endorsedSnapshots = await getAllSnapshots().catch(() => [])
 
+    // Group endorsed snapshots by agency (newest first within each group) so the
+    // Endorsed Plans tab shows each agency once, expandable to its history.
+    const snapshotGroupsMap = new Map<string, any[]>()
+    for (const s of endorsedSnapshots as any[]) {
+      if (!snapshotGroupsMap.has(s.agency)) snapshotGroupsMap.set(s.agency, [])
+      snapshotGroupsMap.get(s.agency)!.push(s)
+    }
+    const snapshotGroups = Array.from(snapshotGroupsMap.entries())
+      .map(([agency, snaps]) => ({
+        agency,
+        latest_endorsed_at: snaps[0].endorsed_at,
+        snapshots: snaps,
+      }))
+      .sort((a, b) => new Date(b.latest_endorsed_at).getTime() - new Date(a.latest_endorsed_at).getTime())
+
     // Compute post-submission edit counts for each submitted/endorsed agency
     const editCounts: Record<string, number> = {}
     for (const s of submissions) {
@@ -111,11 +126,12 @@ export default async function SuccessionPlanningPage() {
     const Link = (await import('next/link')).default
     const { FileText, Clock, CheckCircle2, AlertTriangle, ArrowRight } = await import('lucide-react')
     const { default: CreateCycleInline } = await import('./CreateCycleInline')
+    const { default: EndorsedPlansTabs } = await import('./EndorsedPlansTabs')
 
     return (
       <div className="min-h-screen bg-gray-50">
         <main className="container mx-auto px-4 py-8">
-          <div className="flex items-start justify-between mb-8">
+          <div className="flex items-start justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Succession Planning — PSD Review</h1>
               {cycle && (
@@ -126,6 +142,8 @@ export default async function SuccessionPlanningPage() {
             </div>
             {cycle && <CreateCycleInline />}
           </div>
+
+          <EndorsedPlansTabs groups={snapshotGroups}>
 
           {!cycle ? (
             <div className="space-y-6">
@@ -211,39 +229,7 @@ export default async function SuccessionPlanningPage() {
               </div>
             </>
           )}
-
-          {/* Endorsed Plans across all agencies — historical oversight for PSD/admin */}
-          <div className="bg-white border rounded-xl p-6 mt-8">
-            <div className="flex items-center gap-2 mb-4">
-              <CheckCircle2 className="h-5 w-5 text-green-500" />
-              <h2 className="text-lg font-semibold text-gray-900">Endorsed Plans</h2>
-              <span className="text-sm text-gray-400">(all agencies)</span>
-            </div>
-            {endorsedSnapshots.length === 0 ? (
-              <p className="text-gray-500 text-sm">No endorsed plans yet. A snapshot is captured each time an agency&rsquo;s plan is endorsed.</p>
-            ) : (
-              <div className="space-y-2">
-                {endorsedSnapshots.map((snap: any) => (
-                  <Link
-                    key={snap.snapshot_id}
-                    href={`/successionplanning/snapshots/${snap.snapshot_id}`}
-                    className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors"
-                  >
-                    <div>
-                      <div className="font-medium text-gray-900">{snap.agency}</div>
-                      <div className="text-xs text-gray-500">
-                        Endorsed {new Date(snap.endorsed_at).toLocaleDateString('en-SG', { day: 'numeric', month: 'long', year: 'numeric' })}
-                        {snap.endorsed_by_name && ` · by ${snap.endorsed_by_name}`}
-                      </div>
-                    </div>
-                    <span className="text-sm text-blue-600 flex items-center gap-1">
-                      View <ArrowRight className="h-3.5 w-3.5" />
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
+          </EndorsedPlansTabs>
         </main>
       </div>
     )
