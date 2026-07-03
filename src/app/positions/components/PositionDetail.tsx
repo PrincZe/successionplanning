@@ -383,7 +383,7 @@ export default function PositionDetail({ position, submissionStatus, submissionI
 
     {/* Pipeline Health side panel */}
     {showPipelineHealth && (
-      <div className="fixed inset-0 z-40 flex" onClick={() => setShowPipelineHealth(false)}>
+      <div className="fixed inset-0 z-[60] flex" onClick={() => setShowPipelineHealth(false)}>
         <div className="flex-1 bg-black/40" />
         <div className="w-full max-w-2xl bg-white shadow-2xl overflow-y-auto h-screen" onClick={(e) => e.stopPropagation()}>
           <div className="sticky top-0 bg-white border-b z-10 flex items-center justify-between px-6 py-4">
@@ -402,7 +402,7 @@ export default function PositionDetail({ position, submissionStatus, submissionI
 
     {/* History slide-over: change log + endorsed plan snapshots */}
     {showHistory && (
-      <div className="fixed inset-0 z-40 flex" onClick={() => setShowHistory(false)}>
+      <div className="fixed inset-0 z-[60] flex" onClick={() => setShowHistory(false)}>
         <div className="flex-1 bg-black/40" />
         <div className="w-full max-w-xl bg-white shadow-2xl overflow-y-auto h-screen" onClick={(e) => e.stopPropagation()}>
           <div className="sticky top-0 bg-white border-b z-10 px-6 py-4">
