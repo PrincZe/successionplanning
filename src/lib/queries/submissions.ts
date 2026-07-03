@@ -214,6 +214,25 @@ export async function getSnapshotsForAgency(agency: string) {
   return data ?? []
 }
 
+// All endorsed snapshots across every agency, newest first — for the PSD/admin
+// oversight view. Resolves endorsed_by to a display name.
+export async function getAllSnapshots() {
+  const { data, error } = await supabase
+    .from('endorsed_plan_snapshots')
+    .select('snapshot_id, submission_id, agency, endorsed_at, endorsed_by')
+    .order('endorsed_at', { ascending: false })
+  if (error) throw error
+  if (!data || data.length === 0) return []
+
+  const userIds = Array.from(new Set(data.map((s: any) => s.endorsed_by).filter(Boolean)))
+  const { data: users } = userIds.length
+    ? await supabase.from('users').select('user_id, name').in('user_id', userIds)
+    : { data: [] as any[] }
+  const userMap = new Map((users ?? []).map((u: any) => [u.user_id, u.name]))
+
+  return data.map((s: any) => ({ ...s, endorsed_by_name: userMap.get(s.endorsed_by) ?? '' }))
+}
+
 // Endorsed history for a single position: pull every endorsed snapshot for the
 // position's agency and extract just this position's slice, so the position page
 // can show how its successor line-up looked at each past endorsement.

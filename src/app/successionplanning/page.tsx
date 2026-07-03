@@ -87,9 +87,10 @@ export default async function SuccessionPlanningPage() {
   }
 
   if (session.role === 'psd' || session.role === 'admin') {
-    const { getActiveCycle, getSubmissions, getPostSubmissionEditCount } = await import('@/lib/queries/submissions')
+    const { getActiveCycle, getSubmissions, getPostSubmissionEditCount, getAllSnapshots } = await import('@/lib/queries/submissions')
     const cycle = await getActiveCycle()
     const submissions = cycle ? await getSubmissions({ cycle_id: cycle.cycle_id }) : []
+    const endorsedSnapshots = await getAllSnapshots().catch(() => [])
 
     // Compute post-submission edit counts for each submitted/endorsed agency
     const editCounts: Record<string, number> = {}
@@ -210,6 +211,39 @@ export default async function SuccessionPlanningPage() {
               </div>
             </>
           )}
+
+          {/* Endorsed Plans across all agencies — historical oversight for PSD/admin */}
+          <div className="bg-white border rounded-xl p-6 mt-8">
+            <div className="flex items-center gap-2 mb-4">
+              <CheckCircle2 className="h-5 w-5 text-green-500" />
+              <h2 className="text-lg font-semibold text-gray-900">Endorsed Plans</h2>
+              <span className="text-sm text-gray-400">(all agencies)</span>
+            </div>
+            {endorsedSnapshots.length === 0 ? (
+              <p className="text-gray-500 text-sm">No endorsed plans yet. A snapshot is captured each time an agency&rsquo;s plan is endorsed.</p>
+            ) : (
+              <div className="space-y-2">
+                {endorsedSnapshots.map((snap: any) => (
+                  <Link
+                    key={snap.snapshot_id}
+                    href={`/successionplanning/snapshots/${snap.snapshot_id}`}
+                    className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors"
+                  >
+                    <div>
+                      <div className="font-medium text-gray-900">{snap.agency}</div>
+                      <div className="text-xs text-gray-500">
+                        Endorsed {new Date(snap.endorsed_at).toLocaleDateString('en-SG', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        {snap.endorsed_by_name && ` · by ${snap.endorsed_by_name}`}
+                      </div>
+                    </div>
+                    <span className="text-sm text-blue-600 flex items-center gap-1">
+                      View <ArrowRight className="h-3.5 w-3.5" />
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </main>
       </div>
     )
